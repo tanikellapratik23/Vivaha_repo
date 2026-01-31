@@ -146,7 +146,12 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
               disabled={loading}
               className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition disabled:opacity-50"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating account... (may take 30s on first load)</span>
+                </div>
+              ) : 'Create Account'}
             </button>
           </form>
 

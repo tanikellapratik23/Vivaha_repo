@@ -1,8 +1,12 @@
-import { useState, useRef } from 'react';
-import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2, Save } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface Guest {
+  _id?: string;
   id: string;
   name: string;
   email?: string;
@@ -18,7 +22,110 @@ export default function GuestList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newGuest, setNewGuest] = useState<Partial<Guest>>({
+    name: '',
+    email: '',
+    phone: '',
+    rsvpStatus: 'pending',
+    mealPreference: '',
+    plusOne: false,
+    group: '',
+  });
+
+  useEffect(() => {
+    fetchGuests();
+  }, []);
+
+  const fetchGuests = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/guests`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setGuests(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch guests:', error);
+    }
+  };
+
+  const addGuest = async () => {
+    if (!newGuest.name) {
+      alert('Please enter guest name');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/guests`, newGuest, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.success) {
+        setGuests([...guests, response.data.data]);
+        setShowAddModal(false);
+        setNewGuest({
+          name: '',
+          email: '',
+          phone: '',
+          rsvpStatus: 'pending',
+          mealPreference: '',
+          plusOne: false,
+          group: '',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to add guest:', error);
+      alert('Failed to add guest');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteGuest = async (id: string) => {
+    if (!confirm('Delete this guest?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const guest = guests.find(g => g.id === id || g._id === id);
+      const guestId = guest?._id || id;
+      
+      await axios.delete(`${API_URL}/api/guests/${guestId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setGuests(guests.filter(g => g.id !== id && g._id !== id));
+    } catch (error) {
+      console.error('Failed to delete guest:', error);
+      alert('Failed to delete guest');
+    }
+  };
+
+  const updateGuestRSVP = async (id: string, status: 'pending' | 'accepted' | 'declined') => {
+    try {
+      const token = localStorage.getItem('token');
+      const guest = guests.find(g => g.id === id || g._id === id);
+      const guestId = guest?._id || id;
+      
+      const response = await axios.put(`${API_URL}/api/guests/${guestId}`, {
+        rsvpStatus: status,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.success) {
+        setGuests(guests.map(g => 
+          (g.id === id || g._id === id) ? { ...g, rsvpStatus: status } : g
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to update RSVP:', error);
+    }
+  };
 
   const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -247,14 +354,38 @@ export default function GuestList() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${getRsvpStatusColor(
-                      guest.rsvpStatus
-                    )}`}
-                  >
-                    {getRsvpStatusIcon(guest.rsvpStatus)}
-                    <span className="capitalize">{guest.rsvpStatus}</span>
-                  </span>
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => updateGuestRSVP(guest._id || guest.id, 'accepted')}
+                      className={`px-2 py-1 rounded text-xs ${
+                        guest.rsvpStatus === 'accepted' 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-gray-200 text-gray-600 hover:bg-green-100'
+                      }`}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => updateGuestRSVP(guest._id || guest.id, 'pending')}
+                      className={`px-2 py-1 rounded text-xs ${
+                        guest.rsvpStatus === 'pending' 
+                          ? 'bg-yellow-500 text-white' 
+                          : 'bg-gray-200 text-gray-600 hover:bg-yellow-100'
+                      }`}
+                    >
+                      ?
+                    </button>
+                    <button
+                      onClick={() => updateGuestRSVP(guest._id || guest.id, 'declined')}
+                      className={`px-2 py-1 rounded text-xs ${
+                        guest.rsvpStatus === 'declined' 
+                          ? 'bg-red-500 text-white' 
+                          : 'bg-gray-200 text-gray-600 hover:bg-red-100'
+                      }`}
+                    >
+                      ✗
+                    </button>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm text-gray-600">{guest.group || '-'}</span>
@@ -264,13 +395,102 @@ export default function GuestList() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <button className="text-primary-600 hover:text-primary-800 font-medium mr-3">Edit</button>
-                  <button className="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                  <button 
+                    onClick={() => deleteGuest(guest.id)}
+                    className="text-red-600 hover:text-red-800 font-medium"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Add Guest Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Add New Guest</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                <input
+                  type="text"
+                  value={newGuest.name}
+                  onChange={(e) => setNewGuest({...newGuest, name: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="Guest name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={newGuest.email}
+                  onChange={(e) => setNewGuest({...newGuest, email: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={newGuest.phone}
+                  onChange={(e) => setNewGuest({...newGuest, phone: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="(555) 555-5555"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Group</label>
+                <input
+                  type="text"
+                  value={newGuest.group}
+                  onChange={(e) => setNewGuest({...newGuest, group: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="e.g., Family, Friends, Work"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Meal Preference</label>
+                <input
+                  type="text"
+                  value={newGuest.mealPreference}
+                  onChange={(e) => setNewGuest({...newGuest, mealPreference: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="e.g., Vegetarian, Vegan"
+                />
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={newGuest.plusOne}
+                  onChange={(e) => setNewGuest({...newGuest, plusOne: e.target.checked})}
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <label className="ml-2 text-sm font-medium text-gray-700">Plus One</label>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addGuest}
+                className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+              >
+                Add Guest
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

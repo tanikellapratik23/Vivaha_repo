@@ -3,7 +3,10 @@ import { Search, MapPin, Star, Phone, Mail, Globe, DollarSign, Filter, Loader, H
 import axios from 'axios';
 import LocationPermission from '../onboarding/steps/LocationPermission';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 interface Vendor {
+  _id?: string;
   id: string;
   name: string;
   category: string;
@@ -19,6 +22,8 @@ interface Vendor {
   specialties?: string[];
   religiousAccommodations?: string[];
   image?: string;
+  status?: string;
+  isFavorite?: boolean;
 }
 
 export default function VendorSearch() {
@@ -37,10 +42,11 @@ export default function VendorSearch() {
   const [religiousFilter, setReligiousFilter] = useState<string>('all');
   const [culturalFilter, setCulturalFilter] = useState<string>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [favoriteVendors, setFavoriteVendors] = useState<Vendor[]>([]);
 
   useEffect(() => {
     fetchUserLocation();
-    loadFavorites();
+    fetchFavoriteVendors();
   }, []);
 
   useEffect(() => {
@@ -48,6 +54,58 @@ export default function VendorSearch() {
       fetchVendors();
     }
   }, [userCity, userState, selectedCategory]);
+
+  const fetchFavoriteVendors = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/vendors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        const favs = response.data.data;
+        setFavoriteVendors(favs);
+        setFavorites(favs.map((v: Vendor) => v.id));
+      }
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (vendorId: string, vendor: Vendor) => {
+    try {
+      const token = localStorage.getItem('token');
+      const isFavorite = favorites.includes(vendorId);
+      
+      if (isFavorite) {
+        // Remove from favorites
+        const existingVendor = favoriteVendors.find(v => v.id === vendorId);
+        if (existingVendor?._id) {
+          await axios.delete(`${API_URL}/api/vendors/${existingVendor._id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+        setFavorites(favorites.filter(id => id !== vendorId));
+        setFavoriteVendors(favoriteVendors.filter(v => v.id !== vendorId));
+      } else {
+        // Add to favorites
+        const response = await axios.post(`${API_URL}/api/vendors`, {
+          ...vendor,
+          status: 'researching',
+          isFavorite: true,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (response.data.success) {
+          setFavorites([...favorites, vendorId]);
+          setFavoriteVendors([...favoriteVendors, response.data.data]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      alert('Failed to update favorite');
+    }
+  };
 
   const fetchVendors = async () => {
     setLoadingVendors(true);
@@ -63,7 +121,7 @@ export default function VendorSearch() {
 
       for (const category of categories) {
         try {
-          const response = await axios.get('/api/vendors/search', {
+          const response = await axios.get(`${API_URL}/api/vendors/search`, {
             headers: { Authorization: `Bearer ${token}` },
             params: { city: userCity, state: userState, category },
           });
@@ -113,7 +171,7 @@ export default function VendorSearch() {
   const fetchUserLocation = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/onboarding', {
+      const response = await axios.get(`${API_URL}/api/onboarding`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data) {
@@ -137,11 +195,11 @@ export default function VendorSearch() {
     // Save the detected location
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/onboarding', {
+      const response = await axios.get(`${API_URL}/api/onboarding`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
-      await axios.put('/api/onboarding', {
+      await axios.put(`${API_URL}/api/onboarding`, {
         ...response.data,
         weddingCity: city,
         weddingState: state,
@@ -157,42 +215,6 @@ export default function VendorSearch() {
     } catch (error) {
       console.error('Failed to save location:', error);
     }
-  };
-
-  const loadFavorites = () => {
-    const saved = localStorage.getItem('favoriteVendors');
-    if (saved) {
-      setFavorites(JSON.parse(saved));
-    }
-  };
-
-  const toggleFavorite = (vendorId: string, vendor: Vendor) => {
-    const newFavorites = favorites.includes(vendorId)
-      ? favorites.filter(id => id !== vendorId)
-      : [...favorites, vendorId];
-    
-    setFavorites(newFavorites);
-    localStorage.setItem('favoriteVendors', JSON.stringify(newFavorites));
-
-    // Also save full vendor details for My Vendors page
-    const savedVendors = localStorage.getItem('myVendors');
-    let myVendors = savedVendors ? JSON.parse(savedVendors) : [];
-    
-    if (newFavorites.includes(vendorId)) {
-      // Add to favorites
-      if (!myVendors.find((v: Vendor) => v.id === vendorId)) {
-        myVendors.push({
-          ...vendor,
-          status: 'researching',
-          isFavorite: true,
-        });
-      }
-    } else {
-      // Remove from favorites
-      myVendors = myVendors.filter((v: Vendor) => v.id !== vendorId);
-    }
-    
-    localStorage.setItem('myVendors', JSON.stringify(myVendors));
   };
 
   // Generate vendors with real Google Maps links

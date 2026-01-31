@@ -37,8 +37,16 @@ export default function Dashboard() {
   };
 
   const handleLogout = () => {
+    // Clear all stored data
     localStorage.removeItem('token');
     localStorage.removeItem('onboardingCompleted');
+    localStorage.removeItem('guests');
+    localStorage.removeItem('todos');
+    localStorage.removeItem('budget');
+    localStorage.removeItem('favoriteVendors');
+    localStorage.removeItem('ceremonies');
+    localStorage.removeItem('playlists');
+    localStorage.removeItem('seatingCharts');
     navigate('/login');
   };
 

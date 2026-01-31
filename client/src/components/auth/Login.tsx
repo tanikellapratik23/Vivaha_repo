@@ -105,7 +105,12 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
               disabled={loading}
               className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in... (may take 30s on first load)</span>
+                </div>
+              ) : 'Sign In'}
             </button>
           </form>
 

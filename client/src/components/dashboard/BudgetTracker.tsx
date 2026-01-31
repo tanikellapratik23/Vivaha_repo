@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info } from 'lucide-react';
+import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import axios from 'axios';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 interface BudgetCategory {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   estimatedAmount: number;
   actualAmount: number;
@@ -13,8 +16,13 @@ interface BudgetCategory {
 }
 
 export default function BudgetTracker() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    estimatedAmount: 0,
+  });
 
   const [userSettings, setUserSettings] = useState<any>(null);
   const [cityData, setCityData] = useState<any>(null);
@@ -22,7 +30,96 @@ export default function BudgetTracker() {
 
   useEffect(() => {
     fetchUserSettings();
+    fetchBudgetCategories();
   }, []);
+
+  const fetchBudgetCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/budget`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch budget categories:', error);
+    }
+  };
+
+  const addCategory = async () => {
+    if (!newCategory.name || newCategory.estimatedAmount <= 0) {
+      alert('Please enter category name and estimated amount');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/budget`, {
+        name: newCategory.name,
+        estimatedAmount: newCategory.estimatedAmount,
+        actualAmount: 0,
+        paid: 0,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.success) {
+        setCategories([...categories, response.data.data]);
+        setShowAddModal(false);
+        setNewCategory({ name: '', estimatedAmount: 0 });
+      }
+    } catch (error) {
+      console.error('Failed to add category:', error);
+      alert('Failed to add category');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm('Delete this category?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const category = categories.find(c => c.id === id || c._id === id);
+      const categoryId = category?._id || id;
+      
+      await axios.delete(`${API_URL}/api/budget/${categoryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setCategories(categories.filter(c => c.id !== id && c._id !== id));
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      alert('Failed to delete category');
+    }
+  };
+
+  const updateCategoryAmount = async (id: string, field: 'actualAmount' | 'paid', value: number) => {
+    const category = categories.find(c => c.id === id || c._id === id);
+    if (!category) return;
+    
+    const categoryId = category._id || id;
+    const updatedCategory = { ...category, [field]: value };
+    
+    // Optimistic update
+    setCategories(categories.map(cat => 
+      (cat.id === id || cat._id === id) ? { ...cat, [field]: value } : cat
+    ));
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/budget/${categoryId}`, updatedCategory, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      console.error('Failed to update category:', error);
+      // Revert on error
+      fetchBudgetCategories();
+    }
+  };
 
   const fetchUserSettings = async () => {
     try {
@@ -79,7 +176,10 @@ export default function BudgetTracker() {
           <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
           <p className="text-gray-500 mt-1">Monitor your wedding expenses</p>
         </div>
-        <button className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg"
+        >
           <Plus className="w-5 h-5" />
           <span>Add Category</span>
         </button>
@@ -266,15 +366,19 @@ export default function BudgetTracker() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {categories.map((category, index) => {
+              const catId = category._id || category.id || '';
               const remaining = category.actualAmount - category.paid;
               const percentSpent = (category.actualAmount / category.estimatedAmount) * 100;
               
               return (
-                <tr key={category.id} className="hover:bg-gray-50">
+                <tr key={catId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div
@@ -287,11 +391,21 @@ export default function BudgetTracker() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     ${category.estimatedAmount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    ${category.actualAmount.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="number"
+                      value={category.actualAmount}
+                      onChange={(e) => updateCategoryAmount(catId, 'actualAmount', Number(e.target.value))}
+                      className="w-24 px-2 py-1 text-sm border rounded"
+                    />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                    ${category.paid.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="number"
+                      value={category.paid}
+                      onChange={(e) => updateCategoryAmount(catId, 'paid', Number(e.target.value))}
+                      className="w-24 px-2 py-1 text-sm border rounded"
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     ${remaining.toLocaleString()}
@@ -309,12 +423,70 @@ export default function BudgetTracker() {
                       <span className="text-xs text-gray-500">{percentSpent.toFixed(0)}%</span>
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => deleteCategory(catId)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      {/* Add Category Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Add Budget Category</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category Name *
+                </label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., Venue, Catering, Photography"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Estimated Amount *
+                </label>
+                <input
+                  type="number"
+                  value={newCategory.estimatedAmount}
+                  onChange={(e) => setNewCategory({...newCategory, estimatedAmount: Number(e.target.value)})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addCategory}
+                className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+              >
+                Add Category
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

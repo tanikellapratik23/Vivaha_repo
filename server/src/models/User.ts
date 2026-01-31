@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   role: 'bride' | 'groom' | 'parent' | 'friend' | 'planner' | 'other';
   onboardingCompleted: boolean;
+  isAdmin?: boolean;
   onboardingData?: {
     role: string;
     weddingStyle: string;
@@ -28,6 +29,7 @@ const UserSchema = new Schema<IUser>(
       enum: ['bride', 'groom', 'parent', 'friend', 'planner', 'other'],
       default: 'bride',
     },
+    isAdmin: { type: Boolean, default: false },
     onboardingCompleted: { type: Boolean, default: false },
     onboardingData: {
       role: String,
