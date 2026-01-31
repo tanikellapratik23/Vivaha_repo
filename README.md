@@ -1,17 +1,16 @@
-# WedWise - Wedding Planning Website 💕
+# WedWise - Wedding Planning Website 
 
 A comprehensive, full-stack wedding planning web application built with React, TypeScript, Node.js, and MongoDB. WedWise helps couples plan their perfect wedding with personalized onboarding and powerful planning tools.
 
-## ✨ Features
 
-### 🎯 Personalized Onboarding Flow
+###  Personalized Onboarding Flow
 - **Welcome Screen**: Friendly introduction to the platform
 - **Role Selection**: Identify who's planning (couple, parent, friend, planner)
 - **Preferences**: Wedding style, priorities, budget, guest count, color themes
 - **Goals**: Understand user needs and customize experience
 - **Summary**: Review and confirm personalized setup
 
-### 📋 Core Planning Features
+###  Core Planning Features
 - **Guest List Management**: Track RSVPs, meal preferences, contact info
 - **Budget Tracker**: Monitor expenses with visual charts and category breakdowns
 - **To-Do List**: Organize tasks with priorities, due dates, and categories
@@ -19,14 +18,14 @@ A comprehensive, full-stack wedding planning web application built with React, T
 - **Seating Planner**: Visual drag-and-drop seating arrangement tool
 - **Dashboard Overview**: Real-time stats and activity tracking
 
-### 🎨 Design Features
+### Design Features
 - Beautiful gradient UI with Tailwind CSS
 - Responsive design for all devices
 - Interactive charts with Recharts
 - Modern, intuitive user interface
 - Color-coded status indicators
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React 18** - UI library
@@ -49,7 +48,7 @@ A comprehensive, full-stack wedding planning web application built with React, T
 - **JWT** - Authentication
 - **Bcrypt** - Password hashing
 
-## 📁 Project Structure
+## Structure
 
 ```
 wedwise/
@@ -79,7 +78,7 @@ wedwise/
 └── README.md
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v18 or higher)
@@ -190,7 +189,7 @@ wedwise/
 - `PUT /api/vendors/:id` - Update vendor
 - `DELETE /api/vendors/:id` - Delete vendor
 
-## 🎯 Usage Guide
+## Usage Guide
 
 ### 1. Register & Login
 - Create a new account on the register page
@@ -209,7 +208,7 @@ wedwise/
 - **Vendors**: Keep track of all your vendors
 - **Seating**: Plan your seating arrangement
 
-## 🔒 Security
+## Security
 
 - JWT-based authentication
 - Bcrypt password hashing
@@ -217,7 +216,7 @@ wedwise/
 - Environment variable configuration
 - CORS enabled
 
-## 🚧 Future Enhancements
+## Future Enhancements
 
 - [ ] Email invitations
 - [ ] Calendar integration (Google/Apple Calendar)
@@ -231,19 +230,14 @@ wedwise/
 - [ ] Payment tracking
 - [ ] Timeline visualization
 
-## 🤝 Contributing
 
-This is a portfolio/educational project. Feel free to fork and customize for your own use!
 
 ## 📄 License
 
 MIT License - feel free to use this project for learning or personal use.
 
-## 👨‍💻 Developer
 
-Built with ❤️ as a full-stack wedding planning solution.
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 **MongoDB Connection Error**
 - Ensure MongoDB is running
@@ -257,10 +251,6 @@ Built with ❤️ as a full-stack wedding planning solution.
 - Delete node_modules and package-lock.json
 - Run `npm install` again
 
-## 📞 Support
+## Support
 
-For issues or questions, please create an issue in the repository.
-
----
-
-Happy Wedding Planning! 💍✨
+For issues or questions, please contact pratiktanikella@gmail.com
