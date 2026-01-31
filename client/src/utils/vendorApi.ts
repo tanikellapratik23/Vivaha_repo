@@ -1,7 +1,7 @@
 // Vendor API integration using Yelp Fusion API
 // To use: Get API key from https://www.yelp.com/developers/v3/manage_app
 
-const YELP_API_KEY = process.env.VITE_YELP_API_KEY || '';
+const YELP_API_KEY = import.meta.env.VITE_YELP_API_KEY || '';
 const YELP_API_URL = 'https://api.yelp.com/v3/businesses/search';
 
 export interface RealVendor {
@@ -73,7 +73,7 @@ export async function searchYelpVendors(
 }
 
 // Google Places API alternative
-const GOOGLE_API_KEY = process.env.VITE_GOOGLE_PLACES_API_KEY || '';
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
 
 export async function searchGooglePlaces(
   city: string,

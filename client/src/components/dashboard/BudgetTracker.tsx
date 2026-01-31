@@ -13,6 +13,7 @@ interface BudgetCategory {
 }
 
 export default function BudgetTracker() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
 
   const [userSettings, setUserSettings] = useState<any>(null);
