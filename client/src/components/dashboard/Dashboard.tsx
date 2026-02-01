@@ -14,6 +14,7 @@ import Settings from './Settings';
 import CeremonyPlanning from './CeremonyPlanning';
 import MusicPlanner from './MusicPlanner';
 import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 function AutoSaveToggle() {
   const [enabled, setEnabled] = useState<boolean>(isAutoSaveEnabled());
@@ -159,18 +160,20 @@ export default function Dashboard() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">
-            <Routes>
-              <Route path="/" element={<Overview />} />
-              <Route path="/guests" element={<GuestList />} />
-              <Route path="/budget" element={<BudgetTracker />} />
-              <Route path="/todos" element={<TodoList />} />
-              <Route path="/ceremony" element={<CeremonyPlanning />} />
-              <Route path="/music" element={<MusicPlanner />} />
-              <Route path="/vendor-search" element={<VendorSearch />} />
-              <Route path="/vendors" element={<VendorManagement />} />
-              <Route path="/seating" element={<SeatingPlanner />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Overview />} />
+                <Route path="/guests" element={<GuestList />} />
+                <Route path="/budget" element={<BudgetTracker />} />
+                <Route path="/todos" element={<TodoList />} />
+                <Route path="/ceremony" element={<CeremonyPlanning />} />
+                <Route path="/music" element={<MusicPlanner />} />
+                <Route path="/vendor-search" element={<VendorSearch />} />
+                <Route path="/vendors" element={<VendorManagement />} />
+                <Route path="/seating" element={<SeatingPlanner />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </ErrorBoundary>
           </main>
         </div>
       </div>

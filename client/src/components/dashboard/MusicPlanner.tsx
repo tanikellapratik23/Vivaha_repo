@@ -76,41 +76,51 @@ export default function MusicPlanner() {
   }, [playlists]);
 
   const loadPlaylists = () => {
-    const saved = localStorage.getItem('weddingPlaylists');
-    if (saved) {
-      const loaded = JSON.parse(saved);
-      setPlaylists(loaded);
-      if (loaded.length > 0) {
-        setSelectedPlaylist(loaded[0]);
+    try {
+      const saved = localStorage.getItem('weddingPlaylists');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        if (Array.isArray(loaded) && loaded.length > 0) {
+          setPlaylists(loaded);
+          setSelectedPlaylist(loaded[0]);
+          return;
+        }
       }
-    } else {
-      // Create default playlists
-      const defaults: Playlist[] = [
-        {
-          id: 'ceremony',
-          name: 'Ceremony',
-          description: 'Music for the ceremony processional and recessional',
-          songs: [],
-          eventType: 'Ceremony',
-        },
-        {
-          id: 'reception',
-          name: 'Reception',
-          description: 'Music for cocktail hour and reception',
-          songs: [],
-          eventType: 'Reception Entrance',
-        },
-        {
-          id: 'dancing',
-          name: 'Dancing',
-          description: 'Upbeat songs for the dance floor',
-          songs: [],
-          eventType: 'Dancing',
-        },
-      ];
-      setPlaylists(defaults);
-      setSelectedPlaylist(defaults[0]);
+    } catch (e) {
+      console.error('Failed to load playlists:', e);
+      localStorage.removeItem('weddingPlaylists');
+    }
+    
+    // Create default playlists
+    const defaults: Playlist[] = [
+      {
+        id: 'ceremony',
+        name: 'Ceremony',
+        description: 'Music for the ceremony processional and recessional',
+        songs: [],
+        eventType: 'Ceremony',
+      },
+      {
+        id: 'reception',
+        name: 'Reception',
+        description: 'Music for cocktail hour and reception',
+        songs: [],
+        eventType: 'Reception Entrance',
+      },
+      {
+        id: 'dancing',
+        name: 'Dancing',
+        description: 'Upbeat songs for the dance floor',
+        songs: [],
+        eventType: 'Dancing',
+      },
+    ];
+    setPlaylists(defaults);
+    setSelectedPlaylist(defaults[0]);
+    try {
       localStorage.setItem('weddingPlaylists', JSON.stringify(defaults));
+    } catch (e) {
+      console.error('Failed to save default playlists:', e);
     }
   };
 
@@ -259,15 +269,23 @@ export default function MusicPlanner() {
   };
 
   const exportPlaylist = () => {
-    if (!selectedPlaylist) return;
+    if (!selectedPlaylist) {
+      alert('Please select a playlist to export');
+      return;
+    }
     
-    // Export as CSV using the utility
-    const songsWithCeremony = selectedPlaylist.songs.map(song => ({
-      ...song,
-      ceremonyMoment: selectedPlaylist.eventType,
-    }));
-    
-    exportPlaylistToCSV(songsWithCeremony);
+    try {
+      // Export as CSV using the utility
+      const songsWithCeremony = selectedPlaylist.songs.map(song => ({
+        ...song,
+        ceremonyMoment: selectedPlaylist.eventType,
+      }));
+      
+      exportPlaylistToCSV(songsWithCeremony);
+    } catch (error) {
+      console.error('Failed to export playlist:', error);
+      alert('Failed to export playlist. Please try again.');
+    }
   };
 
   return (

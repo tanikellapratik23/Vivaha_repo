@@ -24,9 +24,17 @@ export default function VendorManagement() {
   }, []);
 
   const loadFavoriteVendors = () => {
-    const savedVendors = localStorage.getItem('myVendors');
-    if (savedVendors) {
-      setVendors(JSON.parse(savedVendors));
+    try {
+      const savedVendors = localStorage.getItem('myVendors');
+      if (savedVendors) {
+        const parsed = JSON.parse(savedVendors);
+        if (Array.isArray(parsed)) {
+          setVendors(parsed);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load vendors:', e);
+      localStorage.removeItem('myVendors');
     }
   };
 
