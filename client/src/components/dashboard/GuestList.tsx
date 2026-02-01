@@ -40,6 +40,13 @@ export default function GuestList() {
 
   const fetchGuests = async () => {
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const cached = localStorage.getItem('guests');
+        if (cached) setGuests(JSON.parse(cached));
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/guests`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -49,6 +56,9 @@ export default function GuestList() {
       }
     } catch (error) {
       console.error('Failed to fetch guests:', error);
+      // fallback to local cache
+      const cached = localStorage.getItem('guests');
+      if (cached) setGuests(JSON.parse(cached));
     }
   };
 
@@ -60,6 +70,35 @@ export default function GuestList() {
     
     try {
       setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        // locally add guest
+        const guest = {
+          id: `local-${Date.now()}`,
+          name: newGuest.name || '',
+          email: newGuest.email || '',
+          phone: newGuest.phone || '',
+          rsvpStatus: (newGuest.rsvpStatus as any) || 'pending',
+          mealPreference: newGuest.mealPreference || '',
+          plusOne: !!newGuest.plusOne,
+          group: newGuest.group || '',
+        } as Guest;
+        const next = [...guests, guest];
+        setGuests(next);
+        localStorage.setItem('guests', JSON.stringify(next));
+        setShowAddModal(false);
+        setNewGuest({
+          name: '',
+          email: '',
+          phone: '',
+          rsvpStatus: 'pending',
+          mealPreference: '',
+          plusOne: false,
+          group: '',
+        });
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const response = await axios.post(`${API_URL}/api/guests`, newGuest, {
         headers: { Authorization: `Bearer ${token}` },
@@ -90,14 +129,22 @@ export default function GuestList() {
     if (!confirm('Delete this guest?')) return;
     
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const next = guests.filter(g => g.id !== id && g._id !== id);
+        setGuests(next);
+        localStorage.setItem('guests', JSON.stringify(next));
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const guest = guests.find(g => g.id === id || g._id === id);
       const guestId = guest?._id || id;
-      
+
       await axios.delete(`${API_URL}/api/guests/${guestId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       setGuests(guests.filter(g => g.id !== id && g._id !== id));
     } catch (error) {
       console.error('Failed to delete guest:', error);
@@ -107,16 +154,24 @@ export default function GuestList() {
 
   const updateGuestRSVP = async (id: string, status: 'pending' | 'accepted' | 'declined') => {
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const next = guests.map(g => (g.id === id || g._id === id) ? { ...g, rsvpStatus: status } : g);
+        setGuests(next);
+        localStorage.setItem('guests', JSON.stringify(next));
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const guest = guests.find(g => g.id === id || g._id === id);
       const guestId = guest?._id || id;
-      
+
       const response = await axios.put(`${API_URL}/api/guests/${guestId}`, {
         rsvpStatus: status,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.data.success) {
         setGuests(guests.map(g => 
           (g.id === id || g._id === id) ? { ...g, rsvpStatus: status } : g
@@ -125,6 +180,11 @@ export default function GuestList() {
     } catch (error) {
       console.error('Failed to update RSVP:', error);
     }
+  };
+
+  const saveGuests = () => {
+    localStorage.setItem('guests', JSON.stringify(guests));
+    alert('Guest list saved locally');
   };
 
   const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,6 +296,13 @@ export default function GuestList() {
           >
             <Download className="w-5 h-5" />
             <span>Export</span>
+          </button>
+          <button
+            onClick={saveGuests}
+            className="flex items-center space-x-2 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl transition shadow-lg"
+          >
+            <Save className="w-5 h-5" />
+            <span>Save</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
