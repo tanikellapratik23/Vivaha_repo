@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { Plus, CheckCircle, Circle, Calendar, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save } from 'lucide-react';
 import { format } from 'date-fns';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface Todo {
-  id: string;
+  _id?: string;
+  id?: string;
   title: string;
   description?: string;
   dueDate?: Date;
@@ -14,12 +18,98 @@ interface Todo {
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTodo, setNewTodo] = useState<Partial<Todo>>({
+    title: '',
+    description: '',
+    dueDate: undefined,
+    priority: 'medium',
+    category: 'General',
+  });
 
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'priority'>('date');
 
-  const toggleTodo = (id: string) => {
-    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
+  const toggleTodo = async (id: string) => {
+    const todo = todos.find(t => t.id === id || t._id === id);
+    if (!todo) return;
+    const todoId = todo._id || id;
+    const updated = { ...todo, completed: !todo.completed } as any;
+
+    // optimistic update
+    setTodos(todos.map((t) => (t.id === id || t._id === id ? { ...t, completed: !t.completed } : t)));
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/todos/${todoId}`, updated, { headers: { Authorization: `Bearer ${token}` } });
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+      // revert
+      fetchTodos();
+    }
+  };
+
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/todos`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.success) {
+        // convert dates
+        const items = res.data.data.map((t: any) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
+        setTodos(items);
+      }
+    } catch (error) {
+      console.error('Failed to fetch todos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchTodos(); }, []);
+
+  const addTodo = async () => {
+    if (!newTodo.title) {
+      alert('Please enter a task title');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        title: newTodo.title,
+        description: newTodo.description || '',
+        dueDate: newTodo.dueDate || null,
+        completed: false,
+        priority: newTodo.priority,
+        category: newTodo.category,
+      };
+      const res = await axios.post(`${API_URL}/api/todos`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.success) {
+        const item = res.data.data;
+        item.dueDate = item.dueDate ? new Date(item.dueDate) : undefined;
+        setTodos([...(todos || []), item]);
+        setShowAddModal(false);
+        setNewTodo({ title: '', description: '', dueDate: undefined, priority: 'medium', category: 'General' });
+      }
+    } catch (error) {
+      console.error('Failed to add todo:', error);
+      alert('Unable to create task');
+    }
+  };
+
+  const deleteTodo = async (id: string) => {
+    if (!confirm('Delete this task?')) return;
+    try {
+      const todo = todos.find(t => t._id === id || t.id === id);
+      const todoId = todo?._id || id;
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/todos/${todoId}`, { headers: { Authorization: `Bearer ${token}` } });
+      setTodos(todos.filter(t => t._id !== id && t.id !== id));
+    } catch (error) {
+      console.error('Failed to delete todo:', error);
+      alert('Unable to delete task');
+    }
   };
 
   const filteredTodos = todos.filter((todo) => {
@@ -67,7 +157,7 @@ export default function TodoList() {
           <h1 className="text-3xl font-bold text-gray-900">To-Do List</h1>
           <p className="text-gray-500 mt-1">Track your wedding planning tasks</p>
         </div>
-        <button className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
+        <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
           <Plus className="w-5 h-5" />
           <span>Add Task</span>
         </button>
@@ -130,14 +220,14 @@ export default function TodoList() {
       <div className="space-y-3">
         {sortedTodos.map((todo) => (
           <div
-            key={todo.id}
+            key={todo._id || todo.id}
             className={`bg-white rounded-xl shadow-sm p-6 transition hover:shadow-md ${
               todo.completed ? 'opacity-60' : ''
             } ${isOverdue(todo) ? 'border-l-4 border-red-500' : ''}`}
           >
             <div className="flex items-start space-x-4">
               <button
-                onClick={() => toggleTodo(todo.id)}
+                onClick={() => toggleTodo(todo._id || todo.id || '')}
                 className="flex-shrink-0 mt-1"
               >
                 {todo.completed ? (
@@ -200,6 +290,74 @@ export default function TodoList() {
           </div>
         )}
       </div>
+
+      {/* Add Task Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold mb-4">Add Task</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <input
+                  type="text"
+                  value={newTodo.title}
+                  onChange={(e) => setNewTodo({ ...newTodo, title: e.target.value })}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newTodo.description}
+                  onChange={(e) => setNewTodo({ ...newTodo, description: e.target.value })}
+                  className="w-full px-3 py-2 border rounded h-24"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                  <input
+                    type="date"
+                    value={newTodo.dueDate ? (new Date(newTodo.dueDate)).toISOString().slice(0,10) : ''}
+                    onChange={(e) => setNewTodo({ ...newTodo, dueDate: e.target.value ? new Date(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={newTodo.priority}
+                    onChange={(e) => setNewTodo({ ...newTodo, priority: e.target.value as any })}
+                    className="w-full px-3 py-2 border rounded"
+                  >
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input
+                  type="text"
+                  value={newTodo.category}
+                  onChange={(e) => setNewTodo({ ...newTodo, category: e.target.value })}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 border rounded">Cancel</button>
+                <button onClick={addTodo} className="flex-1 px-4 py-2 bg-primary-500 text-white rounded">Add Task</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

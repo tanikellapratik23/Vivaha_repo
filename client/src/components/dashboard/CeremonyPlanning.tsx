@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Church, Sparkles, Check, Plus, X, Clock, Users, Info, Calendar, ChevronRight, Trash2, MapPin, Save, Share2, Download } from 'lucide-react';
 import axios from 'axios';
 import { religionCeremonyData, getRitualsForReligion, getTraditionsForReligion, getCeremonyStructure, getInterfaithOptions } from '../../utils/ceremonyData';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface DayEvent {
   id: string;
@@ -15,6 +16,7 @@ interface DayEvent {
     address: string;
   };
 }
+
 
 interface WeddingDay {
   dayNumber: number;
@@ -53,7 +55,7 @@ export default function CeremonyPlanning() {
   const fetchUserSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/onboarding', {
+        const response = await axios.get(`${API_URL}/api/onboarding`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data) {
@@ -170,7 +172,7 @@ export default function CeremonyPlanning() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/onboarding', {
+      await axios.put(`${API_URL}/api/onboarding`, {
         ...userSettings,
         ceremonyDetails: {
           ...userSettings.ceremonyDetails,
@@ -188,6 +190,7 @@ export default function CeremonyPlanning() {
     } finally {
       setSaving(false);
     }
+
   };
 
   const toggleRitual = (ritual: string) => {
@@ -391,90 +394,92 @@ export default function CeremonyPlanning() {
                 </button>
               </div>
             ) : (
-              weddingDays[selectedDay].events.map((event, eventIndex) => (
-                <div
-                  key={event.id}
-                  className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-5 border-l-4 border-pink-500"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Clock className="w-5 h-5 text-pink-600" />
-                        <span className="text-lg font-bold text-gray-900">{event.name}</span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                        <span>🕐 {event.time}</span>
-                        <span>⏱️ {event.duration}</span>
-                      </div>
-                      {event.location && event.location.name && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                          <MapPin className="w-4 h-4 text-pink-600" />
-                          <div>
-                            <div className="font-medium">{event.location.name}</div>
-                            {event.location.address && (
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location.address)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:underline"
-                              >
-                                {event.location.address} →
-                              </a>
-                            )}
+              weddingDays[selectedDay].events.map((event, eventIndex) => {
+                return (
+                  <div
+                    key={event.id}
+                    className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-5 border-l-4 border-pink-500"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Clock className="w-5 h-5 text-pink-600" />
+                          <span className="text-lg font-bold text-gray-900">{event.name}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                          <span>🕐 {event.time}</span>
+                          <span>⏱️ {event.duration}</span>
+                        </div>
+                        {event.location && event.location.name && (
+                          <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+                            <MapPin className="w-4 h-4 text-pink-600" />
+                            <div>
+                              <div className="font-medium">{event.location.name}</div>
+                              {event.location.address && (
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location.address)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:underline"
+                                >
+                                  {event.location.address} →
+                                </a>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {event.description && (
-                        <p className="text-sm text-gray-700 mb-3">{event.description}</p>
-                      )}
-                      {event.rituals.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="text-xs font-semibold text-purple-700">Rituals:</span>
-                          {event.rituals.map((ritual, rIndex) => (
-                            <span
-                              key={rIndex}
-                              className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full"
+                        )}
+                        {event.description && (
+                          <p className="text-sm text-gray-700 mb-3">{event.description}</p>
+                        )}
+                        {event.rituals.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            <span className="text-xs font-semibold text-purple-700">Rituals:</span>
+                            {event.rituals.map((ritual, rIndex) => (
+                              <span
+                                key={rIndex}
+                                className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full"
+                              >
+                                {ritual}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteEvent(selectedDay, event.id)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                        title="Delete event"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Assign Rituals to Event */}
+                    <div className="mt-4 pt-4 border-t border-purple-200">
+                      <p className="text-xs font-semibold text-gray-700 mb-2">Assign rituals to this event:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedRituals.map((ritual) => {
+                          const isAssigned = event.rituals.includes(ritual);
+                          return (
+                            <button
+                              key={ritual}
+                              onClick={() => assignRitualToEvent(selectedDay, event.id, ritual)}
+                              className={`text-xs px-3 py-1 rounded-full transition ${
+                                isAssigned
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
                             >
+                              {isAssigned && <Check className="w-3 h-3 inline mr-1" />}
                               {ritual}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => deleteEvent(selectedDay, event.id)}
-                      className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
-                      title="Delete event"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                  
-                  {/* Assign Rituals to Event */}
-                  <div className="mt-4 pt-4 border-t border-purple-200">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">Assign rituals to this event:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedRituals.map((ritual) => {
-                        const isAssigned = event.rituals.includes(ritual);
-                        return (
-                          <button
-                            key={ritual}
-                            onClick={() => assignRitualToEvent(selectedDay, event.id, ritual)}
-                            className={`text-xs px-3 py-1 rounded-full transition ${
-                              isAssigned
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            {isAssigned && <Check className="w-3 h-3 inline mr-1" />}
-                            {ritual}
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

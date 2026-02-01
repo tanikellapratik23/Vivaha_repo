@@ -30,22 +30,40 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
     }
 
     setLoading(true);
+    const controller = new AbortController();
+    const abortTimer = setTimeout(() => {
+      try { controller.abort(); } catch (e) {}
+      setError('Server is taking too long to respond — try again in a few seconds.');
+      setLoading(false);
+    }, 10000);
+
     try {
       console.log('Attempting registration with:', { name: formData.name, email: formData.email });
       const response = await axios.post(`${API_URL}/api/auth/register`, {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-      });
-      
+      }, { signal: controller.signal, timeout: 30000 });
+      clearTimeout(abortTimer);
+
       console.log('Registration successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
       navigate('/onboarding');
     } catch (err: any) {
+      clearTimeout(abortTimer);
       console.error('Registration error:', err.response?.data || err.message);
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+        setError('Request canceled — the server did not respond. Try again.');
+      } else if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
+        setError('Registration timed out — the server may be waking up. Try again in a few seconds.');
+      } else if (err.response) {
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      } else {
+        setError('Unable to reach the server. Check your connection or try again later.');
+      }
     } finally {
+      clearTimeout(abortTimer);
       setLoading(false);
     }
   };
