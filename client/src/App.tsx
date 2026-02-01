@@ -5,6 +5,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Landing from './components/Landing';
+import DemoPage from './components/DemoPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -66,6 +67,7 @@ function App() {
               )
             }
           />
+          <Route path="/demo" element={<DemoPage />} />
         </Routes>
       </div>
     </Router>

@@ -292,13 +292,16 @@ function useScrollIntoDemo(demoRef: React.RefObject<HTMLDivElement>, playing: bo
   }, [playing, demoRef]);
 }
 
-function DemoLauncher({ stopHero, onStart }: { stopHero?: () => void; onStart?: () => void }) {
+import { useNavigate } from 'react-router-dom';
+
+function DemoLauncher({ stopHero }: { stopHero?: () => void }) {
+  const navigate = useNavigate();
   return (
     <>
       <button
         onClick={() => {
           stopHero?.();
-          onStart?.();
+          navigate('/demo');
         }}
         className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border"
       >
