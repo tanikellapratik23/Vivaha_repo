@@ -387,7 +387,7 @@ export default function BudgetTracker() {
             <h2 className="text-xl font-bold text-gray-900">AI Budget Optimization</h2>
           </div>
           <div className="space-y-3">
-            {aiSuggestions.map((suggestion, index) => (
+            {(Array.isArray(aiSuggestions) ? aiSuggestions : []).map((suggestion, index) => (
               <div key={index} className="flex items-start gap-3 bg-white/70 backdrop-blur-sm rounded-lg p-4">
                 <span className="text-2xl">{suggestion.split(' ')[0]}</span>
                 <p className="text-gray-700 text-sm flex-1">{suggestion.substring(suggestion.indexOf(' ') + 1)}</p>
@@ -414,7 +414,7 @@ export default function BudgetTracker() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {pieData.map((entry, index) => (
+                {(Array.isArray(pieData) ? pieData : []).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -469,7 +469,7 @@ export default function BudgetTracker() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((category, index) => {
+            {(Array.isArray(categories) ? categories : []).map((category, index) => {
               const catId = category._id || category.id || '';
               const remaining = category.actualAmount - category.paid;
               const percentSpent = (category.actualAmount / category.estimatedAmount) * 100;

@@ -263,14 +263,14 @@ export default function Overview() {
       </div>
 
       {/* AI Budget Optimization */}
-      {aiSuggestions.length > 0 && (
+      {Array.isArray(aiSuggestions) && aiSuggestions.length > 0 && (
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-sm p-6 border border-purple-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
             AI Budget Optimization
           </h2>
           <div className="space-y-3">
-            {aiSuggestions.map((suggestion, index) => (
+            {(Array.isArray(aiSuggestions) ? aiSuggestions : []).map((suggestion, index) => (
               <div key={index} className="flex items-start gap-3 bg-white/70 backdrop-blur-sm rounded-lg p-3">
                 <span className="text-2xl">{suggestion.split(' ')[0]}</span>
                 <p className="text-gray-700 text-sm flex-1">{suggestion.substring(suggestion.indexOf(' ') + 1)}</p>
@@ -293,14 +293,14 @@ export default function Overview() {
       )}
 
       {/* Ceremony Planning Assistant */}
-      {ceremonySuggestions.length > 0 && (
+      {Array.isArray(ceremonySuggestions) && ceremonySuggestions.length > 0 && (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm p-6 border border-blue-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <Church className="w-6 h-6 mr-2 text-blue-600" />
             Ceremony Planning Assistant
           </h2>
           <div className="space-y-3">
-            {ceremonySuggestions.map((suggestion, index) => (
+            {(Array.isArray(ceremonySuggestions) ? ceremonySuggestions : []).map((suggestion, index) => (
               <div key={index} className="flex items-start gap-3 bg-white/70 backdrop-blur-sm rounded-lg p-3">
                 <span className="text-2xl">{suggestion.split(' ')[0]}</span>
                 <p className="text-gray-700 text-sm flex-1">{suggestion.substring(suggestion.indexOf(' ') + 1)}</p>

@@ -10,14 +10,21 @@ router.post('/create', authMiddleware, async (req: AuthRequest, res: Response) =
     const { eventName, eventType, tripDate, location, estimatedBudget } = req.body;
     const userId = req.userId;
 
+    if (!eventName || !eventType || !tripDate || !location || estimatedBudget === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: eventName, eventType, tripDate, location, estimatedBudget' 
+      });
+    }
+
     let trip = await BachelorTrip.findOne({ userId });
 
     if (trip) {
       trip.eventName = eventName;
       trip.eventType = eventType;
-      trip.tripDate = tripDate;
+      trip.tripDate = new Date(tripDate);
       trip.location = location;
-      trip.estimatedBudget = estimatedBudget;
+      trip.estimatedBudget = parseFloat(estimatedBudget);
       await trip.save();
       return res.json({ success: true, data: trip });
     }
@@ -26,14 +33,21 @@ router.post('/create', authMiddleware, async (req: AuthRequest, res: Response) =
       userId,
       eventName,
       eventType,
-      tripDate,
+      tripDate: new Date(tripDate),
       location,
-      estimatedBudget,
+      estimatedBudget: parseFloat(estimatedBudget),
+      attendees: [],
+      expenses: [],
+      flights: [],
+      stays: [],
+      totalExpenses: 0,
+      status: 'planning',
     });
 
     await trip.save();
     res.json({ success: true, data: trip });
   } catch (error) {
+    console.error('Error creating bachelor trip:', error);
     res.status(500).json({ success: false, error: (error as Error).message });
   }
 });
