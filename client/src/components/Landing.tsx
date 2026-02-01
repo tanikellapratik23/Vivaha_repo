@@ -107,12 +107,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-purple-100 text-gray-900 flex flex-col">
-      {import.meta.env.DEV && (
-        <>
-          <div className="fixed inset-y-0 left-1/2 w-px bg-red-500 z-50 pointer-events-none" />
-          <div className="fixed top-2 left-1/2 -translate-x-1/2 text-xs text-red-600 z-50 pointer-events-none">center</div>
-        </>
-      )}
+
       {/* Hero background carousel (absolute behind content) */}
       <div className="fixed inset-0 -z-10 transition-opacity duration-700">
         {showHero ? (
@@ -143,10 +138,9 @@ export default function Landing() {
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="w-full flex items-center justify-center">
-            <div className="relative w-full max-w-6xl mx-auto md:w-[1032px] md:left-1/2 md:transform md:-translate-x-1/2 flex flex-col md:flex-row md:justify-center gap-8 items-center">
-              <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
+        <div className="w-full flex items-center justify-center">
+          <div className="flex flex-col md:flex-row md:justify-center gap-8 items-center">
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
               <div className="w-full">
                 <div className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
                   <span className="block text-primary-700">{lines[step]}</span>
