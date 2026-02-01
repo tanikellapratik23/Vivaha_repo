@@ -137,42 +137,40 @@ export default function Landing() {
           </nav>
         </div>
       </header>
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full flex items-center justify-center">
-          <div className="flex flex-col md:flex-row md:justify-center gap-8 items-center">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
-              <div className="w-full">
-                <div className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
-                  <span className="block text-primary-700">{lines[step]}</span>
-                </div>
-                <p className="text-gray-700 text-base mb-4">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-8 items-center justify-center max-w-6xl">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full lg:w-[500px] flex flex-col justify-center items-start border">
+            <div className="w-full">
+              <div className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
+                <span className="block text-primary-700">{lines[step]}</span>
+              </div>
+              <p className="text-gray-700 text-base mb-4">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
-                <div className="flex gap-3 mb-4">
-                  <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
-                  <DemoLauncher stopHero={() => setShowHero(false)} />
-                </div>
+              <div className="flex gap-3 mb-4">
+                <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
+                <DemoLauncher stopHero={() => setShowHero(false)} />
+              </div>
 
-                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  <Feature title="Fast Onboarding" desc="Answer a few quick questions and we customize your dashboard instantly." />
-                  <Feature title="Autosave & Backup" desc="Automatic local saves and exportable backups (JSON + Word)." />
-                </div>
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <Feature title="Fast Onboarding" desc="Answer a few quick questions and we customize your dashboard instantly." />
+                <Feature title="Autosave & Backup" desc="Automatic local saves and exportable backups (JSON + Word)." />
               </div>
             </div>
+          </div>
 
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
-              <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
-              <div className="overflow-hidden rounded-md border p-2 bg-white w-full mb-4 min-w-0 break-words">
-                <OnboardingPreview />
-              </div>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full lg:w-[500px] flex flex-col justify-center items-start border">
+            <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
+            <div className="overflow-hidden rounded-md border p-2 bg-white w-full mb-4 break-words">
+              <OnboardingPreview />
+            </div>
 
-              <div className="mt-2 w-full">
-                <h4 className="text-sm font-medium text-gray-700">How it helps</h4>
-                <ul className="mt-3 space-y-2 text-sm text-gray-600">
-                  <li>We ask a few quick questions (role, religion, location, date).</li>
-                  <li>We use your location to suggest nearby vendors (photographers, DJs, venues).</li>
-                  <li>Favorites and saved vendors show up instantly on your dashboard.</li>
-                </ul>
-              </div>
+            <div className="mt-2 w-full">
+              <h4 className="text-sm font-medium text-gray-700">How it helps</h4>
+              <ul className="mt-3 space-y-2 text-sm text-gray-600">
+                <li>We ask a few quick questions (role, religion, location, date).</li>
+                <li>We use your location to suggest nearby vendors (photographers, DJs, venues).</li>
+                <li>Favorites and saved vendors show up instantly on your dashboard.</li>
+              </ul>
             </div>
           </div>
         </div>
