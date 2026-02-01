@@ -1,6 +1,7 @@
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { downloadBackupFile, importBackupFile } from '../../utils/offlineBackup';
 import axios from 'axios';
 import Overview from './Overview';
 import GuestList from './GuestList';
@@ -68,7 +69,7 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-primary-500 text-white p-2 rounded-lg">
                 <Heart className="w-6 h-6" />
@@ -78,13 +79,37 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-500">Your Wedding Planner</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Logout</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => downloadBackupFile()}
+                className="px-3 py-2 text-sm bg-primary-50 text-primary-700 rounded-md hover:bg-primary-100"
+              >
+                Download Backup
+              </button>
+              <input
+                type="file"
+                accept="application/json"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  try {
+                    await importBackupFile(f);
+                    window.location.reload();
+                  } catch (err) {
+                    console.error('Import failed', err);
+                    alert('Failed to import backup file');
+                  }
+                }}
+                className="text-sm"
+              />
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

@@ -95,6 +95,18 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
     navigate('/login');
   };
 
+  const autoCompleteOnboarding = async () => {
+    // quickly advance through each step then mark onboarding completed locally
+    for (let i = step; i < totalSteps; i++) {
+      await new Promise((r) => setTimeout(r, 350));
+      setStep((s) => Math.min(s + 1, totalSteps));
+    }
+    // mark complete locally (avoid API call when offline)
+    localStorage.setItem('onboardingCompleted', 'true');
+    setHasCompletedOnboarding(true);
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8">
       <div className="max-w-3xl w-full">
@@ -139,6 +151,12 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
                 className="ml-4 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-md text-sm"
               >
                 Go back to Log In
+              </button>
+              <button
+                onClick={autoCompleteOnboarding}
+                className="ml-4 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-md text-sm"
+              >
+                Auto-complete onboarding
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { importBackupFile } from '../../utils/offlineBackup';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock } from 'lucide-react';
@@ -22,13 +23,25 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    // Allow a longer axios timeout (configured globally). Do not forcibly abort
-    // here so backends that are cold-starting can still respond.
+    // Wait up to 5 seconds for the API; if it doesn't respond, automatically
+    // fallback to offline mode and continue to onboarding.
+    let didFallback = false;
+    const timer = window.setTimeout(() => {
+      didFallback = true;
+      setError('Server did not respond — continuing offline.');
+      continueOffline();
+      setLoading(false);
+    }, 5000);
 
     try {
       console.log('Attempting login with:', formData.email);
       const response = await axios.post(`${API_URL}/api/auth/login`, formData, { timeout: 30000 });
+      if (didFallback) {
+        // already continued offline, ignore late response
+        clearTimeout(timer);
+        return;
+      }
+      clearTimeout(timer);
       console.log('Login successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
@@ -41,6 +54,8 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         navigate('/onboarding');
       }
     } catch (err: any) {
+      clearTimeout(timer);
+      if (didFallback) return;
       console.error('Login error:', err.response?.data || err.message);
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Login timed out — the server may be waking up. Try again in a few seconds.');
@@ -50,7 +65,6 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         setError('Unable to reach the server. Check your connection or try again later.');
       }
       // Leave an option for the user to continue without the API
-      // (useful during backend cold-start or local dev without API)
     } finally {
       setLoading(false);
     }
@@ -65,6 +79,26 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     setIsAuthenticated(true);
     navigate('/onboarding');
   };
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await importBackupFile(file);
+      // ensure app reads restored data
+      window.location.href = '/dashboard';
+    } catch (err) {
+      console.error('Import failed', err);
+      setError('Failed to import backup file.');
+    }
+  };
+
+  useEffect(() => {
+    // clear file input value on mount
+    if (fileRef.current) fileRef.current.value = '';
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -114,6 +148,11 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
                   placeholder="Enter your email"
                 />
               </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-xs text-gray-500 mb-1">Or restore a local backup</label>
+              <input ref={fileRef} onChange={handleUpload} accept="application/json" type="file" className="text-sm" />
             </div>
 
             <div>

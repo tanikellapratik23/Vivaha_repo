@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { importBackupFile } from '../../utils/offlineBackup';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock, User } from 'lucide-react';
@@ -31,6 +32,14 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
 
     setLoading(true);
 
+    let didFallback = false;
+    const timer = window.setTimeout(() => {
+      didFallback = true;
+      setError('Server did not respond — continuing offline.');
+      continueOffline();
+      setLoading(false);
+    }, 5000);
+
     try {
       console.log('Attempting registration with:', { name: formData.name, email: formData.email });
       const response = await axios.post(`${API_URL}/api/auth/register`, {
@@ -39,11 +48,18 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
         password: formData.password,
       }, { timeout: 30000 });
 
+      if (didFallback) {
+        clearTimeout(timer);
+        return;
+      }
+      clearTimeout(timer);
       console.log('Registration successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
       navigate('/onboarding');
     } catch (err: any) {
+      clearTimeout(timer);
+      if (didFallback) return;
       console.error('Registration error:', err.response?.data || err.message);
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Registration timed out — the server may be waking up. Try again in a few seconds.');
@@ -52,7 +68,6 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
       } else {
         setError('Unable to reach the server. Check your connection or try again later.');
       }
-      // Provide fallback to continue without API when backend is unreachable
     } finally {
       setLoading(false);
     }
@@ -65,6 +80,24 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
     setIsAuthenticated(true);
     navigate('/onboarding');
   };
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await importBackupFile(file);
+      window.location.href = '/dashboard';
+    } catch (err) {
+      console.error('Import failed', err);
+      setError('Failed to import backup file.');
+    }
+  };
+
+  useEffect(() => {
+    if (fileRef.current) fileRef.current.value = '';
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -114,6 +147,11 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
                   placeholder="Enter your name"
                 />
               </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-xs text-gray-500 mb-1">Or restore a local backup</label>
+              <input ref={fileRef} onChange={handleUpload} accept="application/json" type="file" className="text-sm" />
             </div>
 
             <div>
