@@ -22,9 +22,27 @@ function App() {
     setHasCompletedOnboarding(onboarding === 'true');
   }, []);
 
+  useEffect(() => {
+    // apply OS-level dark mode preference to document root
+    const applyPref = () => {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    };
+    applyPref();
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => applyPref();
+    if (mq.addEventListener) mq.addEventListener('change', handler);
+    else mq.addListener(handler as any);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', handler);
+      else mq.removeListener(handler as any);
+    };
+  }, []);
+
   return (
     <Router basename={BASENAME}>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-black">
         <Routes>
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />

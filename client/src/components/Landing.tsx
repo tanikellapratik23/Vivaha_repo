@@ -138,9 +138,11 @@ export default function Landing() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <section className="w-full flex justify-center">
-          <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 px-4">
-            <section className={`space-y-6 flex flex-col items-center w-full max-w-[520px] mx-auto ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-4xl mx-auto px-4">
+            <div className="bg-white/95 dark:bg-gray-900/95 dark:text-gray-100 rounded-2xl shadow-xl p-8">
+              <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+                <section className={`space-y-6 flex flex-col items-center w-full max-w-[520px] mx-auto ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
             </div>
@@ -171,9 +173,9 @@ export default function Landing() {
                 <li>Favorites and saved vendors show up instantly on your dashboard.</li>
               </ul>
             </div>
-            </aside>
+            </div>
           </div>
-        </section>
+        </div>
         {/* demo is rendered below the two boxes when playing */}
 
         {/* Demo container: appears below the two centered boxes when playing */}
