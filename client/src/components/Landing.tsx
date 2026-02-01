@@ -160,11 +160,19 @@ export default function Landing() {
   );
 }
 
-function DemoLauncher() {
+function DemoLauncher({ stopHero }: { stopHero?: () => void }) {
   const [playing, setPlaying] = useState(false);
   return (
     <>
-      <button onClick={() => setPlaying(true)} className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border">View demo</button>
+      <button
+        onClick={() => {
+          stopHero?.();
+          setPlaying(true);
+        }}
+        className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border"
+      >
+        View demo
+      </button>
       {playing && <DemoPlayer onClose={() => setPlaying(false)} />}
     </>
   );
