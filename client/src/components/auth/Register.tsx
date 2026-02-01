@@ -52,9 +52,18 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
       } else {
         setError('Unable to reach the server. Check your connection or try again later.');
       }
+      // Provide fallback to continue without API when backend is unreachable
     } finally {
       setLoading(false);
     }
+  };
+
+  const continueOffline = () => {
+    localStorage.setItem('offlineMode', 'true');
+    localStorage.setItem('user', JSON.stringify({ name: formData.name, email: formData.email }));
+    localStorage.setItem('onboardingCompleted', 'false');
+    setIsAuthenticated(true);
+    navigate('/onboarding');
   };
 
   return (
@@ -75,6 +84,18 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {error && (
+              <div className="mt-2 text-center">
+                <button
+                  onClick={continueOffline}
+                  type="button"
+                  className="text-sm text-primary-500 hover:underline"
+                >
+                  Continue without API (use app locally)
+                </button>
               </div>
             )}
 

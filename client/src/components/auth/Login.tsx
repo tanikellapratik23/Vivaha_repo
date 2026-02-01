@@ -49,9 +49,21 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       } else {
         setError('Unable to reach the server. Check your connection or try again later.');
       }
+      // Leave an option for the user to continue without the API
+      // (useful during backend cold-start or local dev without API)
     } finally {
       setLoading(false);
     }
+  };
+
+  const continueOffline = () => {
+    // mark offline mode and store minimal user info so onboarding/dashboard can proceed
+    localStorage.setItem('offlineMode', 'true');
+    localStorage.setItem('user', JSON.stringify({ email: formData.email }));
+    // mark not fully onboarded so user goes through onboarding
+    localStorage.setItem('onboardingCompleted', 'false');
+    setIsAuthenticated(true);
+    navigate('/onboarding');
   };
 
   return (
@@ -72,6 +84,18 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {error && (
+              <div className="mt-2 text-center">
+                <button
+                  onClick={continueOffline}
+                  type="button"
+                  className="text-sm text-primary-500 hover:underline"
+                >
+                  Continue without API (use app locally)
+                </button>
               </div>
             )}
 
