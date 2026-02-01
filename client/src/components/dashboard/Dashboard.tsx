@@ -13,7 +13,6 @@ import SeatingPlanner from './SeatingPlanner';
 import Settings from './Settings';
 import CeremonyPlanning from './CeremonyPlanning';
 import MusicPlanner from './MusicPlanner';
-import { useState } from 'react';
 import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
 
 function AutoSaveToggle() {

@@ -1,6 +1,6 @@
 import { OnboardingData } from '../Onboarding';
 import { Check, Sparkles } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SummaryProps {
   data: OnboardingData;
