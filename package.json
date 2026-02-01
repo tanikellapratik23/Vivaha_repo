@@ -1,6 +1,20 @@
 {
+  "name": "wedwise",
+  "version": "1.0.0",
+  "description": "Full-stack wedding planning application",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build": "cd client && npm run build && cd ../server && npm run build",
+    "start": "cd server && npm start",
+    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
+    "server": "cd server && npm run dev"
+  },
   "dependencies": {
     "resend": "^6.9.1",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
