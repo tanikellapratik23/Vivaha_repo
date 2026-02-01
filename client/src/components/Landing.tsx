@@ -126,7 +126,7 @@ export default function Landing() {
             </div>
             <div>
               <h1 className="text-xl font-bold">Vivaha</h1>
-              <p className="text-xs text-white/80">Your Wedding Planner</p>
+              <p className="text-xs text-black font-medium">Your Wedding Planner</p>
             </div>
           </div>
           <nav className="flex items-center gap-3">
