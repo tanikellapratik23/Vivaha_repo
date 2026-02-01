@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2, Save } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
@@ -38,11 +39,13 @@ export default function GuestList() {
     fetchGuests();
   }, []);
 
-  // Autosave guests locally while the user is on this screen
+  // Autosave guests locally while the user is on this screen (uses TTL)
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        localStorage.setItem('guests', JSON.stringify(guests));
+        if (isAutoSaveEnabled()) {
+          setWithTTL('guests', guests, 24 * 60 * 60 * 1000);
+        }
       } catch (e) {
         // ignore storage errors
       }

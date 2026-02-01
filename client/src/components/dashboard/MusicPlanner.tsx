@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { Music, Plus, Play, Pause, Search, Trash2, List, Heart, Volume2, Download, Share2, X } from 'lucide-react';
 import axios from 'axios';
 
@@ -65,7 +66,7 @@ export default function MusicPlanner() {
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        localStorage.setItem('weddingPlaylists', JSON.stringify(playlists));
+        if (isAutoSaveEnabled()) setWithTTL('weddingPlaylists', playlists, 24 * 60 * 60 * 1000);
       } catch (e) {
         // ignore
       }

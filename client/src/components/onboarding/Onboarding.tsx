@@ -129,14 +129,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
     }
   };
 
-  // If the user reaches the final step, complete onboarding immediately
-  useEffect(() => {
-    if (step === totalSteps) {
-      // complete without waiting for user to click
-      handleComplete();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  // Removed automatic completion on final step to ensure explicit Finish click behavior
 
   const [offlineMode, setOfflineMode] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);

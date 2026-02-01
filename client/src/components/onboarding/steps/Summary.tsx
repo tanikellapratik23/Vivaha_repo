@@ -9,6 +9,16 @@ interface SummaryProps {
 }
 
 export default function Summary({ data, onBack, onComplete }: SummaryProps) {
+  const [submitting, setSubmitting] = useState(false);
+  const handleClick = () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      onComplete();
+    } finally {
+      // keep disabled to prevent duplicates until navigation
+    }
+  };
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
       self: "Getting Married",
@@ -166,10 +176,11 @@ export default function Summary({ data, onBack, onComplete }: SummaryProps) {
           Back
         </button>
         <button
-          onClick={onComplete}
-          className="px-12 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition shadow-lg hover:shadow-xl"
+          onClick={handleClick}
+          disabled={submitting}
+          className="px-12 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition shadow-lg hover:shadow-xl disabled:opacity-60"
         >
-          Finish
+          {submitting ? 'Finishing…' : 'Finish'}
         </button>
       </div>
     </div>

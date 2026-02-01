@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -101,12 +102,14 @@ export default function TodoList() {
 
   useEffect(() => { fetchTodos(); }, []);
 
-  // Autosave todos locally while user is on this screen (debounced)
+  // Autosave todos locally while user is on this screen (debounced + TTL)
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
-        localStorage.setItem('todos', JSON.stringify(serial));
+        if (isAutoSaveEnabled()) {
+          const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+          setWithTTL('todos', serial, 24 * 60 * 60 * 1000);
+        }
       } catch (e) {
         // ignore
       }

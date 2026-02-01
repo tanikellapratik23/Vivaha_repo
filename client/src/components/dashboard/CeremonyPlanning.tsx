@@ -62,7 +62,8 @@ export default function CeremonyPlanning() {
           selectedTraditions,
           weddingDays,
         };
-        localStorage.setItem('ceremony', JSON.stringify(payload));
+        const { isAutoSaveEnabled, setWithTTL } = require('../../utils/autosave');
+        if (isAutoSaveEnabled()) setWithTTL('ceremony', payload, 24 * 60 * 60 * 1000);
       } catch (e) {
         // ignore
       }

@@ -3,6 +3,7 @@ import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info, Tra
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import axios from 'axios';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
+import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -38,7 +39,7 @@ export default function BudgetTracker() {
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        localStorage.setItem('budget', JSON.stringify(categories));
+        if (isAutoSaveEnabled()) setWithTTL('budget', categories, 24 * 60 * 60 * 1000);
       } catch (e) {
         // ignore
       }

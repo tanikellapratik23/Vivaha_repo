@@ -13,6 +13,22 @@ import SeatingPlanner from './SeatingPlanner';
 import Settings from './Settings';
 import CeremonyPlanning from './CeremonyPlanning';
 import MusicPlanner from './MusicPlanner';
+import { useState } from 'react';
+import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
+
+function AutoSaveToggle() {
+  const [enabled, setEnabled] = useState<boolean>(isAutoSaveEnabled());
+  const toggle = () => {
+    const next = !enabled;
+    setEnabled(next);
+    setAutoSaveEnabled(next);
+  };
+  return (
+    <button onClick={toggle} className={`px-3 py-2 text-sm rounded-md ${enabled ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+      Auto-save: {enabled ? 'On' : 'Off'}
+    </button>
+  );
+}
 
 export default function Dashboard() {
   const location = useLocation();
@@ -86,6 +102,7 @@ export default function Dashboard() {
               >
                 Download Backup (Word)
               </button>
+              <AutoSaveToggle />
               <input
                 type="file"
                 accept="application/json"
