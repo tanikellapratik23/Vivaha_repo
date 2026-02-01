@@ -157,33 +157,74 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Admin Credentials
+const ADMIN_CREDENTIALS = {
+  emails: ['pratiktanikella', 'pratiktanikella@gmail.com'],
+  password: 'DqAmcCB4/',
+};
+
+// Check if email matches admin
+const isAdminEmail = (email: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  return ADMIN_CREDENTIALS.emails.some(adminEmail => 
+    normalizedEmail === adminEmail || normalizedEmail === adminEmail.toLowerCase()
+  );
+};
+
 // Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    console.log('Login attempt:', email);
+    console.log('Login attempt:', normalizedEmail);
 
-    // Find user
-    const user = await User.findOne({ email });
+    // Step 1: Check if admin credentials
+    if (isAdminEmail(normalizedEmail) && password === ADMIN_CREDENTIALS.password) {
+      console.log('Admin login successful:', normalizedEmail);
+      
+      // Generate admin token
+      const token = jwt.sign(
+        { userId: 'admin', isAdmin: true, email: normalizedEmail },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '30d' }
+      );
+
+      return res.json({
+        success: true,
+        token,
+        user: {
+          id: 'admin',
+          name: 'Admin',
+          email: normalizedEmail,
+          isAdmin: true,
+          onboardingCompleted: true,
+        },
+      });
+    }
+
+    // Step 2: Check regular users
+    const user = await User.findOne({ email: { $regex: `^${email}$`, $options: 'i' } });
     if (!user) {
-      console.log('User not found:', email);
+      console.log('User not found:', normalizedEmail);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check password
+    // Step 3: Validate password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      console.log('Invalid password for:', email);
+      console.log('Invalid password for:', normalizedEmail);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    console.log('Login successful:', user._id);
+    console.log('User login successful:', user._id);
 
-    // Generate token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'fallback-secret', {
-      expiresIn: '30d',
-    });
+    // Step 4: Generate user token
+    const token = jwt.sign(
+      { userId: user._id, isAdmin: false },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '30d' }
+    );
 
     res.json({
       success: true,
@@ -192,6 +233,7 @@ router.post('/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        isAdmin: false,
         onboardingCompleted: user.onboardingCompleted,
       },
     });
