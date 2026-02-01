@@ -11,6 +11,8 @@ import Goals from './steps/Goals';
 import BachelorParty from './steps/BachelorParty';
 import Summary from './steps/Summary';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 interface OnboardingProps {
   setHasCompletedOnboarding: (value: boolean) => void;
 }
@@ -106,7 +108,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
       const token = localStorage.getItem('token');
       // Save to server with proper timeout
       try {
-        await axios.post('/api/onboarding', data, {
+        await axios.post(`${API_URL}/api/onboarding`, data, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
         });
