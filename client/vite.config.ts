@@ -2,9 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: '/Vivaha_repo/',
+  // Use GitHub Pages basename only for production builds
+  base: mode === 'production' ? '/Vivaha_repo/' : '/',
   server: {
     port: 5173,
     proxy: {
@@ -14,4 +15,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
