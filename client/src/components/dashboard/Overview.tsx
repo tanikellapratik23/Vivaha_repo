@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Users, DollarSign, CheckSquare, TrendingUp, Heart, MapPin, Church, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Users, DollarSign, CheckSquare, TrendingUp, Heart, MapPin, Church, Sparkles, Briefcase } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import axios from 'axios';
 import { getBudgetOptimizationSuggestions, getCeremonyPlanningSuggestions, getCityAverageCost } from '../../utils/cityData';
 
 export default function Overview() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalGuests: 0,
     confirmedGuests: 0,
@@ -412,16 +414,17 @@ export default function Overview() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Add Guest', icon: Users, color: 'bg-blue-500' },
-            { label: 'Add Expense', icon: DollarSign, color: 'bg-green-500' },
-            { label: 'New Task', icon: CheckSquare, color: 'bg-purple-500' },
-            { label: 'Add Vendor', icon: Briefcase, color: 'bg-pink-500' },
+            { label: 'Add Guest', icon: Users, color: 'bg-blue-500', action: () => navigate('/dashboard/guests') },
+            { label: 'Add Expense', icon: DollarSign, color: 'bg-green-500', action: () => navigate('/dashboard/budget') },
+            { label: 'New Task', icon: CheckSquare, color: 'bg-purple-500', action: () => navigate('/dashboard/todos') },
+            { label: 'Add Vendor', icon: Briefcase, color: 'bg-pink-500', action: () => navigate('/dashboard/vendor-search') },
           ].map((action, index) => {
             const Icon = action.icon;
             return (
               <button
                 key={index}
-                className={`${action.color} hover:opacity-90 text-white p-6 rounded-xl transition shadow-lg hover:shadow-xl`}
+                onClick={action.action}
+                className={`${action.color} hover:opacity-90 text-white p-6 rounded-xl transition shadow-lg hover:shadow-xl cursor-pointer`}
               >
                 <Icon className="w-8 h-8 mx-auto mb-2" />
                 <span className="block text-sm font-medium">{action.label}</span>
@@ -433,6 +436,3 @@ export default function Overview() {
     </div>
   );
 }
-
-// Import Briefcase for quick actions
-import { Briefcase } from 'lucide-react';
