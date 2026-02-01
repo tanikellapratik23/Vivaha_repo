@@ -50,13 +50,12 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       if (response.data.user.isAdmin) {
         localStorage.setItem('onboardingCompleted', 'true');
         navigate('/dashboard');
-      } else if (response.data.user.onboardingCompleted) {
-        // Returning user with completed onboarding - show welcome back screen
+      } else {
+        // For ALL returning users (anyone who successfully logs in), show welcome back
+        // If they haven't completed onboarding, the backend would have rejected or they'd be new
+        console.log('✅ Returning user, showing welcome back');
         localStorage.setItem('onboardingCompleted', 'true');
         navigate('/welcome-back');
-      } else {
-        // First-time user - go to onboarding
-        navigate('/onboarding');
       }
     } catch (err: any) {
       clearTimeout(timer);
