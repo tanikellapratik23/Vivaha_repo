@@ -97,6 +97,18 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-purple-100 text-gray-900 flex flex-col">
+      {/* Hero background carousel (absolute behind content) */}
+      <div className="fixed inset-0 -z-10 transition-opacity duration-700">
+        {showHero ? (
+          <div
+            className="absolute inset-0 bg-center bg-cover opacity-90 transition-opacity duration-900"
+            style={{ backgroundImage: `url(${heroImages[currentHero]})` }}
+            onClick={() => setShowHero(false)}
+          />
+        ) : null}
+        {/* subtle gradient overlay to keep text readable */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-60 pointer-events-none" />
+      </div>
       <header className="w-full border-b border-white/20 py-4">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -117,7 +129,7 @@ export default function Landing() {
 
       <main className="flex-1 flex items-center justify-center px-6">
         <div className={`max-w-6xl w-full grid gap-8 items-center ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
-          <section className={`${demoPlaying ? 'transform -translate-x-4 md:-translate-x-8 transition-transform duration-700 ease-in-out' : ''} space-y-6`}>
+          <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
             </div>
@@ -134,7 +146,7 @@ export default function Landing() {
             </div>
           </section>
 
-          <aside className={`${demoPlaying ? 'transform -translate-x-4 md:-translate-x-8 transition-transform duration-700 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6`}>
+          <aside className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6`}>
             <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
             <div className="overflow-hidden rounded-md border p-2 bg-white">
               <OnboardingPreview />
@@ -150,7 +162,7 @@ export default function Landing() {
             </div>
           </aside>
           {/* demo column - slides in when demoPlaying */}
-          <div className={`bg-white/95 rounded-2xl shadow-xl p-6 transition-all duration-700 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'}`}>
+          <div className={`bg-white/95 rounded-2xl shadow-xl p-6 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'}`}>
             <DemoPlayer inline onClose={() => setDemoPlaying(false)} />
           </div>
         </div>
@@ -190,8 +202,7 @@ function DemoLauncher({ stopHero, onStart }: { stopHero?: () => void; onStart?: 
 }
 
 function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean }) {
-  // Demo shows a modal with the real onboarding components on the left
-  // and a dashboard mock on the right. It auto-fills fields and advances.
+  // Demo shows onboarding on the left and a dashboard preview on the right.
   const [demoStep, setDemoStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({ role: '', weddingStyle: '', topPriority: [], goals: '' });
   const [showDashboard, setShowDashboard] = useState(false);
@@ -221,18 +232,18 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
     push(900, () => setDemoStep(8));
     push(900, () => { setShowDashboard(true); });
 
-    let timers: number[] = [];
+    const timers: number[] = [];
     script.current.forEach(({ delay, run }) => {
       const id = window.setTimeout(run, delay) as unknown as number;
       timers.push(id);
     });
 
-    // auto-close after ~22s (user requested 20-25s)
-    const finish = window.setTimeout(() => onClose(), 22_000) as unknown as number;
+    // auto-close after ~25s (user asked for 20-25s; choose 25s for full demo)
+    const finish = window.setTimeout(() => onClose(), 25_000) as unknown as number;
     timers.push(finish);
 
     return () => timers.forEach((id) => clearTimeout(id));
-  }, []);
+  }, [onClose]);
 
   const updateData = (d: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...d }));
   const next = () => setDemoStep(s => Math.min(s + 1, 8));
@@ -241,33 +252,11 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
   const container = (
     <div className={`relative w-full bg-white rounded-2xl p-4 shadow-xl ${inline ? '' : 'max-w-5xl mx-4'}`}>
       <div className={`grid md:grid-cols-2 gap-6`}>
-        </div>
-      </div>
-    );
-
-    if (inline) {
-      return (
-        <div className="h-full">
-          <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Vivaha Demo</h2>
-              <p className="text-sm text-gray-600">Auto-run onboarding to show how your dashboard gets populated.</p>
-            </div>
-            <button onClick={onClose} className="text-sm text-gray-500">Close</button>
-          </div>
-          {container}
-        </div>
-      );
-    }
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative max-w-5xl w-full mx-4">{container}</div>
-      </div>
-    );
-
-  }
+              <h3 className="text-lg font-semibold">Onboarding (Preview)</h3>
+              <p className="text-sm text-gray-500">This simulates the quick onboarding that presets your dashboard.</p>
             </div>
             <button onClick={onClose} className="text-sm text-gray-500">Close</button>
           </div>
@@ -322,4 +311,27 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
       </div>
     </div>
   );
+
+  if (inline) {
+    return (
+      <div className="h-full">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Vivaha Demo</h2>
+            <p className="text-sm text-gray-600">Auto-run onboarding to show how your dashboard gets populated.</p>
+          </div>
+          <button onClick={onClose} className="text-sm text-gray-500">Close</button>
+        </div>
+        {container}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60" />
+      <div className="relative max-w-5xl w-full mx-4">{container}</div>
+    </div>
+  );
+
 }
