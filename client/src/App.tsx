@@ -15,7 +15,9 @@ function App() {
     const token = localStorage.getItem('token');
     const onboarding = localStorage.getItem('onboardingCompleted');
     setIsAuthenticated(!!token);
-    setHasCompletedOnboarding(!!onboarding);
+    // onboardingCompleted is stored as the literal string 'true' when finished
+    // so compare explicitly to avoid treating 'false' (non-empty) as truthy
+    setHasCompletedOnboarding(onboarding === 'true');
   }, []);
 
   return (
