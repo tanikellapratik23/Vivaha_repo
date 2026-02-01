@@ -185,8 +185,6 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
         {/* demo is rendered below the two boxes when playing */}
 
         {/* Demo container: appears below the two centered boxes when playing */}
