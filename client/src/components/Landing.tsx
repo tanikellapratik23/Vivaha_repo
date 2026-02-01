@@ -130,7 +130,7 @@ export default function Landing() {
             </div>
           </div>
           <nav className="flex items-center gap-3">
-            <Link to="/what-is-vivaha" className="px-4 py-2 bg-white/20 text-white rounded-md font-medium border border-white hover:bg-white/30 transition">About</Link>
+            <Link to="/what-is-vivaha" className="px-4 py-2 bg-transparent text-black rounded-md font-medium border-2 border-black hover:bg-black hover:text-white transition">About</Link>
             <Link to="/login" className="px-4 py-2 bg-white text-primary-700 rounded-md font-medium">Log in</Link>
             <Link to="/register" className="px-4 py-2 bg-primary-600 text-white rounded-md font-medium">Sign up</Link>
           </nav>
