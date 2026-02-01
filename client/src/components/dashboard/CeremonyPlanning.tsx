@@ -54,8 +54,22 @@ export default function CeremonyPlanning() {
 
   const fetchUserSettings = async () => {
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const cached = localStorage.getItem('ceremony');
+        if (cached) {
+          const data = JSON.parse(cached);
+          setUserSettings(data.userSettings || null);
+          setSelectedRituals(data.selectedRituals || []);
+          setSelectedTraditions(data.selectedTraditions || []);
+          setWeddingDays(data.weddingDays || []);
+          setLoading(false);
+          return;
+        }
+      }
+
       const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_URL}/api/onboarding`, {
+      const response = await axios.get(`${API_URL}/api/onboarding`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data) {
@@ -171,6 +185,20 @@ export default function CeremonyPlanning() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const payload = {
+          userSettings,
+          selectedRituals,
+          selectedTraditions,
+          weddingDays,
+        };
+        localStorage.setItem('ceremony', JSON.stringify(payload));
+        alert('Ceremony details saved locally');
+        setSaving(false);
+        return;
+      }
+
       const token = localStorage.getItem('token');
       await axios.put(`${API_URL}/api/onboarding`, {
         ...userSettings,
