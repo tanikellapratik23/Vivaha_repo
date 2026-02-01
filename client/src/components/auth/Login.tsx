@@ -12,7 +12,6 @@ interface LoginProps {
 
 export default function Login({ setIsAuthenticated }: LoginProps) {
   const navigate = useNavigate();
-  const BASE = (import.meta.env.BASE_URL || '').replace(/\/$/, '');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -50,9 +49,9 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       // Check if onboarding is completed
       if (response.data.user.onboardingCompleted) {
         localStorage.setItem('onboardingCompleted', 'true');
-        navigate(`${BASE}/dashboard`);
+        navigate('/dashboard');
       } else {
-        navigate(`${BASE}/onboarding`);
+        navigate('/onboarding');
       }
     } catch (err: any) {
       clearTimeout(timer);
@@ -78,7 +77,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     // mark not fully onboarded so user goes through onboarding
     localStorage.setItem('onboardingCompleted', 'false');
     setIsAuthenticated(true);
-    navigate(`${BASE}/onboarding`);
+    navigate('/onboarding');
   };
 
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -89,7 +88,8 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     try {
       await importBackupFile(file);
       // ensure app reads restored data
-      window.location.href = `${BASE}/dashboard`;
+      const base = import.meta.env.BASE_URL || '/';
+      window.location.href = base.replace(/\/$/, '') + '/dashboard';
     } catch (err) {
       console.error('Import failed', err);
       setError('Failed to import backup file.');

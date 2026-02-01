@@ -12,7 +12,6 @@ interface RegisterProps {
 
 export default function Register({ setIsAuthenticated }: RegisterProps) {
   const navigate = useNavigate();
-  const BASE = (import.meta.env.BASE_URL || '').replace(/\/$/, '');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -57,7 +56,7 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
       console.log('Registration successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
-      navigate(`${BASE}/onboarding`);
+      navigate('/onboarding');
     } catch (err: any) {
       clearTimeout(timer);
       if (didFallback) return;
@@ -79,7 +78,7 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
     localStorage.setItem('user', JSON.stringify({ name: formData.name, email: formData.email }));
     localStorage.setItem('onboardingCompleted', 'false');
     setIsAuthenticated(true);
-    navigate(`${BASE}/onboarding`);
+    navigate('/onboarding');
   };
 
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -89,7 +88,8 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
     if (!file) return;
     try {
       await importBackupFile(file);
-      window.location.href = `${BASE}/dashboard`;
+      const base = import.meta.env.BASE_URL || '/';
+      window.location.href = base.replace(/\/$/, '') + '/dashboard';
     } catch (err) {
       console.error('Import failed', err);
       setError('Failed to import backup file.');
