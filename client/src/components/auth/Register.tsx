@@ -55,6 +55,7 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
       clearTimeout(timer);
       console.log('Registration successful:', response.data);
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('isNewUser', 'true'); // Mark as new user so onboarding is required
       setIsAuthenticated(true);
       navigate('/onboarding');
     } catch (err: any) {

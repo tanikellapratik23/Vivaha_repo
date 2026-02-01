@@ -25,7 +25,7 @@ function App() {
       try {
         const decoded = JSON.parse(atob(token.split('.')[1]));
         setIsAdmin(decoded.isAdmin || false);
-        // Admins are always considered onboarded
+        // Admins are always considered onboarded - go straight to admin dashboard
         if (decoded.isAdmin) {
           setHasCompletedOnboarding(true);
           return;
@@ -35,6 +35,15 @@ function App() {
       }
     }
     
+    // For regular users: if they have a token, they're already registered
+    // (tokens are created on both register and login)
+    // So they've already done onboarding and should go straight to dashboard
+    if (token && !localStorage.getItem('isNewUser')) {
+      setHasCompletedOnboarding(true);
+      return;
+    }
+    
+    // Only first-time users (those who just signed up) need onboarding
     // onboardingCompleted is stored as the literal string 'true' when finished
     setHasCompletedOnboarding(onboarding === 'true');
   }, []);

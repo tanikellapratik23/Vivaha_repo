@@ -116,6 +116,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
 
       // mark completed locally and navigate
       localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.removeItem('isNewUser'); // Clear new user flag now that onboarding is done
       setHasCompletedOnboarding(true);
       navigate('/dashboard');
 
