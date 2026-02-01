@@ -221,7 +221,7 @@ router.post('/login', async (req, res) => {
 
     // Step 4: Generate user token
     const token = jwt.sign(
-      { userId: user._id, isAdmin: false },
+      { userId: user._id, isAdmin: user.isAdmin || false },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '30d' }
     );
@@ -233,7 +233,7 @@ router.post('/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: false,
+        isAdmin: user.isAdmin || false,
         onboardingCompleted: user.onboardingCompleted,
       },
     });

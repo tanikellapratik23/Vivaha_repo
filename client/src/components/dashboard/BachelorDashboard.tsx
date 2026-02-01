@@ -143,6 +143,8 @@ export default function BachelorDashboard() {
         setError(response.data.error || 'Failed to create trip');
       }
     } catch (error: any) {
+      console.error('Bachelor trip creation error:', error);
+      console.error('Error response:', error.response?.data);
       const errorMsg = error.response?.data?.error || error.message || 'Failed to create trip';
       setError(errorMsg);
     } finally {

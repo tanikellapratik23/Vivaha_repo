@@ -10,6 +10,7 @@ import DemoPage from './components/DemoPage';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
 
   useEffect(() => {
@@ -17,8 +18,23 @@ function App() {
     const token = localStorage.getItem('token');
     const onboarding = localStorage.getItem('onboardingCompleted');
     setIsAuthenticated(!!token);
+    
+    // Check if admin from token
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(decoded.isAdmin || false);
+        // Admins are always considered onboarded
+        if (decoded.isAdmin) {
+          setHasCompletedOnboarding(true);
+          return;
+        }
+      } catch (e) {
+        setIsAdmin(false);
+      }
+    }
+    
     // onboardingCompleted is stored as the literal string 'true' when finished
-    // so compare explicitly to avoid treating 'false' (non-empty) as truthy
     setHasCompletedOnboarding(onboarding === 'true');
   }, []);
 
@@ -73,10 +89,8 @@ function App() {
           <Route 
             path="/dashboard/*" 
             element={
-              isAuthenticated && hasCompletedOnboarding ? (
-                <Dashboard />
-              ) : isAuthenticated ? (
-                <Navigate to="/onboarding" />
+              isAuthenticated ? (
+                <Dashboard isAdmin={isAdmin} />
               ) : (
                 <Navigate to="/login" />
               )

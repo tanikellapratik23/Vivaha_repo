@@ -1,5 +1,5 @@
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen } from 'lucide-react';
+import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import axios from 'axios';
@@ -34,34 +34,49 @@ function AutoSaveToggle() {
   );
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+  isAdmin?: boolean;
+}
+
+export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isReligious, setIsReligious] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(propIsAdmin);
   const [wantsBachelorParty, setWantsBachelorParty] = useState(() => {
     return localStorage.getItem('wantsBachelorParty') === 'true';
   });
   const [emailSent, setEmailSent] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [showMoreFeatures, setShowMoreFeatures] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Check if user is admin from token
     const token = localStorage.getItem('token');
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+    setHasCompletedOnboarding(onboardingCompleted);
+    
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(decoded.isAdmin || false);
+        setIsAdmin(decoded.isAdmin || propIsAdmin || false);
       } catch (e) {
-        setIsAdmin(false);
+        setIsAdmin(propIsAdmin || false);
       }
+    }
+    
+    if (!isAdmin && !onboardingCompleted) {
+      // Non-admin without onboarding should not be here
+      navigate('/onboarding', { replace: true });
     }
     
     if (!isAdmin) {
       fetchUserSettings();
       sendWelcomeEmail();
     }
-  }, []);
+  }, [isAdmin, propIsAdmin, navigate]);
 
   const sendWelcomeEmail = async () => {
     try {
@@ -133,10 +148,13 @@ export default function Dashboard() {
     { name: 'Vendor Search', path: '/dashboard/vendor-search', icon: Search },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
-    { name: 'Outfit Planner', path: '/dashboard/outfits', icon: Sparkles },
-    { name: 'Story Builder', path: '/dashboard/story', icon: BookOpen },
     { name: 'Settings', path: '/dashboard/settings', icon: SettingsIcon },
     ...(wantsBachelorParty ? [{ name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper }] : []),
+  ];
+
+  const moreFeatures = [
+    { name: 'Outfit Planner', path: '/dashboard/outfits', icon: Sparkles },
+    { name: 'Story Builder', path: '/dashboard/story', icon: BookOpen },
   ];
 
   return (
@@ -245,6 +263,50 @@ export default function Dashboard() {
                   </Link>
                 );
               })}
+              
+              {/* More Features Dropdown */}
+              <div className="relative mt-2">
+                <button
+                  ref={moreButtonRef}
+                  onClick={() => setShowMoreFeatures(!showMoreFeatures)}
+                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                  <span>More features</span>
+                </button>
+                
+                {showMoreFeatures && (
+                  <>
+                    {/* Click outside to close */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowMoreFeatures(false)}
+                    />
+                    {/* Dropdown menu */}
+                    <div className="absolute left-0 mt-2 w-full bg-white rounded-lg shadow-lg z-50 border border-gray-200">
+                      {moreFeatures.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = location.pathname === item.path;
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setShowMoreFeatures(false)}
+                            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition block w-full text-left ${
+                              isActive
+                                ? 'bg-primary-50 text-primary-700 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </nav>
           </aside>
 
