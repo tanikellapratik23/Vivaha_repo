@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Users, Grid } from 'lucide-react';
+import { Plus, Users, Grid, Download } from 'lucide-react';
+import { exportSeatingToCSV } from '../../utils/excelExport';
 
 interface Guest {
   id: string;
@@ -52,13 +53,24 @@ export default function SeatingPlanner() {
           <h1 className="text-3xl font-bold text-gray-900">Seating Planner</h1>
           <p className="text-gray-500 mt-1">Arrange your guests' seating</p>
         </div>
-        <button 
-          onClick={() => setShowAddTableModal(true)}
-          className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add Table</span>
-        </button>
+        <div className="flex gap-3">
+          {tables.length > 0 && (
+            <button 
+              onClick={() => exportSeatingToCSV(tables.reduce((acc, t) => ({ ...acc, [t.name]: t.guests.map(g => g.name) }), {}))}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition"
+            >
+              <Download className="w-5 h-5" />
+              <span>Export</span>
+            </button>
+          )}
+          <button 
+            onClick={() => setShowAddTableModal(true)}
+            className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Table</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

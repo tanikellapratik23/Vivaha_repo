@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Star, Phone, Mail, Globe, DollarSign, Filter, Loader, Heart } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, MapPin, Star, Phone, Mail, Globe, DollarSign, Filter, Loader, Heart, Download } from 'lucide-react';
 import axios from 'axios';
 import LocationPermission from '../onboarding/steps/LocationPermission';
+import { exportVendorsToCSV } from '../../utils/excelExport';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -28,6 +29,7 @@ interface Vendor {
 
 export default function VendorSearch() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [userCity, setUserCity] = useState('');
   const [userState, setUserState] = useState('');
@@ -44,6 +46,16 @@ export default function VendorSearch() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [favoriteVendors, setFavoriteVendors] = useState<Vendor[]>([]);
   const fetchCounterRef = useRef(0);
+  const debounceTimerRef = useRef<NodeJS.Timeout>();
+
+  // Debounce search term
+  useEffect(() => {
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(debounceTimerRef.current);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchUserLocation();
@@ -438,8 +450,8 @@ export default function VendorSearch() {
   ];
 
   const filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vendor.specialties?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = vendor.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+                         vendor.specialties?.some(s => s.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || vendor.category === selectedCategory;
     const matchesPrice = !vendor.estimatedCost || 
                         (vendor.estimatedCost >= priceRange.min && vendor.estimatedCost <= priceRange.max);
@@ -712,6 +724,15 @@ export default function VendorSearch() {
         <p className="text-gray-600">
           Found <span className="font-semibold text-gray-900">{filteredVendors.length}</span> vendor{filteredVendors.length !== 1 ? 's' : ''}
         </p>
+        {filteredVendors.length > 0 && (
+          <button
+            onClick={() => exportVendorsToCSV(filteredVendors)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition font-medium text-sm"
+          >
+            <Download className="w-4 h-4" />
+            Export to CSV
+          </button>
+        )}
       </div>
 
       {/* Vendor Cards */}

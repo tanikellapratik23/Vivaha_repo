@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
-import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
+import { exportTodosToCSV } from '../../utils/excelExport';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -242,6 +243,12 @@ export default function TodoList() {
           <p className="text-gray-500 mt-1">Track your wedding planning tasks</p>
         </div>
         <div className="flex items-center gap-3">
+          {todos.length > 0 && (
+            <button onClick={() => exportTodosToCSV(todos)} className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition shadow-lg">
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+          )}
           <button onClick={saveTodos} className="flex items-center space-x-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl transition shadow-lg">
             <Save className="w-4 h-4" />
             <span>Save</span>

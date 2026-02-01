@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { Music, Plus, Play, Pause, Search, Trash2, List, Heart, Volume2, Download, Share2, X } from 'lucide-react';
 import axios from 'axios';
+import { exportPlaylistToCSV } from '../../utils/excelExport';
 
 interface Song {
   id: string;
@@ -260,16 +261,13 @@ export default function MusicPlanner() {
   const exportPlaylist = () => {
     if (!selectedPlaylist) return;
     
-    const text = `${selectedPlaylist.name}\n${selectedPlaylist.description}\n\n${selectedPlaylist.songs.map((song, i) => 
-      `${i + 1}. ${song.title} - ${song.artist}`
-    ).join('\n')}`;
+    // Export as CSV using the utility
+    const songsWithCeremony = selectedPlaylist.songs.map(song => ({
+      ...song,
+      ceremonyMoment: selectedPlaylist.eventType,
+    }));
     
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${selectedPlaylist.name}.txt`;
-    a.click();
+    exportPlaylistToCSV(songsWithCeremony);
   };
 
   return (

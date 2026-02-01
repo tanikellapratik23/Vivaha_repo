@@ -26,16 +26,39 @@ export default function Settings() {
   }, []);
 
   const fetchSettings = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
       const response = await axios.get('/api/onboarding', {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000,
       });
+      
       if (response.data) {
-        setSettings(response.data);
+        setSettings(prev => ({
+          ...prev,
+          ...response.data,
+        }));
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
+      // Load from local storage as fallback
+      try {
+        const local = JSON.parse(localStorage.getItem('onboarding') || '{}');
+        if (Object.keys(local).length > 0) {
+          setSettings(prev => ({
+            ...prev,
+            ...local,
+          }));
+        }
+      } catch (e) {
+        console.error('Failed to load local settings:', e);
+      }
     } finally {
       setLoading(false);
     }
