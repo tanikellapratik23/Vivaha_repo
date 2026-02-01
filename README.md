@@ -19,7 +19,11 @@
 - **Tailwind CSS** - Styling
 - **React Router** - Navigation
 - **MongoDB** - Database
+
+
 - **Mongoose** - ODM
+
+- 
 ├── client/                 # Frontend React application
 │   ├── src/
 │   │   ├── components/
