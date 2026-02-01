@@ -38,6 +38,18 @@ export default function GuestList() {
     fetchGuests();
   }, []);
 
+  // Autosave guests locally while the user is on this screen
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem('guests', JSON.stringify(guests));
+      } catch (e) {
+        // ignore storage errors
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [guests]);
+
   const fetchGuests = async () => {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';

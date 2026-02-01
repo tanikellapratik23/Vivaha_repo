@@ -61,6 +61,18 @@ export default function MusicPlanner() {
     };
   }, []);
 
+  // Autosave playlists locally while user is active (debounced)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem('weddingPlaylists', JSON.stringify(playlists));
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [playlists]);
+
   const loadPlaylists = () => {
     const saved = localStorage.getItem('weddingPlaylists');
     if (saved) {

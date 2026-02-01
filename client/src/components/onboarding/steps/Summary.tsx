@@ -1,5 +1,6 @@
 import { OnboardingData } from '../Onboarding';
 import { Check, Sparkles } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface SummaryProps {
   data: OnboardingData;
@@ -168,9 +169,19 @@ export default function Summary({ data, onBack, onComplete }: SummaryProps) {
           onClick={onComplete}
           className="px-12 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition shadow-lg hover:shadow-xl"
         >
-          Go to Dashboard
+          Finish
         </button>
       </div>
     </div>
   );
+}
+
+// Auto-complete: skip this screen and proceed to dashboard immediately
+// This keeps the onboarding flow short as requested.
+export function SummaryAutoStart({ onComplete }: { onComplete: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(() => onComplete(), 250);
+    return () => clearTimeout(t);
+  }, [onComplete]);
+  return null;
 }

@@ -34,6 +34,18 @@ export default function BudgetTracker() {
     fetchBudgetCategories();
   }, []);
 
+  // Autosave budget categories locally while user is active (debounced)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem('budget', JSON.stringify(categories));
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [categories]);
+
   const fetchBudgetCategories = async () => {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';

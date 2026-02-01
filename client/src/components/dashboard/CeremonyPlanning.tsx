@@ -52,6 +52,24 @@ export default function CeremonyPlanning() {
     fetchUserSettings();
   }, []);
 
+  // Autosave ceremony planning state locally (debounced)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        const payload = {
+          userSettings,
+          selectedRituals,
+          selectedTraditions,
+          weddingDays,
+        };
+        localStorage.setItem('ceremony', JSON.stringify(payload));
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [userSettings, selectedRituals, selectedTraditions, weddingDays]);
+
   const fetchUserSettings = async () => {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';

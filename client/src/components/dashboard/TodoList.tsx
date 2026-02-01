@@ -101,6 +101,19 @@ export default function TodoList() {
 
   useEffect(() => { fetchTodos(); }, []);
 
+  // Autosave todos locally while user is on this screen (debounced)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [todos]);
+
   const addTodo = async () => {
     if (!newTodo.title) {
       alert('Please enter a task title');
