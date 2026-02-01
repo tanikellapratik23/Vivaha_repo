@@ -20,12 +20,18 @@ export default function Overview() {
   const [userSettings, setUserSettings] = useState<any>(null);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [ceremonySuggestions, setCeremonySuggestions] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [localRestoreAvailable, setLocalRestoreAvailable] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   useEffect(() => {
     fetchUserSettings();
   }, []);
 
   const fetchUserSettings = async () => {
+    setLoadError(null);
+    setLocalRestoreAvailable(false);
+    setRestored(false);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/onboarding', {
@@ -88,47 +94,83 @@ export default function Overview() {
           );
           setCeremonySuggestions(ceremonyTips);
         }
+        setLocalRestoreAvailable(false);
       }
     } catch (error) {
       console.error('Failed to fetch user settings:', error);
-      // Fallback to local onboarding data if available
+      setLoadError('Failed to load user settings from server');
+      // Fallback to local onboarding data indicator
       try {
         const localOnboarding = JSON.parse(localStorage.getItem('onboarding') || 'null');
         const data = localOnboarding || JSON.parse(localStorage.getItem('user') || 'null');
         if (data) {
-          setUserSettings(data);
-          setStats(prev => ({
-            ...prev,
-            totalGuests: data.guestCount || 0,
-            confirmedGuests: 0,
-            totalBudget: data.estimatedBudget || 0,
-            spent: 0,
-            completedTasks: 0,
-            totalTasks: 0,
-          }));
-
-          if (data.weddingDate) {
-            const weddingDateTime = new Date(data.weddingDate);
-            if (data.weddingTime) {
-              const [hours, minutes] = data.weddingTime.split(':');
-              weddingDateTime.setHours(parseInt(hours), parseInt(minutes));
-            }
-            const now = new Date();
-            const diffMs = weddingDateTime.getTime() - now.getTime();
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-            setStats(prev => ({
-              ...prev,
-              daysUntilWedding: diffDays > 0 ? diffDays : 0,
-              hoursUntilWedding: diffHours > 0 ? diffHours : 0,
-              minutesUntilWedding: diffMinutes > 0 ? diffMinutes : 0,
-            }));
-          }
+          setLocalRestoreAvailable(true);
+          // do not auto-apply here; allow user to restore manually
         }
       } catch (e) {
-        // ignore fallback errors
+        // ignore
       }
+    }
+  };
+
+  const restoreLocalOnboarding = () => {
+    try {
+      const localOnboarding = JSON.parse(localStorage.getItem('onboarding') || 'null');
+      const data = localOnboarding || JSON.parse(localStorage.getItem('user') || 'null');
+      if (!data) {
+        setLoadError('No local onboarding data found');
+        return;
+      }
+      setUserSettings(data);
+      setStats(prev => ({
+        ...prev,
+        totalGuests: data.guestCount || 0,
+        confirmedGuests: 0,
+        totalBudget: data.estimatedBudget || 0,
+        spent: 0,
+        completedTasks: 0,
+        totalTasks: 0,
+      }));
+
+      if (data.weddingDate) {
+        const weddingDateTime = new Date(data.weddingDate);
+        if (data.weddingTime) {
+          const [hours, minutes] = data.weddingTime.split(':');
+          weddingDateTime.setHours(parseInt(hours), parseInt(minutes));
+        }
+        const now = new Date();
+        const diffMs = weddingDateTime.getTime() - now.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        setStats(prev => ({
+          ...prev,
+          daysUntilWedding: diffDays > 0 ? diffDays : 0,
+          hoursUntilWedding: diffHours > 0 ? diffHours : 0,
+          minutesUntilWedding: diffMinutes > 0 ? diffMinutes : 0,
+        }));
+      }
+
+      // regenerate suggestions where possible
+      if (data.weddingCity && data.estimatedBudget) {
+        const suggestions = getBudgetOptimizationSuggestions(
+          data.estimatedBudget,
+          data.guestCount || 150,
+          data.weddingCity,
+          data.topPriority || []
+        );
+        setAiSuggestions(suggestions);
+      }
+      if (data.isReligious && data.religions) {
+        const ceremonyTips = getCeremonyPlanningSuggestions(data.religions, data.religions.length > 1);
+        setCeremonySuggestions(ceremonyTips);
+      }
+      setLoadError(null);
+      setLocalRestoreAvailable(false);
+      setRestored(true);
+    } catch (e) {
+      console.error('Restore failed', e);
+      setLoadError('Failed to restore local onboarding');
     }
   };
 
@@ -318,6 +360,32 @@ export default function Overview() {
           </div>
         </div>
       </div>
+
+      {/* Loading / Error / Restore Banner */}
+      {(loadError || localRestoreAvailable || restored) && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className={`rounded-xl p-4 ${loadError ? 'bg-red-50 border border-red-200 text-red-800' : restored ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-yellow-50 border border-yellow-200 text-yellow-800'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                {loadError && (<div><strong>Error:</strong> {loadError}</div>)}
+                {!loadError && localRestoreAvailable && (<div>Local onboarding data found — you can restore it to populate your dashboard immediately.</div>)}
+                {restored && (<div>Local onboarding restored. Dashboard updated.</div>)}
+              </div>
+              <div className="flex items-center gap-2">
+                {localRestoreAvailable && (
+                  <button onClick={restoreLocalOnboarding} className="px-4 py-2 bg-yellow-600 text-white rounded-lg">Restore Local Onboarding</button>
+                )}
+                {loadError && (
+                  <button onClick={() => { setLoadError(null); fetchUserSettings(); }} className="px-4 py-2 bg-red-600 text-white rounded-lg">Retry</button>
+                )}
+                {restored && (
+                  <button onClick={() => setRestored(false)} className="px-4 py-2 bg-green-600 text-white rounded-lg">Dismiss</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm p-6">
