@@ -1,7 +1,7 @@
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { downloadBackupFile, importBackupFile } from '../../utils/offlineBackup';
+import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import axios from 'axios';
 import Overview from './Overview';
 import GuestList from './GuestList';
