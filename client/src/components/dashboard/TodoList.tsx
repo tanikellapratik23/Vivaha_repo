@@ -41,6 +41,16 @@ export default function TodoList() {
     setTodos(todos.map((t) => (t.id === id || t._id === id ? { ...t, completed: !t.completed } : t)));
 
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const next = todos.map((t) => (t.id === id || t._id === id ? { ...t, completed: !t.completed } : t));
+        setTodos(next);
+        // persist locally
+        const serial = next.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
+        return;
+      }
+
       const token = localStorage.getItem('token');
       await axios.put(`${API_URL}/api/todos/${todoId}`, updated, { headers: { Authorization: `Bearer ${token}` } });
     } catch (error) {
@@ -53,6 +63,17 @@ export default function TodoList() {
   const fetchTodos = async () => {
     try {
       setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const cached = localStorage.getItem('todos');
+        if (cached) {
+          const parsed = JSON.parse(cached) as any[];
+          const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
+          setTodos(items);
+        }
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/api/todos`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) {
@@ -62,6 +83,17 @@ export default function TodoList() {
       }
     } catch (error) {
       console.error('Failed to fetch todos:', error);
+      // fallback to cache
+      const cached = localStorage.getItem('todos');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached) as any[];
+          const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
+          setTodos(items);
+        } catch (e) {
+          console.error('Failed to parse cached todos', e);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -75,6 +107,27 @@ export default function TodoList() {
       return;
     }
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const todo = {
+          id: `local-${Date.now()}`,
+          title: newTodo.title || '',
+          description: newTodo.description || '',
+          dueDate: newTodo.dueDate,
+          completed: false,
+          priority: (newTodo.priority as any) || 'medium',
+          category: newTodo.category || 'General',
+        } as Todo;
+        const next = [...(todos || []), todo];
+        setTodos(next);
+        // persist
+        const serial = next.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
+        setShowAddModal(false);
+        setNewTodo({ title: '', description: '', dueDate: undefined, priority: 'medium', category: 'General' });
+        return;
+      }
+
       const token = localStorage.getItem('token');
       const payload = {
         title: newTodo.title,
@@ -101,6 +154,15 @@ export default function TodoList() {
   const deleteTodo = async (id: string) => {
     if (!confirm('Delete this task?')) return;
     try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const next = todos.filter(t => t._id !== id && t.id !== id);
+        setTodos(next);
+        const serial = next.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
+        return;
+      }
+
       const todo = todos.find(t => t._id === id || t.id === id);
       const todoId = todo?._id || id;
       const token = localStorage.getItem('token');
@@ -110,6 +172,12 @@ export default function TodoList() {
       console.error('Failed to delete todo:', error);
       alert('Unable to delete task');
     }
+  };
+
+  const saveTodos = () => {
+    const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+    localStorage.setItem('todos', JSON.stringify(serial));
+    alert('To-dos saved locally');
   };
 
   const filteredTodos = todos.filter((todo) => {
@@ -157,10 +225,16 @@ export default function TodoList() {
           <h1 className="text-3xl font-bold text-gray-900">To-Do List</h1>
           <p className="text-gray-500 mt-1">Track your wedding planning tasks</p>
         </div>
-        <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
-          <Plus className="w-5 h-5" />
-          <span>Add Task</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={saveTodos} className="flex items-center space-x-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl transition shadow-lg">
+            <Save className="w-4 h-4" />
+            <span>Save</span>
+          </button>
+          <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
+            <Plus className="w-5 h-5" />
+            <span>Add Task</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
