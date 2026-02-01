@@ -76,29 +76,15 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
   };
 
   const handleComplete = async () => {
+    // prevent double submit
+    if ((handleComplete as any)._running) return;
+    (handleComplete as any)._running = true;
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('/api/onboarding', data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      localStorage.setItem('onboardingCompleted', 'true');
-      setHasCompletedOnboarding(true);
-      navigate('/dashboard');
-      // fallback: if SPA navigation doesn't land on the dashboard (basename mismatch), force full reload
-      setTimeout(() => {
-        const base = import.meta.env.BASE_URL || '/';
-        const expected = base.replace(/\/$/, '') + '/dashboard';
-        if (!window.location.pathname.includes('/dashboard')) {
-          window.location.href = expected;
-        }
-      }, 250);
-    } catch (error) {
-      console.error('Onboarding save failed:', error);
-      // Fallback for offline/demo mode: persist onboarding locally and continue
+      // persist locally first so dashboard can read onboarding immediately
       try {
         localStorage.setItem('onboarding', JSON.stringify(data));
-        // Also seed ceremony-specific local cache so CeremonyPlanning can load offline
+        // also write a lightweight `user` so other screens can use it
+        localStorage.setItem('user', JSON.stringify({ weddingCity: data.weddingCity, weddingState: data.weddingState, weddingDate: data.weddingDate, estimatedBudget: data.estimatedBudget, guestCount: data.guestCount }));
         const ceremonyPayload = {
           userSettings: data,
           selectedRituals: data.ceremonyDetails?.specificRituals || [],
@@ -107,12 +93,30 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
         };
         localStorage.setItem('ceremony', JSON.stringify(ceremonyPayload));
       } catch (e) {
-        console.error('Failed to write onboarding to localStorage', e);
+        console.error('Failed to persist onboarding locally', e);
       }
+
+      const token = localStorage.getItem('token');
+      // attempt to save to server but do not block navigation if it hangs
+      const savePromise = axios.post('/api/onboarding', data, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 8000,
+      }).catch((err) => {
+        console.warn('Server onboarding save failed (continuing offline):', err?.message || err);
+      });
+
+      // mark completed locally and navigate immediately for fast UX
       localStorage.setItem('onboardingCompleted', 'true');
       setHasCompletedOnboarding(true);
       navigate('/dashboard');
-      // fallback for offline/demo mode as well
+
+      // still wait a short time for the save request to settle in background
+      setTimeout(() => {
+        // ensure server save started; we don't require success
+        savePromise.catch(() => {});
+      }, 200);
+
+      // fallback: if SPA navigation doesn't land on the dashboard (basename mismatch), force full reload
       setTimeout(() => {
         const base = import.meta.env.BASE_URL || '/';
         const expected = base.replace(/\/$/, '') + '/dashboard';
@@ -120,6 +124,8 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
           window.location.href = expected;
         }
       }, 250);
+    } finally {
+      (handleComplete as any)._running = false;
     }
   };
 
