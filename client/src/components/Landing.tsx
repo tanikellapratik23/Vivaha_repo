@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Heart } from 'lucide-react';
-import { useRef } from 'react';
+import Welcome from './onboarding/steps/Welcome';
+import RoleSelection from './onboarding/steps/RoleSelection';
+import WeddingDate from './onboarding/steps/WeddingDate';
+import Location from './onboarding/steps/Location';
+import Preferences from './onboarding/steps/Preferences';
+import CeremonyDetails from './onboarding/steps/CeremonyDetails';
+import Goals from './onboarding/steps/Goals';
+import Summary from './onboarding/steps/Summary';
+import { OnboardingData } from './onboarding/Onboarding';
 
 const Feature = ({ title, desc }: { title: string; desc: string }) => (
   <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-md">
@@ -140,95 +148,113 @@ function DemoLauncher() {
 }
 
 function DemoPlayer({ onClose }: { onClose: () => void }) {
-  const totalMs = 30_000; // 30 seconds
-  const scenes = [
-    { text: 'Welcome to Vivaha — demo starting...', ms: 2000 },
-    { text: 'Role: Getting Married', ms: 3000 },
-    { text: 'Religion: Hindu', ms: 3000 },
-    { text: "Location: San Francisco, CA (finding vendors)", ms: 4000 },
-    { text: 'Searching photographers, DJs, venues...', ms: 3000 },
-    { text: 'Found: SF Elite Photography — saving to favorites', ms: 3000 },
-    { text: 'Opening your personalized dashboard…', ms: 3000 },
-    { text: 'Demo complete — returning to landing', ms: 3000 },
-  ];
+  // Demo shows a modal with the real onboarding components on the left
+  // and a dashboard mock on the right. It auto-fills fields and advances.
+  const [demoStep, setDemoStep] = useState(1);
+  const [data, setData] = useState<OnboardingData>({ role: '', weddingStyle: '', topPriority: [], goals: '' });
+  const [showDashboard, setShowDashboard] = useState(false);
 
-  const [sceneIndex, setSceneIndex] = useState(0);
-  const [typed, setTyped] = useState('');
-  const sceneTimerRef = useRef<number | null>(null);
+  const script = useRef<Array<{ delay: number; run: () => void }>>([]);
 
   useEffect(() => {
-    let acc = 0;
-    scenes.forEach((s) => (acc += s.ms));
-    const endTimeout = window.setTimeout(() => {
-      onClose();
-    }, totalMs);
+    // Prepare scripted actions
+    let t = 0;
+    const push = (delay: number, fn: () => void) => {
+      t += delay;
+      script.current.push({ delay: t, run: fn });
+    };
 
-    return () => clearTimeout(endTimeout);
+    push(1200, () => { setData(d => ({ ...d, role: 'self' })); });
+    push(800, () => setDemoStep(2)); // next to WeddingDate
+    push(1200, () => { setData(d => ({ ...d, weddingDate: new Date().toISOString().split('T')[0] })); });
+    push(800, () => setDemoStep(3));
+    push(1000, () => { setData(d => ({ ...d, weddingCity: 'San Francisco', weddingState: 'CA' })); });
+    push(800, () => setDemoStep(4));
+    push(1000, () => { setData(d => ({ ...d, religions: ['Hindu'], isReligious: true })); });
+    push(800, () => setDemoStep(5));
+    push(900, () => { setData(d => ({ ...d, estimatedBudget: 15000, guestCount: 120 })); });
+    push(800, () => setDemoStep(6));
+    push(1000, () => { setData(d => ({ ...d, goals: 'Beautiful cultural ceremony' })); });
+    push(700, () => setDemoStep(7));
+    push(900, () => setDemoStep(8));
+    push(900, () => { setShowDashboard(true); });
+
+    let timers: number[] = [];
+    script.current.forEach(({ delay, run }) => {
+      const id = window.setTimeout(run, delay) as unknown as number;
+      timers.push(id);
+    });
+
+    // auto-close after 30s
+    const finish = window.setTimeout(() => onClose(), 30_000) as unknown as number;
+    timers.push(finish);
+
+    return () => timers.forEach((id) => clearTimeout(id));
   }, []);
 
-  useEffect(() => {
-    const scene = scenes[sceneIndex];
-    setTyped('');
-    const chars = scene.text.split('');
-    let pos = 0;
-    const charMs = Math.max(20, Math.floor(scene.ms / Math.max(1, chars.length)));
-    sceneTimerRef.current = window.setInterval(() => {
-      pos += 1;
-      setTyped(chars.slice(0, pos).join(''));
-      if (pos >= chars.length) {
-        if (sceneTimerRef.current) {
-          clearInterval(sceneTimerRef.current);
-          sceneTimerRef.current = null;
-        }
-        // move to next scene after a short pause
-        setTimeout(() => {
-          setSceneIndex((s) => Math.min(s + 1, scenes.length - 1));
-        }, 600);
-      }
-    }, charMs) as unknown as number;
-
-    return () => {
-      if (sceneTimerRef.current) {
-        clearInterval(sceneTimerRef.current);
-        sceneTimerRef.current = null;
-      }
-    };
-  }, [sceneIndex]);
+  const updateData = (d: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...d }));
+  const next = () => setDemoStep(s => Math.min(s + 1, 8));
+  const back = () => setDemoStep(s => Math.max(s - 1, 1));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60" />
-      <div className="relative max-w-3xl w-full mx-4 bg-white rounded-2xl p-6 shadow-xl">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Vivaha Demo</h2>
-            <p className="text-sm text-gray-600">A 30s guided preview showing onboarding → dashboard</p>
+      <div className="relative max-w-5xl w-full mx-4 bg-white rounded-2xl p-6 shadow-xl grid md:grid-cols-2 gap-6">
+        <div>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Vivaha Demo — Onboarding</h2>
+              <p className="text-sm text-gray-600">Watch the onboarding run automatically</p>
+            </div>
+            <button onClick={onClose} className="text-sm text-gray-500">Close</button>
           </div>
-          <button onClick={onClose} className="text-sm text-gray-500">Close</button>
+
+          <div className="mt-4 bg-white rounded-2xl shadow p-6">
+            {demoStep === 1 && <RoleSelection data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 2 && <WeddingDate data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 3 && <Location data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 4 && <Preferences data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 5 && <CeremonyDetails data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 6 && <Goals data={data} updateData={updateData} onNext={next} onBack={back} />}
+            {demoStep === 7 && <Summary data={data} onBack={back} onComplete={() => { setDemoStep(8); }} />}
+            {demoStep === 8 && (
+              <div className="text-center py-12">
+                <h3 className="text-lg font-semibold">Finishing…</h3>
+                <p className="text-sm text-gray-500 mt-2">Opening your personalized dashboard now.</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="mt-4 min-h-[120px]">
-          <div className="bg-gray-50 rounded-md p-4">
-            <pre className="whitespace-pre-wrap text-sm text-primary-700">{typed}<span className="blink">|</span></pre>
-          </div>
-
-          {/* small mock dashboard reveal on later scenes */}
-          {sceneIndex >= 6 && (
-            <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Dashboard Preview</h3>
+          <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+            <div className="p-3 bg-white rounded-md border">
+              <div className="text-xs text-gray-500">Location</div>
+              <div className="text-lg font-bold">{data.weddingCity || 'San Francisco'}, {data.weddingState || 'CA'}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-primary-50 rounded-md">
                 <div className="text-xs text-gray-500">Guests</div>
-                <div className="text-2xl font-bold">120</div>
+                <div className="text-2xl font-bold">{data.guestCount || 120}</div>
               </div>
               <div className="p-3 bg-white rounded-md border">
                 <div className="text-xs text-gray-500">Budget</div>
-                <div className="text-2xl font-bold">$15,000</div>
-              </div>
-              <div className="p-3 bg-white rounded-md border col-span-2">
-                <div className="text-xs text-gray-500">Favorites</div>
-                <div className="mt-2">SF Elite Photography · Grand SF Ballroom</div>
+                <div className="text-2xl font-bold">${(data.estimatedBudget || 15000).toLocaleString()}</div>
               </div>
             </div>
-          )}
+
+            <div className="p-3 bg-white rounded-md border">
+              <div className="text-xs text-gray-500">Favorites</div>
+              <div className="mt-2">SF Elite Photography · Grand SF Ballroom</div>
+            </div>
+
+            {showDashboard && (
+              <div className="p-3 bg-green-50 rounded-md border border-green-100 text-green-700">
+                Demo complete — this is how your dashboard will look.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
