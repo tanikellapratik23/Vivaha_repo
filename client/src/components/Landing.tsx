@@ -129,8 +129,8 @@ export default function Landing() {
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div
-          className={`max-w-6xl w-full grid gap-8 items-center justify-center ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
-          style={demoPlaying ? { gridTemplateColumns: 'minmax(320px,1fr) minmax(320px,1fr) minmax(420px,1.4fr)' } : { gridTemplateColumns: 'minmax(360px,1fr) minmax(360px,1fr)' }}
+          className={`max-w-6xl w-full grid gap-8 items-start justify-center ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
+          style={demoPlaying ? { gridTemplateColumns: 'minmax(360px,1fr) minmax(360px,1fr) minmax(520px,1.4fr)' } : { gridTemplateColumns: 'minmax(420px,420px) minmax(420px,420px)' }}
         >
           <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1 flex flex-col justify-center`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
@@ -149,7 +149,7 @@ export default function Landing() {
             </div>
           </section>
 
-          <aside className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6 col-span-1 max-h-[80vh] overflow-hidden`}>
+          <aside className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6 col-span-1 max-h-[80vh] overflow-hidden self-start`}>
             <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
             <div className="overflow-hidden rounded-md border p-2 bg-white">
               <OnboardingPreview />
@@ -165,8 +165,8 @@ export default function Landing() {
             </div>
           </aside>
           {/* demo column - slides in when demoPlaying */}
-          <div className={`bg-white/95 rounded-2xl shadow-xl p-4 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} col-span-1 max-h-[80vh] overflow-hidden`}>
-            <div className="h-full overflow-auto">
+          <div className={`bg-white/95 rounded-2xl shadow-xl p-4 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} col-span-1 max-h-[86vh] overflow-hidden self-start`}>
+            <div className="h-full overflow-auto min-w-0">
               <DemoPlayer inline onClose={() => setDemoPlaying(false)} />
             </div>
           </div>
@@ -257,7 +257,7 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
   const container = (
     <div className={`relative w-full bg-white rounded-2xl p-4 shadow-xl ${inline ? '' : 'max-w-5xl mx-4'}`}>
       <div className={`grid md:grid-cols-2 gap-6`}>
-        <div>
+        <div className="min-w-0">
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-lg font-semibold">Onboarding (Preview)</h3>
@@ -283,7 +283,7 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold mb-3">Dashboard Preview</h3>
           <div className="bg-gray-50 rounded-xl p-4 space-y-4">
             <div className="p-3 bg-white rounded-md border">

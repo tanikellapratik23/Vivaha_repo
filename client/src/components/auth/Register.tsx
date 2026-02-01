@@ -100,9 +100,10 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
     if (fileRef.current) fileRef.current.value = '';
   }, []);
   // Background carousel for auth pages: alternate two hero images every 10s
+  const base = import.meta.env.BASE_URL || '/';
   const authBgImages = [
-    '/hero-images/side-view-happy-man-proposing.jpg',
-    '/hero-images/beautiful-wedding-ceremony-nature.jpg',
+    `${base}hero-images/side-view-happy-man-proposing.jpg`,
+    `${base}hero-images/beautiful-wedding-ceremony-nature.jpg`,
   ];
   const [bgIndex, setBgIndex] = useState(0);
   useEffect(() => {
