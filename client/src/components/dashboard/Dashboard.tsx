@@ -36,10 +36,30 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [isReligious, setIsReligious] = useState(false);
   const [wantsBachelorParty, setWantsBachelorParty] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     fetchUserSettings();
+    sendWelcomeEmail();
   }, []);
+
+  const sendWelcomeEmail = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const hasEmailBeenSent = sessionStorage.getItem('welcomeEmailSent');
+      if (hasEmailBeenSent || emailSent) return;
+
+      // Trigger welcome email
+      await axios.post('/api/send-welcome-email', {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      sessionStorage.setItem('welcomeEmailSent', 'true');
+      setEmailSent(true);
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+    }
+  };
 
   const fetchUserSettings = async () => {
     try {
