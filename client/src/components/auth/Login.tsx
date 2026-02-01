@@ -51,9 +51,9 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         localStorage.setItem('onboardingCompleted', 'true');
         navigate('/dashboard');
       } else if (response.data.user.onboardingCompleted) {
-        // Regular user with completed onboarding
+        // Returning user with completed onboarding - show welcome back screen
         localStorage.setItem('onboardingCompleted', 'true');
-        navigate('/dashboard');
+        navigate('/welcome-back');
       } else {
         // First-time user - go to onboarding
         navigate('/onboarding');
