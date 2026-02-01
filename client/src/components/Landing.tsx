@@ -118,10 +118,7 @@ export default function Landing() {
             <div className="bg-primary-500 text-white p-2 rounded-md">
               <Heart className="w-6 h-6" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold">Vivaha</h1>
-              <p className="text-xs text-white/80">Your Wedding Planner</p>
-            </div>
+            <div className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center px-4">
           </div>
           <nav className="space-x-3">
             <Link to="/login" className="px-4 py-2 bg-white/90 text-primary-700 rounded-md font-medium">Log in</Link>
@@ -131,10 +128,7 @@ export default function Landing() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div
-          className={`max-w-6xl w-full grid gap-10 items-center md:grid-cols-2 justify-center`}
-          style={{ gridTemplateColumns: 'minmax(520px,520px) minmax(520px,520px)' }}
-        >
+        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center px-4">
           <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1 flex flex-col ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
@@ -174,7 +168,7 @@ export default function Landing() {
         <div className="w-full flex justify-center">
           <div
             ref={demoRef}
-            className={`max-w-6xl w-full transition-transform duration-700 ease-in-out ${demoPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'}`}
+            className={`max-w-6xl mx-auto w-full transition-transform duration-700 ease-in-out ${demoPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'}`}
           >
             {demoPlaying && (
               <div className="mx-6">
@@ -245,7 +239,7 @@ function GalleryCarousel({ images }: { images: string[] }) {
     <div ref={containerRef} className="py-6">
       <h3 className="text-2xl font-semibold mb-4">Gallery</h3>
       <div className="relative w-full bg-white/90 rounded-2xl shadow-lg p-6 overflow-hidden">
-        <div className="w-full h-[420px] md:h-[520px] flex items-center justify-center">
+        <div className="w-full h-[240px] sm:h-[320px] md:h-[520px] flex items-center justify-center">
           <div className="w-full max-w-[1100px] h-full relative">
             {images.map((src, i) => (
               <img
