@@ -86,6 +86,10 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
       // persist locally first so dashboard can read onboarding immediately
       try {
         localStorage.setItem('onboarding', JSON.stringify(data));
+        // Save bachelor party preference to localStorage for quick access
+        if (data.wantsBachelorParty) {
+          localStorage.setItem('wantsBachelorParty', 'true');
+        }
         // also write a lightweight `user` so other screens can use it
         localStorage.setItem('user', JSON.stringify({ weddingCity: data.weddingCity, weddingState: data.weddingState, weddingDate: data.weddingDate, estimatedBudget: data.estimatedBudget, guestCount: data.guestCount }));
         const ceremonyPayload = {

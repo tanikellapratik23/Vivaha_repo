@@ -46,13 +46,21 @@ export default function Dashboard() {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/onboarding', {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000,
       });
       if (response.data) {
         setIsReligious(response.data.isReligious || false);
         setWantsBachelorParty(response.data.wantsBachelorParty || false);
+        // Also save to localStorage as backup
+        localStorage.setItem('wantsBachelorParty', response.data.wantsBachelorParty ? 'true' : 'false');
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
+      // Fallback to localStorage
+      const localWantsBachelor = localStorage.getItem('wantsBachelorParty') === 'true';
+      if (localWantsBachelor) {
+        setWantsBachelorParty(true);
+      }
     }
   };
 
