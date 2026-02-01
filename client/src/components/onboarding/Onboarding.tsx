@@ -81,6 +81,23 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
       navigate('/dashboard');
     } catch (error) {
       console.error('Onboarding save failed:', error);
+      // Fallback for offline/demo mode: persist onboarding locally and continue
+      try {
+        localStorage.setItem('onboarding', JSON.stringify(data));
+        // Also seed ceremony-specific local cache so CeremonyPlanning can load offline
+        const ceremonyPayload = {
+          userSettings: data,
+          selectedRituals: data.ceremonyDetails?.specificRituals || [],
+          selectedTraditions: data.ceremonyDetails?.culturalTraditions || [],
+          weddingDays: data.ceremonyDetails?.weddingDays || [],
+        };
+        localStorage.setItem('ceremony', JSON.stringify(ceremonyPayload));
+      } catch (e) {
+        console.error('Failed to write onboarding to localStorage', e);
+      }
+      localStorage.setItem('onboardingCompleted', 'true');
+      setHasCompletedOnboarding(true);
+      navigate('/dashboard');
     }
   };
 
