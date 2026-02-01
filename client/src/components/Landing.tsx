@@ -51,13 +51,14 @@ function OnboardingPreview() {
 
 export default function Landing() {
   const [step, setStep] = useState(0);
+  const base = import.meta.env.BASE_URL || '/';
   const heroImages = [
-    '/hero-images/back-view-islamic-couple-spending-time-together.jpg',
-    '/hero-images/beautiful-wedding-ceremony-nature.jpg',
-    '/hero-images/ritual-with-coconut-leaves-traditional-hindu-wedding-ceremony.jpg',
-    '/hero-images/side-view-happy-man-proposing.jpg',
-    '/hero-images/wedding-ritual-putting-ring-finger-india.jpg',
-    '/hero-images/young-wedding-couple-enjoying-romantic-moments.jpg',
+    `${base}hero-images/back-view-islamic-couple-spending-time-together.jpg`,
+    `${base}hero-images/beautiful-wedding-ceremony-nature.jpg`,
+    `${base}hero-images/ritual-with-coconut-leaves-traditional-hindu-wedding-ceremony.jpg`,
+    `${base}hero-images/side-view-happy-man-proposing.jpg`,
+    `${base}hero-images/wedding-ritual-putting-ring-finger-india.jpg`,
+    `${base}hero-images/young-wedding-couple-enjoying-romantic-moments.jpg`,
   ];
   const [showHero, setShowHero] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
@@ -173,6 +174,13 @@ export default function Landing() {
         </div>
       </main>
 
+      {/* Gallery carousel section */}
+      <section className="w-full py-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <GalleryCarousel images={heroImages} />
+        </div>
+      </section>
+
       <footer className="py-6">
         <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-600">
           <p>Already have an account? <Link to="/login" className="text-primary-700 font-semibold">Sign in</Link></p>
@@ -184,6 +192,67 @@ export default function Landing() {
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 shadow">
           <div className="font-semibold">Need help?</div>
           <div className="text-sm">Use the top-right buttons to Sign up or Log in.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryCarousel({ images }: { images: string[] }) {
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // start autoplay when scrolled into view
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => setPlaying(e.isIntersecting));
+    }, { threshold: 0.4 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // autoplay every ~20s when playing
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % images.length), 20_000);
+    return () => clearInterval(id);
+  }, [playing, images.length]);
+
+  useEffect(() => {
+    // preload images
+    images.forEach((src) => { const img = new Image(); img.src = src; });
+  }, [images]);
+
+  return (
+    <div ref={containerRef} className="py-6">
+      <h3 className="text-2xl font-semibold mb-4">Gallery</h3>
+      <div className="relative w-full bg-white/90 rounded-2xl shadow-lg p-6 overflow-hidden">
+        <div className="w-full h-[420px] md:h-[520px] flex items-center justify-center">
+          <div className="w-full max-w-[1100px] h-full relative">
+            {images.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt={`hero-${i}`}
+                className={`absolute inset-0 w-full h-full object-cover rounded-xl transition-opacity duration-700 ${i === index ? 'opacity-100' : 'opacity-0'}`}
+                style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)', borderRadius: 12 }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-3">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setIndex(i); setPlaying(true); }}
+              className={`w-3 h-3 rounded-full ${i === index ? 'bg-primary-600' : 'bg-gray-300'}`}
+              aria-label={`Go to image ${i + 1}`}
+            />
+          ))}
         </div>
       </div>
     </div>
