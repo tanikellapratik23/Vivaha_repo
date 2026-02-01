@@ -43,6 +43,7 @@ export default function VendorSearch() {
   const [culturalFilter, setCulturalFilter] = useState<string>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [favoriteVendors, setFavoriteVendors] = useState<Vendor[]>([]);
+  const fetchCounterRef = useRef(0);
 
   useEffect(() => {
     fetchUserLocation();
@@ -143,7 +144,7 @@ export default function VendorSearch() {
     };
 
     // protect against stale responses if fetchVendors is called again
-    const fetchId = (fetchVendors as any)._fetchId = ((fetchVendors as any)._fetchId || 0) + 1;
+    const fetchId = ++fetchCounterRef.current;
 
     try {
       const token = localStorage.getItem('token');
@@ -186,7 +187,7 @@ export default function VendorSearch() {
           params: { city: userCity, state: userState, category },
           timeout: 9000,
         }).then((response) => {
-          if ((fetchVendors as any)._fetchId !== fetchId) return [] as Vendor[]; // stale
+          if (fetchCounterRef.current !== fetchId) return [] as Vendor[]; // stale
           if (response.data?.businesses && response.data.businesses.length > 0) {
             const mapped = response.data.businesses.map((business: any) => ({
               id: business.id,
@@ -208,7 +209,7 @@ export default function VendorSearch() {
             // save per-category cache and apply immediately
             saveToCache(cacheKey, mapped);
             setVendors(prev => {
-              if ((fetchVendors as any)._fetchId !== fetchId) return prev;
+              if (fetchCounterRef.current !== fetchId) return prev;
               const merged = [...prev, ...mapped];
               const map = new Map<string, Vendor>();
               merged.forEach(v => map.set(v.id, v));
@@ -222,7 +223,7 @@ export default function VendorSearch() {
           const fallback = generateVendorsForCity(userCity, userState).filter(v => v.category === category);
           saveToCache(cacheKey, fallback);
           setVendors(prev => {
-            if ((fetchVendors as any)._fetchId !== fetchId) return prev;
+            if (fetchCounterRef.current !== fetchId) return prev;
             const merged = [...prev, ...fallback];
             const map = new Map<string, Vendor>();
             merged.forEach(v => map.set(v.id, v));
