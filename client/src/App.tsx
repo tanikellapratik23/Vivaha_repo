@@ -8,6 +8,7 @@ import Register from './components/auth/Register';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
 
   useEffect(() => {
     // Check authentication status
@@ -18,7 +19,7 @@ function App() {
   }, []);
 
   return (
-    <Router basename="/wedwise">
+    <Router basename={BASENAME}>
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
         <Routes>
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
