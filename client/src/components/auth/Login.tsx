@@ -23,20 +23,12 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     setError('');
     setLoading(true);
 
-    // Use an AbortController so we can give quick feedback and cancel long waits
-    const controller = new AbortController();
-    const abortTimer = setTimeout(() => {
-      try {
-        controller.abort();
-      } catch (e) {}
-      setError('Server is taking too long to respond — try again in a few seconds.');
-      setLoading(false);
-    }, 10000); // 10s user-facing timeout
+    // Allow a longer axios timeout (configured globally). Do not forcibly abort
+    // here so backends that are cold-starting can still respond.
 
     try {
       console.log('Attempting login with:', formData.email);
-      const response = await axios.post(`${API_URL}/api/auth/login`, formData, { signal: controller.signal, timeout: 30000 });
-      clearTimeout(abortTimer);
+      const response = await axios.post(`${API_URL}/api/auth/login`, formData, { timeout: 30000 });
       console.log('Login successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
@@ -49,11 +41,8 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         navigate('/onboarding');
       }
     } catch (err: any) {
-      clearTimeout(abortTimer);
       console.error('Login error:', err.response?.data || err.message);
-      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
-        setError('Request canceled — the server did not respond. Try again.');
-      } else if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
+      if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Login timed out — the server may be waking up. Try again in a few seconds.');
       } else if (err.response) {
         setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
@@ -61,7 +50,6 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         setError('Unable to reach the server. Check your connection or try again later.');
       }
     } finally {
-      clearTimeout(abortTimer);
       setLoading(false);
     }
   };
