@@ -71,9 +71,9 @@ export default function DemoPage() {
         <div className="w-full max-w-4xl bg-white/95 rounded-2xl shadow-xl p-6">
           <div className="h-full overflow-auto">
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="md:w-2/5">
+              <div className="md:w-2/5 min-w-0">
                 <h3 className="text-lg font-semibold">Onboarding (Demo)</h3>
-                <div className="mt-4 bg-white rounded-2xl shadow p-6 max-h-[60vh] overflow-auto">
+                <div className="mt-4 bg-white rounded-2xl shadow p-6 max-h-[60vh] overflow-auto break-words whitespace-normal">
                   {demoStep === 1 && <RoleSelection data={data} updateData={(d)=>setData(prev=>({...prev,...d}))} onNext={()=>setDemoStep(2)} onBack={()=>setDemoStep(1)} />}
                   {demoStep === 2 && <WeddingDate data={data} updateData={(d)=>setData(prev=>({...prev,...d}))} onNext={()=>setDemoStep(3)} onBack={()=>setDemoStep(1)} />}
                   {demoStep === 3 && <Location data={data} updateData={(d)=>setData(prev=>({...prev,...d}))} onNext={()=>setDemoStep(4)} onBack={()=>setDemoStep(2)} />}
@@ -90,9 +90,9 @@ export default function DemoPage() {
                 </div>
               </div>
 
-              <div className="md:w-3/5">
+              <div className="md:w-3/5 min-w-0">
                 <h3 className="text-lg font-semibold mb-3">Dashboard Preview</h3>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                <div className="bg-gray-50 rounded-xl p-4 space-y-4 break-words whitespace-normal">
                   <div className="p-3 bg-white rounded-md border">
                     <div className="text-xs text-gray-500">Location</div>
                     <div className="text-lg font-bold">{data.weddingCity || 'San Francisco'}, {data.weddingState || 'CA'}</div>
