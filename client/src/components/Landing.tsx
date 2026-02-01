@@ -9,6 +9,37 @@ const Feature = ({ title, desc }: { title: string; desc: string }) => (
   </div>
 );
 
+function OnboardingPreview() {
+  const steps = [
+    { title: 'Role', text: 'Who are you planning for? (Getting Married / Parent / Planner)' },
+    { title: 'Religion', text: 'Do you have religious or cultural preferences?' },
+    { title: 'Location', text: "Where's the wedding? We use this to find local vendors." },
+    { title: 'Vendors', text: 'We find photographers, DJs, venues and caterers near you.' },
+    { title: 'Summary', text: 'Quick summary and dashboard preview — you are ready to go!' },
+  ];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((s) => (s + 1) % steps.length), 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="h-40 relative">
+      <div className="absolute inset-0 transition-transform duration-500" style={{ transform: `translateY(${-i * 100}%)` }}>
+        {steps.map((s, idx) => (
+          <div key={idx} className="h-40 flex items-center p-4 border-b last:border-b-0">
+            <div className="w-full">
+              <div className="text-sm text-primary-700 font-semibold">{s.title}</div>
+              <div className="mt-2 text-gray-700 text-sm">{s.text}</div>
+              <div className="mt-3 text-xs text-gray-500">Example: "Show me photographers near San Francisco"</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const [step, setStep] = useState(0);
   const lines = [
@@ -64,18 +95,16 @@ export default function Landing() {
 
           <aside className="bg-white/90 rounded-2xl shadow-xl p-6">
             <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
-            <div className="animate-pulse space-y-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4" />
-              <div className="h-4 bg-gray-200 rounded w-1/2" />
-              <div className="h-3 bg-gray-100 rounded w-full" />
+            <div className="overflow-hidden rounded-md border p-2 bg-white">
+              <OnboardingPreview />
             </div>
 
             <div className="mt-6">
-              <h4 className="text-sm font-medium text-gray-700">Quick Links</h4>
+              <h4 className="text-sm font-medium text-gray-700">How it helps</h4>
               <ul className="mt-3 space-y-2 text-sm text-gray-600">
-                <li>Guest list import / export (Excel)</li>
-                <li>Vendor search & favorites</li>
-                <li>Seating planner & to-dos</li>
+                <li>We ask a few quick questions (role, religion, location, date).</li>
+                <li>We use your location to suggest nearby vendors (photographers, DJs, venues).</li>
+                <li>Favorites and saved vendors show up instantly on your dashboard.</li>
               </ul>
             </div>
           </aside>
