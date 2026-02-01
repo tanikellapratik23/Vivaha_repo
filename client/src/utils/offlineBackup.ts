@@ -12,10 +12,18 @@ export type BackupShape = {
 };
 
 export function collectBackup(): BackupShape {
+  const ocRaw = localStorage.getItem('onboardingCompleted');
+  let ocVal: string | boolean | undefined = undefined;
+  if (ocRaw !== null) {
+    if (ocRaw === 'true') ocVal = true;
+    else if (ocRaw === 'false') ocVal = false;
+    else ocVal = ocRaw;
+  }
+
   return {
     meta: { createdAt: new Date().toISOString() },
     user: JSON.parse(localStorage.getItem('user') || 'null'),
-    onboardingCompleted: localStorage.getItem('onboardingCompleted'),
+    onboardingCompleted: ocVal,
     guests: JSON.parse(localStorage.getItem('guests') || 'null'),
     todos: JSON.parse(localStorage.getItem('todos') || 'null'),
     budget: JSON.parse(localStorage.getItem('budget') || 'null'),
