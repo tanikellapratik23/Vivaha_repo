@@ -148,7 +148,7 @@ export default function Landing() {
 
             <div className="flex gap-3">
               <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
-              <DemoLauncher stopHero={() => setShowHero(false)} onStart={() => startDemo()} />
+              <DemoLauncher stopHero={() => setShowHero(false)} />
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
