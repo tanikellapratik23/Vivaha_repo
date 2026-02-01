@@ -128,7 +128,10 @@ export default function Landing() {
       </header>
 
       <main className="flex-1 flex items-center justify-center px-6">
-        <div className={`max-w-6xl w-full grid gap-8 items-start ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+          <div
+            className={`max-w-6xl w-full grid gap-8 items-center ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
+            style={demoPlaying ? { gridTemplateColumns: '1fr 1fr 1.4fr' } : undefined}
+          >
           <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
@@ -146,7 +149,7 @@ export default function Landing() {
             </div>
           </section>
 
-          <aside className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6 col-span-1 max-h-[70vh] overflow-hidden`}>
+          <aside className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} bg-white/90 rounded-2xl shadow-xl p-6 col-span-1 max-h-[80vh] overflow-hidden`}>
             <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
             <div className="overflow-hidden rounded-md border p-2 bg-white">
               <OnboardingPreview />
@@ -162,7 +165,7 @@ export default function Landing() {
             </div>
           </aside>
           {/* demo column - slides in when demoPlaying */}
-          <div className={`bg-white/95 rounded-2xl shadow-xl p-4 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} col-span-1 max-h-[70vh] overflow-hidden`}>
+          <div className={`bg-white/95 rounded-2xl shadow-xl p-4 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} col-span-1 max-h-[80vh] overflow-hidden`}>
             <div className="h-full overflow-auto">
               <DemoPlayer inline onClose={() => setDemoPlaying(false)} />
             </div>

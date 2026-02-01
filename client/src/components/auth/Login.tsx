@@ -100,9 +100,21 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     // clear file input value on mount
     if (fileRef.current) fileRef.current.value = '';
   }, []);
+  // Background carousel for auth pages: alternate two hero images every 10s
+  const authBgImages = [
+    '/hero-images/side-view-happy-man-proposing.jpg',
+    '/hero-images/beautiful-wedding-ceremony-nature.jpg',
+  ];
+  const [bgIndex, setBgIndex] = useState(0);
+  useEffect(() => {
+    // preload
+    authBgImages.forEach((s) => { const i = new Image(); i.src = s; });
+    const id = window.setInterval(() => setBgIndex((i) => (i + 1) % authBgImages.length), 10_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundImage: `url(${authBgImages[bgIndex]})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="text-left mb-4">
