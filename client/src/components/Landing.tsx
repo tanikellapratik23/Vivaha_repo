@@ -51,6 +51,27 @@ function OnboardingPreview() {
 
 export default function Landing() {
   const [step, setStep] = useState(0);
+  const heroImages = [
+    '/hero-images/back-view-islamic-couple-spending-time-together.jpg',
+    '/hero-images/beautiful-wedding-ceremony-nature.jpg',
+    '/hero-images/ritual-with-coconut-leaves-traditional-hindu-wedding-ceremony.jpg',
+    '/hero-images/side-view-happy-man-proposing.jpg',
+    '/hero-images/wedding-ritual-putting-ring-finger-india.jpg',
+    '/hero-images/young-wedding-couple-enjoying-romantic-moments.jpg',
+  ];
+  const [showHero, setShowHero] = useState(true);
+  const [currentHero, setCurrentHero] = useState(0);
+
+  useEffect(() => {
+    if (!showHero) return;
+    const r = setInterval(() => setCurrentHero((c) => (c + 1) % heroImages.length), 3000);
+    // auto-stop hero carousel after 12s so page returns to pink background
+    const stop = setTimeout(() => setShowHero(false), 12_000);
+    return () => {
+      clearInterval(r);
+      clearTimeout(stop);
+    };
+  }, [showHero]);
   const lines = [
     'Welcome to Vivaha — plan your perfect wedding with ease.',
     'Smart onboarding that presets your dashboard.',
@@ -92,8 +113,10 @@ export default function Landing() {
             <p className="text-gray-700 text-lg">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
             <div className="flex gap-3">
-              <Link to="/register" className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
-              <DemoLauncher />
+              <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
+              <span onClick={() => setShowHero(false)}>
+                <DemoLauncher stopHero={() => setShowHero(false)} />
+              </span>
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
