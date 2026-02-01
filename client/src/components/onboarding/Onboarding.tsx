@@ -36,6 +36,12 @@ export interface OnboardingData {
     officiantType?: string;
     specificRituals?: string[];
     culturalTraditions?: string[];
+    weddingDays?: Array<{
+      dayNumber?: number;
+      date?: string;
+      title?: string;
+      events?: any[];
+    }>;
   };
   goals: string;
   preferredColorTheme?: string;
