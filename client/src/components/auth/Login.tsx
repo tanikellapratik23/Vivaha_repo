@@ -124,15 +124,15 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="text-left mb-4">
-            <button onClick={() => navigate('/')} className="text-sm text-primary-500 hover:underline">← Back to Home</button>
+            <button onClick={() => navigate('/')} className="text-lg text-white font-medium hover:underline">← Back to Home</button>
           </div>
           <div className="flex justify-center mb-4">
             <div className="bg-primary-500 text-white p-4 rounded-full">
               <Heart className="w-12 h-12" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Vivaha</h1>
-          <p className="text-gray-600">Plan your wedding like a pro</p>
+          <h1 className="text-4xl font-bold text-white mb-2">Vivaha</h1>
+          <p className="text-white font-medium">Plan your wedding like a pro</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
