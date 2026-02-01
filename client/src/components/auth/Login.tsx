@@ -102,16 +102,16 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
   }, []);
   // Background carousel for auth pages: alternate two hero images every 10s
   const base = import.meta.env.BASE_URL || '/';
+  // Use the requested romantic couple hero as the primary background for auth pages
   const authBgImages = [
-    `${base}hero-images/side-view-happy-man-proposing.jpg`,
-    `${base}hero-images/beautiful-wedding-ceremony-nature.jpg`,
+    `${base}hero-images/young-wedding-couple-enjoying-romantic-moments.jpg`,
   ];
   const [bgIndex, setBgIndex] = useState(0);
   useEffect(() => {
     // preload
     authBgImages.forEach((s) => { const i = new Image(); i.src = s; });
-    const id = window.setInterval(() => setBgIndex((i) => (i + 1) % authBgImages.length), 10_000);
-    return () => clearInterval(id);
+    // Single static background - no interval needed
+    return () => {};
   }, []);
 
   return (

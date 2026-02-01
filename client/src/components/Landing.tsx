@@ -129,10 +129,10 @@ export default function Landing() {
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div
-          className={`max-w-6xl w-full grid gap-10 items-start justify-center ${demoPlaying ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}
-          style={demoPlaying ? { gridTemplateColumns: 'minmax(420px,1fr) minmax(420px,1fr) minmax(640px,1.6fr)' } : { gridTemplateColumns: 'minmax(480px,480px) minmax(480px,480px)' }}
+          className={`max-w-6xl w-full grid gap-10 ${demoPlaying ? 'items-start md:grid-cols-3' : 'items-center md:grid-cols-2'} justify-center`}
+          style={demoPlaying ? { gridTemplateColumns: 'minmax(420px,1fr) minmax(420px,1fr) minmax(640px,1.6fr)' } : { gridTemplateColumns: 'minmax(520px,520px) minmax(520px,520px)' }}
         >
-          <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1 flex flex-col justify-center`}>
+          <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1 flex flex-col ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
             </div>
@@ -257,7 +257,7 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
   const container = (
     <div className={`relative w-full bg-white rounded-2xl p-4 shadow-xl ${inline ? '' : 'max-w-5xl mx-4'}`}>
       <div className={`md:flex md:flex-row md:items-start gap-6`}>
-        <div className="min-w-0 md:w-2/5">
+        <div className="min-w-0 md:w-2/5 pr-3">
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-lg font-semibold">Onboarding (Preview)</h3>
@@ -283,7 +283,7 @@ function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean
           </div>
         </div>
 
-        <div className="min-w-0 md:w-3/5">
+        <div className="min-w-0 md:w-3/5 pl-3">
           <h3 className="text-lg font-semibold mb-3">Dashboard Preview</h3>
           <div className="bg-gray-50 rounded-xl p-4 space-y-4">
             <div className="p-3 bg-white rounded-md border">
