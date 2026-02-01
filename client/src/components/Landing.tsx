@@ -63,6 +63,8 @@ export default function Landing() {
   const [showHero, setShowHero] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
   const [demoPlaying, setDemoPlaying] = useState(false);
+  const demoRef = useRef<HTMLDivElement | null>(null);
+  useScrollIntoDemo(demoRef, demoPlaying);
 
   // preload images and start carousel (start with preferred image first)
   useEffect(() => {
@@ -130,8 +132,8 @@ export default function Landing() {
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div
-          className={`max-w-6xl w-full grid gap-10 ${demoPlaying ? 'items-start md:grid-cols-3' : 'items-center md:grid-cols-2'} justify-center`}
-          style={demoPlaying ? { gridTemplateColumns: 'minmax(420px,1fr) minmax(420px,1fr) minmax(640px,1.6fr)' } : { gridTemplateColumns: 'minmax(520px,520px) minmax(520px,520px)' }}
+          className={`max-w-6xl w-full grid gap-10 items-center md:grid-cols-2 justify-center`}
+          style={{ gridTemplateColumns: 'minmax(520px,520px) minmax(520px,520px)' }}
         >
           <section className={`${demoPlaying ? 'transform -translate-x-6 md:-translate-x-12 transition-transform duration-900 ease-in-out' : ''} space-y-6 col-span-1 flex flex-col ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
@@ -165,11 +167,24 @@ export default function Landing() {
               </ul>
             </div>
           </aside>
-          {/* demo column - slides in when demoPlaying */}
-          <div className={`bg-white/95 rounded-2xl shadow-xl p-4 transition-all duration-900 ease-in-out ${demoPlaying ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} col-span-1 max-h-[86vh] overflow-hidden self-start`}>
-            <div className="h-full overflow-auto min-w-0">
-              <DemoPlayer inline onClose={() => setDemoPlaying(false)} />
-            </div>
+          {/* demo is rendered below the two boxes when playing */}
+        </div>
+
+        {/* Demo container: appears below the two centered boxes when playing */}
+        <div className="w-full flex justify-center">
+          <div
+            ref={demoRef}
+            className={`max-w-6xl w-full transition-transform duration-700 ease-in-out ${demoPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'}`}
+          >
+            {demoPlaying && (
+              <div className="mx-6">
+                <div className="bg-white/95 rounded-2xl shadow-xl p-4 max-h-[86vh] overflow-hidden">
+                  <div className="h-full overflow-auto min-w-0">
+                    <DemoPlayer inline onClose={() => setDemoPlaying(false)} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -257,6 +272,18 @@ function GalleryCarousel({ images }: { images: string[] }) {
       </div>
     </div>
   );
+}
+
+// scroll demo into view when it starts
+function useScrollIntoDemo(demoRef: React.RefObject<HTMLDivElement>, playing: boolean) {
+  useEffect(() => {
+    if (playing && demoRef.current) {
+      // small timeout to allow layout/transition to settle
+      const id = window.setTimeout(() => demoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 140);
+      return () => clearTimeout(id);
+    }
+    return;
+  }, [playing, demoRef]);
 }
 
 function DemoLauncher({ stopHero, onStart }: { stopHero?: () => void; onStart?: () => void }) {
