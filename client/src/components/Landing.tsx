@@ -139,8 +139,8 @@ export default function Landing() {
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <section className="w-full flex justify-center">
-          <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center px-4">
-            <section className={`space-y-6 flex flex-col items-center ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
+          <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center justify-items-center px-4">
+            <section className={`space-y-6 flex flex-col items-center w-full max-w-[520px] ${demoPlaying ? 'justify-start' : 'justify-center'}`}>
             <div className="text-4xl md:text-5xl font-extrabold leading-tight">
               <span className="block text-primary-700">{lines[step]}</span>
             </div>
@@ -157,7 +157,7 @@ export default function Landing() {
             </div>
             </section>
 
-            <aside className={`bg-white/90 rounded-2xl shadow-xl p-6 max-h-[86vh] overflow-hidden self-center flex flex-col justify-center`}>
+            <aside className={`bg-white/90 rounded-2xl shadow-xl p-6 max-h-[86vh] overflow-hidden flex flex-col justify-center w-full max-w-[520px]`}>
             <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
             <div className="overflow-hidden rounded-md border p-2 bg-white">
               <OnboardingPreview />
