@@ -137,10 +137,10 @@ export default function Landing() {
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="max-w-6xl w-full mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="w-full flex items-center justify-center">
-              <div className="w-full md:w-[1032px] flex flex-col md:flex-row gap-8 items-stretch justify-center mx-auto transform md:translate-x-48">
-              <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] max-w-[520px] flex flex-col justify-center items-start min-w-0 border mx-auto">
+            <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row md:justify-between gap-8 items-start">
+              <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
               <div className="w-full">
                 <div className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
                   <span className="block text-primary-700">{lines[step]}</span>
@@ -159,7 +159,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] max-w-[520px] flex flex-col justify-center items-start min-w-0 border mx-auto">
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full md:w-[500px] flex flex-col justify-center items-start min-w-0 border">
               <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
               <div className="overflow-hidden rounded-md border p-2 bg-white w-full mb-4 min-w-0 break-words">
                 <OnboardingPreview />
