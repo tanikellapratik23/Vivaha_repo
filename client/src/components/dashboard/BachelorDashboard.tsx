@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Trash2, MapPin, Users, DollarSign, Plane, Home, Loader, PartyPopper, Calendar, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, MapPin, Users, DollarSign, Plane, Home, Loader, PartyPopper, Calendar, AlertCircle, Edit2, Save, X } from 'lucide-react';
 import axios from 'axios';
 import { locationData } from '../../utils/locationData';
 
@@ -48,6 +48,7 @@ export default function BachelorDashboard() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [editMode, setEditMode] = useState(false);
 
   // Trip Setup State
   const [eventName, setEventName] = useState('');
@@ -131,6 +132,12 @@ export default function BachelorDashboard() {
         const departureTime = new Date(baseDate.getTime() + i * 2 * 60 * 60 * 1000);
         const arrivalTime = new Date(baseDate.getTime() + (i * 2 + 3) * 60 * 60 * 1000);
         
+        // Generate realistic Skyscanner booking URL with departure city and date
+        const departureDate = departureTime.toISOString().split('T')[0];
+        const returnDate = new Date(departureTime.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const cityCode = selectedState === 'CA' ? 'LAX' : selectedState === 'NY' ? 'JFK' : 'ORD';
+        const destCode = 'SFO'; // Default destination
+        
         return {
           id: `flight-${i}`,
           airline: airline.name,
@@ -139,12 +146,17 @@ export default function BachelorDashboard() {
           price: 250 + Math.random() * 300,
           duration: '5h 30m',
           image: airline.logo,
-          bookingUrl: `https://www.google.com/flights/search?tfs=CBwQAxoL${departureTime.toISOString().split('T')[0]}rAGgAQE&q=${selectedState || 'CA'}%20to%20${selectedCountry || 'US'}`
+          bookingUrl: `https://www.skyscanner.com/transport/flights/${cityCode}/${destCode}/${departureDate}/?adults=4&children=0&adults=4&cabinclass=economy&rtn=${returnDate}`
         };
       });
     } catch (err) {
       console.error('Error generating flights:', err);
-      // Fallback flights
+      // Fallback flights - use Skyscanner URLs
+      const cityCode = selectedState === 'CA' ? 'LAX' : selectedState === 'NY' ? 'JFK' : 'ORD';
+      const destCode = 'SFO';
+      const defaultDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const returnDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
       return Array.from({ length: 4 }).map((_, i) => ({
         id: `flight-${i}`,
         airline: ['United', 'Delta', 'American', 'Southwest'][i],
@@ -153,7 +165,7 @@ export default function BachelorDashboard() {
         price: 250 + Math.random() * 300,
         duration: '5h 30m',
         image: 'https://images.unsplash.com/photo-1552881173-d3d42e0be9c3?w=400&h=300&fit=crop',
-        bookingUrl: `https://www.google.com/flights/search?q=${selectedState || 'CA'}%20to%20${selectedCountry || 'US'}`
+        bookingUrl: `https://www.skyscanner.com/transport/flights/${cityCode}/${destCode}/${defaultDate}/?adults=4&children=0&cabinclass=economy&rtn=${returnDate}`
       }));
     }
   };
@@ -168,9 +180,15 @@ export default function BachelorDashboard() {
     ];
     return Array.from({ length: 5 }).map((_, i) => {
       const stay = stayTypes[i];
+      
+      // Generate more specific booking URLs with dates and guest count
+      const checkIn = tripDate ? new Date(tripDate).toISOString().split('T')[0] : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const checkOut = tripDate ? new Date(new Date(tripDate).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const destination_slug = (destination || 'beach').toLowerCase().replace(/\s+/g, '-');
+      
       const bookingLink = stay.booking === 'airbnb.com' 
-        ? `https://www.airbnb.com/s/${selectedState || 'CA'}/homes`
-        : `https://www.booking.com/searchresults.html?ss=${selectedState || 'CA'}`;
+        ? `https://www.airbnb.com/s/${destination_slug}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&query=${destination_slug}&checkin=${checkIn}&checkout=${checkOut}&adults=4`
+        : `https://www.booking.com/searchresults.html?ss=${destination_slug}&checkin=${checkIn}&checkout=${checkOut}&group_adults=4&no_rooms=1`;
       
       return {
         id: `stay-${i}`,
@@ -223,6 +241,44 @@ export default function BachelorDashboard() {
       console.error('Bachelor trip creation error:', error);
       console.error('Error response:', error.response?.data);
       const errorMsg = error.response?.data?.error || error.message || 'Failed to create trip';
+      setError(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const updateTrip = async () => {
+    setError('');
+    if (!tripDate || !totalBudget || !trip?._id) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const updatedTripData = {
+        eventName: eventName || trip.eventName,
+        tripDate,
+        location: { city: destination || trip.location.city, state: selectedState, country: selectedCountry },
+        estimatedBudget: parseFloat(totalBudget),
+      };
+
+      const response = await axios.put(`${API_URL}/api/bachelor-trip/${trip._id}`, updatedTripData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success || response.data.data) {
+        setTrip(response.data.data);
+        setEditMode(false);
+        setError('');
+        alert('✅ Trip updated successfully!');
+      } else {
+        setError(response.data.error || 'Failed to update trip');
+      }
+    } catch (error: any) {
+      console.error('Trip update error:', error);
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to update trip';
       setError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -451,49 +507,189 @@ export default function BachelorDashboard() {
         // Seamless Dashboard
         <>
           {/* Trip Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Trip Info */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center gap-3 mb-3">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-900">Trip</h3>
+          {!editMode ? (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Trip Overview</h2>
+                <button
+                  onClick={() => {
+                    setEventName(trip.eventName);
+                    setTripDate(trip.tripDate);
+                    setSelectedState(trip.location.state);
+                    setSelectedCountry(trip.location.country);
+                    setDestination(trip.location.city);
+                    setTotalBudget(trip.estimatedBudget.toString());
+                    setEditMode(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit Trip
+                </button>
               </div>
-              <p className="text-2xl font-bold text-blue-900">{trip.eventName}</p>
-              <p className="text-sm text-blue-700 mt-2">
-                {new Date(trip.tripDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Trip Info */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900">Trip</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-900">{trip.eventName}</p>
+                  <p className="text-sm text-blue-700 mt-2">
+                    {new Date(trip.tripDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
 
-            {/* Location */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-              <div className="flex items-center gap-3 mb-3">
-                <MapPin className="w-5 h-5 text-green-600" />
-                <h3 className="font-semibold text-gray-900">Location</h3>
-              </div>
-              <p className="text-2xl font-bold text-green-900">{trip.location.city}</p>
-              <p className="text-sm text-green-700 mt-2">{trip.location.state}, {trip.location.country}</p>
-            </div>
+                {/* Location */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    <h3 className="font-semibold text-gray-900">Location</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-green-900">{trip.location.city}</p>
+                  <p className="text-sm text-green-700 mt-2">{trip.location.state}, {trip.location.country}</p>
+                </div>
 
-            {/* Budget */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-              <div className="flex items-center gap-3 mb-3">
-                <DollarSign className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-gray-900">Budget</h3>
-              </div>
-              <p className="text-2xl font-bold text-purple-900">${trip.estimatedBudget.toLocaleString()}</p>
-              <p className="text-sm text-purple-700 mt-2">Per person: ${perPersonCost.toFixed(2)}</p>
-            </div>
+                {/* Budget */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <DollarSign className="w-5 h-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-900">Budget</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-900">${trip.estimatedBudget.toLocaleString()}</p>
+                  <p className="text-sm text-purple-700 mt-2">Per person: ${perPersonCost.toFixed(2)}</p>
+                </div>
 
-            {/* Attendees */}
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200">
-              <div className="flex items-center gap-3 mb-3">
-                <Users className="w-5 h-5 text-pink-600" />
-                <h3 className="font-semibold text-gray-900">Guests</h3>
+                {/* Attendees */}
+                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Users className="w-5 h-5 text-pink-600" />
+                    <h3 className="font-semibold text-gray-900">Guests</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-pink-900">{attendees.length + 1}</p>
+                  <p className="text-sm text-pink-700 mt-2">Including you</p>
+                </div>
               </div>
-              <p className="text-2xl font-bold text-pink-900">{attendees.length + 1}</p>
-              <p className="text-sm text-pink-700 mt-2">Including you</p>
             </div>
-          </div>
+          ) : (
+            // Edit Mode
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Trip Details</h2>
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Trip Name */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Name</label>
+                  <input
+                    type="text"
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+
+                {/* Trip Date */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Date</label>
+                  <input
+                    type="date"
+                    value={tripDate}
+                    onChange={(e) => setTripDate(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+
+                {/* Country */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  >
+                    {countryList.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* State */}
+                {stateList.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                    <select
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      {stateList.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* City */}
+                {cityList.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                    <select
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="">Select a city</option>
+                      {cityList.map((c: any) => (
+                        <option key={c.code} value={c.code}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Budget */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Total Budget</label>
+                  <input
+                    type="number"
+                    value={totalBudget}
+                    onChange={(e) => setTotalBudget(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={updateTrip}
+                  disabled={submitting}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg disabled:opacity-50 transition"
+                >
+                  <Save className="w-4 h-4" />
+                  {submitting ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Flights Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
@@ -546,7 +742,7 @@ export default function BachelorDashboard() {
                         onClick={(e) => e.stopPropagation()}
                         className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded transition"
                       >
-                        Book on Google Flights →
+                        Book Flight →
                       </a>
                     </div>
                   </div>

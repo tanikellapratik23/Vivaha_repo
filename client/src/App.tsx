@@ -126,10 +126,8 @@ function App() {
           <Route 
             path="/dashboard/*" 
             element={
-              isAuthenticated && (isAdmin || hasCompletedOnboarding) ? (
+              isAuthenticated ? (
                 <Dashboard isAdmin={isAdmin} />
-              ) : isAuthenticated ? (
-                <Navigate to="/onboarding" replace />
               ) : (
                 <Navigate to="/login" />
               )
