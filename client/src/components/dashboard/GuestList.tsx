@@ -289,7 +289,7 @@ export default function GuestList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Guest List</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Guest List</h1>
           <p className="text-gray-500 mt-1">Manage your wedding guests and RSVPs</p>
         </div>
         <div className="flex gap-3">
@@ -335,19 +335,19 @@ export default function GuestList() {
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
           <p className="text-sm text-gray-500 font-medium">Total Guests</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-green-500">
           <p className="text-sm text-gray-500 font-medium">Accepted</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.accepted}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.accepted}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-yellow-500">
           <p className="text-sm text-gray-500 font-medium">Pending</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.pending}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-red-500">
           <p className="text-sm text-gray-500 font-medium">Declined</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.declined}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.declined}</p>
         </div>
       </div>
 
@@ -496,7 +496,7 @@ export default function GuestList() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Add New Guest</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">Add New Guest</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>

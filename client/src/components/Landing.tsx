@@ -207,7 +207,7 @@ function VendorPreview() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-5 h-5 text-primary-600" />
-          <h3 className="text-2xl font-bold text-gray-900">
+          <h3 className="text-3xl font-bold tracking-tight text-gray-900">
             {loading ? 'Detecting location...' : `Vendors near ${userLocation?.city}, ${userLocation?.state}`}
           </h3>
         </div>
@@ -444,8 +444,8 @@ export default function Landing() {
               <Heart className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Vivaha</h1>
-              <p className="text-xs text-black font-medium">Your Wedding Planner</p>
+              <h1 className="text-2xl font-bold tracking-tight">Vivaha</h1>
+              <p className="text-sm text-black/70 font-medium tracking-wide uppercase">Wedding Planning</p>
             </div>
           </div>
           <nav className="flex items-center gap-3">
@@ -459,10 +459,10 @@ export default function Landing() {
         <div className="flex flex-col lg:flex-row gap-8 items-center justify-center max-w-6xl">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full lg:w-[500px] flex flex-col justify-center items-start border">
             <div className="w-full">
-              <div className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
+              <div className="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-4">
                 <span className="block text-primary-700">{lines[step]}</span>
               </div>
-              <p className="text-gray-700 text-base mb-4">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
+              <p className="text-gray-600 text-lg leading-relaxed mb-6 font-normal">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
               <div className="flex gap-3 mb-4">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
@@ -477,7 +477,7 @@ export default function Landing() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full lg:w-[500px] flex flex-col justify-center items-start border">
-            <h3 className="text-lg font-semibold mb-3">Onboarding Preview</h3>
+            <h3 className="text-2xl font-semibold tracking-tight mb-4">Onboarding Preview</h3>
             <div className="overflow-hidden rounded-md border p-2 bg-white w-full mb-4 break-words">
               <OnboardingPreview />
             </div>

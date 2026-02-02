@@ -205,7 +205,7 @@ export default function Overview() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500 font-medium">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          <p className="text-4xl font-bold text-gray-900 mt-2">{value}</p>
         </div>
         <div className={`p-3 rounded-lg ${color}`}>
           <Icon className="w-8 h-8" />
@@ -222,7 +222,7 @@ export default function Overview() {
           <div className="flex items-center space-x-4">
             <Heart className="w-16 h-16" />
             <div>
-              <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
+              <h1 className="text-4xl font-bold tracking-tight mb-3">Welcome back!</h1>
               {userSettings?.weddingDate && (
                 <p className="text-primary-100 text-sm mb-2">
                   📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -265,7 +265,7 @@ export default function Overview() {
       {/* AI Budget Optimization */}
       {Array.isArray(aiSuggestions) && aiSuggestions.length > 0 && (
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-sm p-6 border border-purple-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4 flex items-center">
             <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
             AI Budget Optimization
           </h2>
@@ -295,7 +295,7 @@ export default function Overview() {
       {/* Ceremony Planning Assistant */}
       {Array.isArray(ceremonySuggestions) && ceremonySuggestions.length > 0 && (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm p-6 border border-blue-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4 flex items-center">
             <Church className="w-6 h-6 mr-2 text-blue-600" />
             Ceremony Planning Assistant
           </h2>
@@ -411,7 +411,7 @@ export default function Overview() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Add Guest', icon: Users, color: 'bg-blue-500', action: () => navigate('/dashboard/guests') },

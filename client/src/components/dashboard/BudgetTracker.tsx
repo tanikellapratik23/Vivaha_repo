@@ -295,7 +295,7 @@ export default function BudgetTracker() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Budget Tracker</h1>
           <p className="text-gray-500 mt-1">Monitor your wedding expenses</p>
         </div>
         <div className="flex items-center gap-3">
@@ -319,7 +319,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Total Budget</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">${totalBudget.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">${totalBudget.toLocaleString()}</p>
             </div>
             <DollarSign className="w-10 h-10 text-blue-500" />
           </div>
@@ -329,7 +329,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Actual Spent</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">${totalActual.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">${totalActual.toLocaleString()}</p>
             </div>
             <TrendingUp className="w-10 h-10 text-purple-500" />
           </div>
@@ -339,7 +339,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Total Paid</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">${totalPaid.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">${totalPaid.toLocaleString()}</p>
             </div>
             <DollarSign className="w-10 h-10 text-green-500" />
           </div>
@@ -351,7 +351,7 @@ export default function BudgetTracker() {
               <p className="text-sm text-gray-500 font-medium">
                 {remaining >= 0 ? 'Remaining' : 'Over Budget'}
               </p>
-              <p className={`text-2xl font-bold mt-1 ${remaining >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+              <p className={`text-3xl font-bold mt-2 ${remaining >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
                 ${Math.abs(remaining).toLocaleString()}
               </p>
             </div>
@@ -369,7 +369,7 @@ export default function BudgetTracker() {
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm p-6 border border-blue-200">
           <div className="flex items-center gap-3 mb-4">
             <MapPin className="w-6 h-6 text-blue-600" />
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
               {userSettings.weddingCity} Average Wedding Costs
             </h2>
           </div>
@@ -415,7 +415,7 @@ export default function BudgetTracker() {
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-sm p-6 border border-purple-200">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-bold text-gray-900">AI Budget Optimization</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900">AI Budget Optimization</h2>
           </div>
           <div className="space-y-3">
             {(Array.isArray(aiSuggestions) ? aiSuggestions : []).map((suggestion, index) => (
@@ -432,7 +432,7 @@ export default function BudgetTracker() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pie Chart */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Budget Distribution</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">Budget Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -456,7 +456,7 @@ export default function BudgetTracker() {
 
         {/* Bar Chart */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Estimated vs Actual</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 mb-4">Estimated vs Actual</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -570,7 +570,7 @@ export default function BudgetTracker() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">Add Budget Category</h3>
+            <h3 className="text-2xl font-semibold tracking-tight mb-4">Add Budget Category</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
