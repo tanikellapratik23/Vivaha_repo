@@ -87,15 +87,45 @@ function VendorPreview() {
 
       for (const category of categories) {
         try {
-          // Generate mock vendors for preview (no auth needed)
-          const mockVendors = generateMockVendors(city, state, category);
-          allVendors = [...allVendors, ...mockVendors];
+          // Try to fetch real vendors from Yelp API via backend
+          const response = await axios.get(`${API_URL}/api/vendors/search`, {
+            params: { city, state, category },
+            timeout: 5000,
+          });
+
+          if (response.data?.businesses && response.data.businesses.length > 0) {
+            const mapped = response.data.businesses.map((business: any) => ({
+              id: business.id,
+              name: business.name,
+              category,
+              location: {
+                city: business.location.city,
+                state: business.location.state,
+              },
+              rating: business.rating,
+              estimatedCost: 2000 + Math.random() * 5000, // placeholder cost
+              phone: business.display_phone || business.phone,
+              email: '',
+              image: business.image_url,
+            } as PreviewVendor));
+            
+            allVendors = [...allVendors, ...mapped];
+          } else {
+            // Fallback to mock vendors if API returns empty
+            const mockVendors = generateMockVendors(city, state, category);
+            allVendors = [...allVendors, ...mockVendors];
+          }
         } catch (err) {
           console.error(`Failed to fetch ${category}:`, err);
+          // Fallback to mock vendors on error
+          const mockVendors = generateMockVendors(city, state, category);
+          allVendors = [...allVendors, ...mockVendors];
         }
       }
 
-      setVendors(allVendors.slice(0, 12)); // Show max 12 vendors
+      // Show only 6 vendors total, respecting category filter
+      const limitedVendors = allVendors.slice(0, 6);
+      setVendors(limitedVendors);
     } catch (error) {
       console.error('Failed to fetch vendors:', error);
     } finally {
@@ -105,36 +135,57 @@ function VendorPreview() {
 
   const generateMockVendors = (city: string, state: string, category: string): PreviewVendor[] => {
     const vendors: PreviewVendor[] = [];
+    
+    const categoryImages: Record<string, string[]> = {
+      Photography: [
+        'https://images.unsplash.com/photo-1606216174928-cebf47ba24ca?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1606214174585-fe31582dc1d3?w=600&h=400&fit=crop',
+      ],
+      Venue: [
+        'https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1519167271-5d9b8c24e46c?w=600&h=400&fit=crop',
+      ],
+      DJ: [
+        'https://images.unsplash.com/photo-1493225457124-06091f128d93?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=600&h=400&fit=crop',
+      ],
+      Catering: [
+        'https://images.unsplash.com/photo-1555939594-58d7cb561404?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1504674900936-f534170b00fd?w=600&h=400&fit=crop',
+      ],
+      Flowers: [
+        'https://images.unsplash.com/photo-1578509332210-a500ae6c36f0?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1550434156-98d3aa20ba8f?w=600&h=400&fit=crop',
+      ],
+    };
+
     const categoryNames: { [key: string]: string[] } = {
       Photography: [
         `${city} Wedding Photography`,
         `${city} Professional Photographers`,
-        `Artistic Wedding Photos ${city}`,
       ],
       Venue: [
         `${city} Wedding Venue`,
         `Elegant Ballroom ${city}`,
-        `Garden Wedding Space ${city}`,
       ],
       DJ: [
         `${city} Wedding DJ Services`,
         `Professional DJ - ${city}`,
-        `${city} Party DJ`,
       ],
       Catering: [
         `${city} Wedding Catering`,
         `Fine Dining Catering ${city}`,
-        `${city} Cuisine Catering`,
       ],
       Flowers: [
         `${city} Wedding Florist`,
         `Fresh Flower Arrangements ${city}`,
-        `${city} Floral Design Studio`,
       ],
     };
 
     const names = categoryNames[category] || [];
-    names.slice(0, 3).forEach((name, i) => {
+    const images = categoryImages[category] || [];
+    
+    names.slice(0, 2).forEach((name, i) => {
       vendors.push({
         id: `${category}-${i}`,
         name,
@@ -148,13 +199,7 @@ function VendorPreview() {
                        1000 + Math.random() * 2000,
         phone: `(555) ${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 8999)}`,
         email: name.toLowerCase().replace(/\s+/g, '') + '@example.com',
-        image: `https://images.unsplash.com/photo-${
-          category === 'Photography' ? '1606216174928-cebf47ba24ca?w=400&h=300&fit=crop' :
-          category === 'Venue' ? '1519671482677-e389f3dd404b?w=400&h=300&fit=crop' :
-          category === 'DJ' ? '1493225457124-06091f128d93?w=400&h=300&fit=crop' :
-          category === 'Catering' ? '1555939594-58d7cb561404?w=400&h=300&fit=crop' :
-          '1578509332210-a500ae6c36f0?w=400&h=300&fit=crop'
-        }`,
+        image: images[i] || `https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop`,
       });
     });
 
@@ -204,11 +249,11 @@ function VendorPreview() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {vendors.map((vendor) => (
-              <div key={vendor.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition">
+              <div key={vendor.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition">
                 {/* Vendor Image */}
-                <div className="h-48 bg-gray-200 overflow-hidden">
+                <div className="h-72 bg-gray-200 overflow-hidden">
                   <img
                     src={vendor.image}
                     alt={vendor.name}

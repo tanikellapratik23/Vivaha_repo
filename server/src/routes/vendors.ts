@@ -6,7 +6,8 @@ import axios from 'axios';
 const router = Router();
 
 // Proxy Yelp API search (to avoid CORS issues in frontend)
-router.get('/search', authMiddleware, async (req: AuthRequest, res) => {
+// Allow unauthenticated access for landing page preview, authenticated for dashboard
+router.get('/search', async (req, res) => {
   try {
     const { city, state, category } = req.query;
     const YELP_API_KEY = process.env.YELP_API_KEY;
