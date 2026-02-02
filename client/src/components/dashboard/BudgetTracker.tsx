@@ -180,9 +180,41 @@ export default function BudgetTracker() {
     }
   };
 
-  const saveBudget = () => {
-    localStorage.setItem('budget', JSON.stringify(categories));
-    alert('Budget saved locally');
+  const saveBudget = async () => {
+    try {
+      setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      
+      if (offlineMode) {
+        localStorage.setItem('budget', JSON.stringify(categories));
+        alert('Budget saved locally');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      
+      // Save each category individually
+      for (const category of categories) {
+        if (category._id) {
+          // Update existing category
+          await axios.put(`${API_URL}/api/budget/${category._id}`, category, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else if (category.id && !category.id.startsWith('local-')) {
+          // Create new category if not local
+          await axios.post(`${API_URL}/api/budget`, category, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      }
+      
+      alert('Budget saved successfully!');
+    } catch (error) {
+      console.error('Failed to save budget:', error);
+      alert('Failed to save budget. Check console for errors.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportBudget = () => {

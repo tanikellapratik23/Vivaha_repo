@@ -44,6 +44,8 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       clearTimeout(timer);
       console.log('Login successful:', response.data);
       localStorage.setItem('token', response.data.token);
+      // Store user data so WelcomeBack can display the user's name
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       setIsAuthenticated(true);
 
       // Check if admin - go directly to dashboard

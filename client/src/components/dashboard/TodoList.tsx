@@ -193,10 +193,42 @@ export default function TodoList() {
     }
   };
 
-  const saveTodos = () => {
-    const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
-    localStorage.setItem('todos', JSON.stringify(serial));
-    alert('To-dos saved locally');
+  const saveTodos = async () => {
+    try {
+      setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      
+      if (offlineMode) {
+        const serial = todos.map((t) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
+        alert('To-dos saved locally');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      
+      // Save each todo individually
+      for (const todo of todos) {
+        if (todo._id) {
+          // Update existing todo
+          await axios.put(`${API_URL}/api/todos/${todo._id}`, todo, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else if (todo.id && !todo.id.startsWith('local-')) {
+          // Create new todo if not local
+          await axios.post(`${API_URL}/api/todos`, todo, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      }
+      
+      alert('To-dos saved successfully!');
+    } catch (error) {
+      console.error('Failed to save todos:', error);
+      alert('Failed to save to-dos. Check console for errors.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredTodos = (Array.isArray(todos) ? todos : []).filter((todo) => {

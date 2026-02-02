@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { Plus, Users, Grid, Download, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Users, Grid, Download, FileText, Save } from 'lucide-react';
 import { exportSeatingToExcel, exportSeatingTableToCSV } from '../../utils/excelExport';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface Guest {
   id: string;
@@ -21,11 +24,80 @@ export default function SeatingPlanner() {
   const [tables, setTables] = useState<Table[]>([]);
   const [unassignedGuests] = useState<Guest[]>([]);
   const [showAddTableModal, setShowAddTableModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [newTable, setNewTable] = useState({
     name: '',
     capacity: 8,
     shape: 'round' as 'round' | 'rectangle'
   });
+
+  // Load seating from backend on mount
+  useEffect(() => {
+    fetchSeating();
+  }, []);
+
+  // Autosave locally
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem('seating', JSON.stringify(tables));
+      } catch (e) {
+        // ignore storage errors
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [tables]);
+
+  const fetchSeating = async () => {
+    try {
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      if (offlineMode) {
+        const cached = localStorage.getItem('seating');
+        if (cached) setTables(JSON.parse(cached));
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/seating`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success && response.data.data.tables) {
+        setTables(response.data.data.tables);
+      }
+    } catch (error) {
+      console.error('Failed to fetch seating:', error);
+      // fallback to local cache
+      const cached = localStorage.getItem('seating');
+      if (cached) setTables(JSON.parse(cached));
+    }
+  };
+
+  const saveSeating = async () => {
+    try {
+      setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      
+      if (offlineMode) {
+        localStorage.setItem('seating', JSON.stringify(tables));
+        alert('Seating arrangement saved locally');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/seating`, { tables }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.success) {
+        alert('Seating arrangement saved successfully!');
+      }
+    } catch (error) {
+      console.error('Failed to save seating:', error);
+      alert('Failed to save seating. Check console for errors.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totalSeats = tables.reduce((sum, table) => sum + table.capacity, 0);
   const assignedSeats = tables.reduce((sum, table) => sum + table.guests.length, 0);
@@ -56,6 +128,14 @@ export default function SeatingPlanner() {
         <div className="flex gap-3">
           {tables.length > 0 && (
             <>
+              <button 
+                onClick={saveSeating}
+                disabled={loading}
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition font-medium disabled:opacity-50"
+              >
+                <Save className="w-5 h-5" />
+                <span>{loading ? 'Saving...' : 'Save'}</span>
+              </button>
               <button 
                 onClick={() => exportSeatingTableToCSV(tables)}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition font-medium"

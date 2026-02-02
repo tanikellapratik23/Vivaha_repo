@@ -199,9 +199,41 @@ export default function GuestList() {
     }
   };
 
-  const saveGuests = () => {
-    localStorage.setItem('guests', JSON.stringify(guests));
-    alert('Guest list saved locally');
+  const saveGuests = async () => {
+    try {
+      setLoading(true);
+      const offlineMode = localStorage.getItem('offlineMode') === 'true';
+      
+      if (offlineMode) {
+        localStorage.setItem('guests', JSON.stringify(guests));
+        alert('Guest list saved locally');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      
+      // Save each guest individually
+      for (const guest of guests) {
+        if (guest._id) {
+          // Update existing guest
+          await axios.put(`${API_URL}/api/guests/${guest._id}`, guest, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else if (guest.id && !guest.id.startsWith('local-')) {
+          // Create new guest if not local
+          await axios.post(`${API_URL}/api/guests`, guest, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      }
+      
+      alert('Guest list saved successfully!');
+    } catch (error) {
+      console.error('Failed to save guests:', error);
+      alert('Failed to save guest list. Check console for errors.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
