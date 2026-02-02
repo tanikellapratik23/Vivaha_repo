@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2, MapPin, Users, DollarSign, Plane, Home, Loader, PartyPopper, Calendar, AlertCircle, Edit2, Save, X } from 'lucide-react';
 import axios from 'axios';
 import { locationData } from '../../utils/locationData';
+import { getAirportCode, generateSkyscannerUrl, generateAirbnbUrl, generateBookingComUrl, generateVrboUrl } from '../../utils/flightBooking';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -135,19 +136,15 @@ export default function BachelorDashboard() {
       { name: 'Southwest', logo: 'https://images.unsplash.com/photo-1513521399740-d52e2ff8e000?w=400&h=300&fit=crop', code: 'SW' },
     ];
     
+    const baseDate = tripDate ? new Date(tripDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const departureDate = baseDate.toISOString().split('T')[0];
+    const returnDate = new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
     try {
-      const baseDate = tripDate ? new Date(tripDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Default to 1 week from now
-      
       return Array.from({ length: 4 }).map((_, i) => {
         const airline = airlines[i];
         const departureTime = new Date(baseDate.getTime() + i * 2 * 60 * 60 * 1000);
-        const arrivalTime = new Date(baseDate.getTime() + (i * 2 + 3) * 60 * 60 * 1000);
-        
-        // Generate realistic Skyscanner booking URL with departure city and date
-        const departureDate = departureTime.toISOString().split('T')[0];
-        const returnDate = new Date(departureTime.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const cityCode = selectedState === 'CA' ? 'LAX' : selectedState === 'NY' ? 'JFK' : 'ORD';
-        const destCode = 'SFO'; // Default destination
+        const arrivalTime = new Date(baseDate.getTime() + (i * 2 + 5.5) * 60 * 60 * 1000);
         
         return {
           id: `flight-${i}`,
@@ -157,26 +154,20 @@ export default function BachelorDashboard() {
           price: 250 + Math.random() * 300,
           duration: '5h 30m',
           image: airline.logo,
-          bookingUrl: `https://www.skyscanner.com/transport/flights/${cityCode}/${destCode}/${departureDate}/?adults=4&children=0&adults=4&cabinclass=economy&rtn=${returnDate}`
+          bookingUrl: generateSkyscannerUrl('Los Angeles', destination || selectedState, departureDate, returnDate, 4)
         };
       });
     } catch (err) {
       console.error('Error generating flights:', err);
-      // Fallback flights - use Skyscanner URLs
-      const cityCode = selectedState === 'CA' ? 'LAX' : selectedState === 'NY' ? 'JFK' : 'ORD';
-      const destCode = 'SFO';
-      const defaultDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const returnDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
       return Array.from({ length: 4 }).map((_, i) => ({
         id: `flight-${i}`,
         airline: ['United', 'Delta', 'American', 'Southwest'][i],
-        departure: '08:00 AM',
-        arrival: '11:00 AM',
+        departure: ['08:00 AM', '10:00 PM', '12:00 AM', '02:00 AM'][i],
+        arrival: ['11:00 AM', '01:00 AM', '03:00 AM', '05:00 AM'][i],
         price: 250 + Math.random() * 300,
         duration: '5h 30m',
         image: 'https://images.unsplash.com/photo-1552881173-d3d42e0be9c3?w=400&h=300&fit=crop',
-        bookingUrl: `https://www.skyscanner.com/transport/flights/${cityCode}/${destCode}/${defaultDate}/?adults=4&children=0&cabinclass=economy&rtn=${returnDate}`
+        bookingUrl: generateSkyscannerUrl('Los Angeles', destination || 'vacation', departureDate, returnDate, 4)
       }));
     }
   };
@@ -189,17 +180,18 @@ export default function BachelorDashboard() {
       { name: 'Boutique Inn', type: 'Boutique Hotel', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop', booking: 'booking.com' },
       { name: 'Private Villa', type: 'Villa', image: 'https://images.unsplash.com/photo-1512376991164-a485fb76f51f?w=400&h=300&fit=crop', booking: 'airbnb.com' },
     ];
+    
+    const checkIn = tripDate ? new Date(tripDate).toISOString().split('T')[0] : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const checkOut = tripDate ? new Date(new Date(tripDate).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
     return Array.from({ length: 5 }).map((_, i) => {
       const stay = stayTypes[i];
       
-      // Generate more specific booking URLs with dates and guest count
-      const checkIn = tripDate ? new Date(tripDate).toISOString().split('T')[0] : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const checkOut = tripDate ? new Date(new Date(tripDate).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const destination_slug = (destination || 'beach').toLowerCase().replace(/\s+/g, '-');
-      
+      // Generate proper booking URLs with destination
+      const dest = destination || selectedState || 'vacation';
       const bookingLink = stay.booking === 'airbnb.com' 
-        ? `https://www.airbnb.com/s/${destination_slug}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&query=${destination_slug}&checkin=${checkIn}&checkout=${checkOut}&adults=4`
-        : `https://www.booking.com/searchresults.html?ss=${destination_slug}&checkin=${checkIn}&checkout=${checkOut}&group_adults=4&no_rooms=1`;
+        ? generateAirbnbUrl(dest, checkIn, checkOut, 4)
+        : generateBookingComUrl(dest, checkIn, checkOut, 4);
       
       return {
         id: `stay-${i}`,
@@ -463,24 +455,18 @@ export default function BachelorDashboard() {
               </div>
             )}
 
-            {/* City */}
-            {cityList.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
-                <select
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="">Select a city</option>
-                  {cityList.map((c: any) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* City - with text input for better flexibility */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Destination City *</label>
+              <input
+                type="text"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                placeholder="e.g., Las Vegas, Smokey Mountains, Miami, Cancun..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Type any destination - airports will be auto-detected</p>
+            </div>
 
             {/* Trip Date */}
             <div>
