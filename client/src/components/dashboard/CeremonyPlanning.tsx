@@ -318,7 +318,58 @@ export default function CeremonyPlanning() {
     } finally {
       setSaving(false);
     }
+  };
 
+  const exportCeremonyCSV = () => {
+    const rows: string[][] = [];
+    
+    // Header
+    rows.push(['Ceremony Schedule', '', '', '']);
+    rows.push(['']);
+    rows.push(['Day', 'Type', 'Date', 'Events']);
+    
+    // Data rows
+    weddingDays.forEach((day) => {
+      const eventsList = day.events.map(e => `${e.time} - ${e.name}`).join('; ');
+      rows.push([
+        `Day ${day.dayNumber}`,
+        day.dayType.replace('-', ' ').toUpperCase(),
+        day.date || 'TBD',
+        eventsList || 'No events scheduled'
+      ]);
+      
+      // Add event details
+      day.events.forEach((event) => {
+        rows.push([
+          '',
+          `  ${event.time}`,
+          event.name,
+          `${event.duration} - ${event.description}`
+        ]);
+      });
+    });
+    
+    // Add rituals and traditions
+    rows.push(['']);
+    rows.push(['Rituals & Traditions', '', '', '']);
+    rows.push(['Rituals', selectedRituals.join(', ') || 'None selected', '', '']);
+    rows.push(['Traditions', selectedTraditions.join(', ') || 'None selected', '', '']);
+    
+    // Convert to CSV
+    const csv = rows.map(row => 
+      row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vivaha-ceremony-plan.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   const toggleRitual = (ritual: string) => {
@@ -399,6 +450,13 @@ export default function CeremonyPlanning() {
           >
             <Calendar className="w-5 h-5" />
             {weddingDays.length} Day{weddingDays.length !== 1 ? 's' : ''}
+          </button>
+          <button
+            onClick={exportCeremonyCSV}
+            className="flex items-center gap-2 px-4 py-2 border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium"
+          >
+            <Download className="w-5 h-5" />
+            Export CSV
           </button>
           <button
             onClick={handleSave}

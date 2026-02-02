@@ -30,49 +30,45 @@ function VendorPreview() {
   const [vendors, setVendors] = useState<PreviewVendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ city: string; state: string } | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('Photography'); // Default to Photography
 
   useEffect(() => {
     detectLocation();
   }, []);
 
   const detectLocation = async () => {
+    // Immediately start fetching Photography in San Francisco while detecting location
+    setUserLocation({ city: 'San Francisco', state: 'CA' });
+    fetchVendors('San Francisco', 'CA');
+
     try {
-      // Try to get location from browser geolocation
+      // Try to get location from browser geolocation (non-blocking)
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             try {
               const { latitude, longitude } = position.coords;
-              // Use reverse geocoding (simple approach - use a city list)
+              // Use reverse geocoding
               const response = await axios.get(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+                { timeout: 3000 }
               );
               const city = response.data.address.city || response.data.address.town || 'San Francisco';
               const state = response.data.address.state || 'CA';
               setUserLocation({ city, state });
-              fetchVendors(city, state);
+              fetchVendors(city, state); // Refetch with real location
             } catch (e) {
-              // Fallback to San Francisco
-              setUserLocation({ city: 'San Francisco', state: 'CA' });
-              fetchVendors('San Francisco', 'CA');
+              // Keep San Francisco
             }
           },
           () => {
-            // Fallback if geolocation fails
-            setUserLocation({ city: 'San Francisco', state: 'CA' });
-            fetchVendors('San Francisco', 'CA');
-          }
+            // Geolocation denied - keep San Francisco
+          },
+          { timeout: 5000 }
         );
-      } else {
-        // Fallback if geolocation not available
-        setUserLocation({ city: 'San Francisco', state: 'CA' });
-        fetchVendors('San Francisco', 'CA');
       }
     } catch (e) {
-      // Final fallback
-      setUserLocation({ city: 'San Francisco', state: 'CA' });
-      fetchVendors('San Francisco', 'CA');
+      // Keep San Francisco as fallback
     }
   };
 
@@ -207,7 +203,7 @@ function VendorPreview() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+    <div className="bg-gradient-to-br from-white via-white to-pink-100 rounded-2xl shadow-lg border border-gray-200 p-8">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-5 h-5 text-primary-600" />
@@ -251,14 +247,16 @@ function VendorPreview() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {vendors.map((vendor) => (
-              <div key={vendor.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition">
+              <div key={vendor.id} className="bg-gradient-to-b from-white to-white/95 border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition">
                 {/* Vendor Image */}
-                <div className="h-72 bg-gray-200 overflow-hidden">
+                <div className="h-72 bg-gray-200 overflow-hidden relative">
                   <img
                     src={vendor.image}
                     alt={vendor.name}
                     className="w-full h-full object-cover hover:scale-105 transition"
                   />
+                  {/* Fade overlay at bottom of image */}
+                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-white"></div>
                 </div>
 
                 {/* Vendor Info */}
@@ -425,7 +423,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-purple-100 text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-pink-50 to-white text-gray-900 flex flex-col">
 
       {/* Hero background carousel (absolute behind content) */}
       <div className="fixed inset-0 -z-10 transition-opacity duration-700">
@@ -516,7 +514,7 @@ export default function Landing() {
       </main>
 
       {/* Find Vendors Section */}
-      <section className="w-full py-16 bg-gradient-to-b from-white to-pink-50">
+      <section className="w-full py-16 bg-gradient-to-b from-pink-50 via-pink-50 to-white">
         <div className="max-w-6xl mx-auto px-6">
           {/* Promotional Text */}
           <div className="text-center mb-12">

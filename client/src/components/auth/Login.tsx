@@ -191,6 +191,15 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
                   placeholder="Enter your password"
                 />
               </div>
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-sm text-primary-500 hover:text-primary-600 font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <button

@@ -7,6 +7,8 @@ export interface IUser extends Document {
   role: 'bride' | 'groom' | 'parent' | 'friend' | 'planner' | 'other';
   onboardingCompleted: boolean;
   isAdmin?: boolean;
+  resetToken?: string;
+  resetTokenExpires?: Date;
   onboardingData?: {
     role: string;
     weddingStyle: string;
@@ -56,6 +58,8 @@ const UserSchema = new Schema<IUser>(
         expiresAt: Date,
       },
     ],
+    resetToken: { type: String, default: undefined },
+    resetTokenExpires: { type: Date, default: undefined },
   },
   { timestamps: true }
 );

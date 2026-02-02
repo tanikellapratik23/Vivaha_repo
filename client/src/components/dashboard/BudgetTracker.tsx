@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info, Trash2, Download, Upload, Save } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 
@@ -185,15 +186,45 @@ export default function BudgetTracker() {
   };
 
   const exportBudget = () => {
-    const blob = new Blob([JSON.stringify(categories, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vivaha-budget.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    // Create worksheets data
+    const wsData: (string | number)[][] = [];
+    
+    // Title
+    wsData.push(['Wedding Budget Breakdown']);
+    wsData.push(['']);
+    wsData.push(['Category', 'Estimated', 'Actual', 'Paid', 'Remaining']);
+    
+    // Add categories
+    let totalEstimated = 0;
+    let totalActual = 0;
+    let totalPaid = 0;
+    
+    categories.forEach(cat => {
+      const remaining = cat.estimatedAmount - cat.actualAmount;
+      wsData.push([
+        cat.name,
+        cat.estimatedAmount,
+        cat.actualAmount,
+        cat.paid,
+        remaining
+      ]);
+      totalEstimated += cat.estimatedAmount;
+      totalActual += cat.actualAmount;
+      totalPaid += cat.paid;
+    });
+    
+    // Summary
+    wsData.push(['']);
+    wsData.push(['TOTAL', totalEstimated, totalActual, totalPaid, totalEstimated - totalActual]);
+    
+    // Create workbook
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Budget');
+    
+    // Download
+    XLSX.writeFile(wb, 'vivaha-budget.xlsx');
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

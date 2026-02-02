@@ -4,8 +4,22 @@ import { useNavigate } from 'react-router-dom';
 export default function WelcomeBack() {
   const navigate = useNavigate();
   const [fadeIn, setFadeIn] = useState(false);
+  const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
+    // Get user's first name from localStorage
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const name = user.name || '';
+        const first = name.split(' ')[0]; // Get first name
+        setFirstName(first);
+      }
+    } catch (e) {
+      console.error('Failed to get user name:', e);
+    }
+
     // Start fade-in immediately
     setFadeIn(true);
 
@@ -28,7 +42,7 @@ export default function WelcomeBack() {
           <span className="text-6xl">💕</span>
         </div>
         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4">
-          Welcome Back!
+          Welcome Back{firstName ? `, ${firstName}` : ''}!
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
           Let's continue planning your perfect Vivaha...

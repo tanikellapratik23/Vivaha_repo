@@ -275,4 +275,127 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Forgot password - send reset link
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal if email exists
+      return res.json({ message: 'If email exists, reset link has been sent' });
+    }
+
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign(
+      { userId: user._id, type: 'password-reset' },
+      process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+      { expiresIn: '1h' }
+    );
+
+    // Save reset token to user
+    user.resetToken = resetToken;
+    user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    // Send email
+    if (resend) {
+      try {
+        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+        
+        await resend.emails.send({
+          from: 'VivahaPlan <hello@vivahaplan.com>',
+          to: user.email,
+          subject: 'Reset Your VivahaPlan Password',
+          html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background-color: #f8f5f0; margin: 0; padding: 20px;">
+  <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h1 style="color: #D4A574; text-align: center;">🔐 Reset Your Password</h1>
+    <p style="color: #555; font-size: 15px; line-height: 1.6;">
+      Hi ${user.name},<br><br>
+      We received a request to reset your password. Click the button below to set a new password.
+    </p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${resetUrl}" style="background-color: #D4A574; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+        Reset Password
+      </a>
+    </div>
+    <p style="color: #888; font-size: 13px;">
+      Or copy this link: <a href="${resetUrl}" style="color: #D4A574;">${resetUrl}</a>
+    </p>
+    <p style="color: #888; font-size: 13px; margin-top: 20px;">
+      This link will expire in 1 hour. If you didn't request this, please ignore this email.
+    </p>
+  </div>
+</body>
+</html>
+`,
+        });
+      } catch (emailError) {
+        console.error('Failed to send reset email:', emailError);
+      }
+    }
+
+    res.json({ message: 'If email exists, reset link has been sent' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+// Reset password - validate token and update password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and password required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Verify token
+    let decoded: any;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production'
+      );
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired reset link' });
+    }
+
+    if (decoded.type !== 'password-reset') {
+      return res.status(401).json({ error: 'Invalid reset link' });
+    }
+
+    // Find user and verify token
+    const user = await User.findById(decoded.userId);
+    if (!user || user.resetToken !== token) {
+      return res.status(401).json({ error: 'Invalid reset link' });
+    }
+
+    if (user.resetTokenExpires && user.resetTokenExpires < new Date()) {
+      return res.status(401).json({ error: 'Reset link has expired' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpires = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
 export default router;
