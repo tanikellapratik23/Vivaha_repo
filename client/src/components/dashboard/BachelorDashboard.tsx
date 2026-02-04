@@ -387,24 +387,45 @@ export default function BachelorDashboard() {
     
     const googleFlightsUrl = `https://www.google.com/travel/flights?q=flights%20to%20${encodeURIComponent(destination)}%20from%20my%20location&curr=USD&hl=en`;
 
+    // Map destinations to airports and realistic flight info
+    const destinationAirports: {[key: string]: {code: string, name: string, airlines: string[], duration: string}} = {
+      'las vegas': {code: 'LAS', name: 'Harry Reid Intl', airlines: ['Southwest', 'Delta', 'American'], duration: '5h 15m'},
+      'miami': {code: 'MIA', name: 'Miami Intl', airlines: ['American', 'United', 'JetBlue'], duration: '5h 30m'},
+      'nashville': {code: 'BNA', name: 'Nashville Intl', airlines: ['Southwest', 'Delta', 'United'], duration: '3h 45m'},
+      'austin': {code: 'AUS', name: 'Austin-Bergstrom', airlines: ['Southwest', 'American', 'United'], duration: '4h 20m'},
+      'new orleans': {code: 'MSY', name: 'Louis Armstrong', airlines: ['Southwest', 'United', 'Delta'], duration: '4h 10m'},
+      'scottsdale': {code: 'PHX', name: 'Phoenix Sky Harbor', airlines: ['Southwest', 'American', 'Delta'], duration: '4h 45m'},
+      'san diego': {code: 'SAN', name: 'San Diego Intl', airlines: ['Southwest', 'Alaska', 'United'], duration: '5h 40m'},
+      'denver': {code: 'DEN', name: 'Denver Intl', airlines: ['United', 'Southwest', 'Frontier'], duration: '4h 00m'},
+      'chicago': {code: 'ORD', name: "O'Hare Intl", airlines: ['United', 'American', 'Southwest'], duration: '3h 30m'}
+    };
+
+    const destLower = destination.toLowerCase();
+    const destInfo = destinationAirports[destLower] || {
+      code: 'N/A',
+      name: destination,
+      airlines: ['Major Airlines'],
+      duration: '4-6 hours'
+    };
+
     const mockFlights: Flight[] = [
       {
         id: '1',
-        airline: 'Best Available Flights',
-        departure: 'Your Location',
-        arrival: destination,
-        price: 240 + Math.random() * 150,
-        duration: '2-5 hours',
+        airline: `${destInfo.airlines[0]} • ${destInfo.airlines[1]}`,
+        departure: `Your Nearest Airport → ${destInfo.code}`,
+        arrival: destInfo.name,
+        price: Math.round((240 + Math.random() * 100) * 100) / 100,
+        duration: destInfo.duration,
         type: 'cheapest',
         bookingUrl: googleFlightsUrl
       },
       {
         id: '2',
-        airline: 'Premium Options',
-        departure: 'Your Location',
-        arrival: destination,
-        price: 310 + Math.random() * 200,
-        duration: '2-5 hours',
+        airline: `${destInfo.airlines[0]} • Premium`,
+        departure: `Your Nearest Airport → ${destInfo.code}`,
+        arrival: destInfo.name,
+        price: Math.round((310 + Math.random() * 150) * 100) / 100,
+        duration: destInfo.duration,
         type: 'best-time',
         bookingUrl: googleFlightsUrl
       }
@@ -479,10 +500,10 @@ export default function BachelorDashboard() {
         id: '1',
         name: `${destination} Party House`,
         type: 'airbnb',
-        pricePerPerson: 120 + Math.random() * 60,
+        pricePerPerson: Math.round((120 + Math.random() * 60) * 100) / 100,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 3),
-        rating: 4.8 + Math.random() * 0.2,
+        rating: Math.round((4.8 + Math.random() * 0.2) * 100) / 100,
         location: `${destination} Center`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -492,10 +513,10 @@ export default function BachelorDashboard() {
         id: '2',
         name: `Luxury ${destination} Villa`,
         type: 'airbnb',
-        pricePerPerson: 180 + Math.random() * 80,
+        pricePerPerson: Math.round((180 + Math.random() * 80) * 100) / 100,
         bedrooms: Math.ceil(groupSize / 2) + 1,
         bathrooms: Math.ceil(groupSize / 3) + 1,
-        rating: 4.9 + Math.random() * 0.1,
+        rating: Math.round((4.9 + Math.random() * 0.1) * 100) / 100,
         location: `${destination} Downtown`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -505,10 +526,10 @@ export default function BachelorDashboard() {
         id: '3',
         name: `Modern ${destination} Penthouse`,
         type: 'airbnb',
-        pricePerPerson: 100 + Math.random() * 50,
+        pricePerPerson: Math.round((100 + Math.random() * 50) * 100) / 100,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 4) + 1,
-        rating: 4.7 + Math.random() * 0.2,
+        rating: Math.round((4.7 + Math.random() * 0.2) * 100) / 100,
         location: `${destination} Entertainment District`,
         partyTolerance: 'medium',
         bookingUrl: airbnbSearchUrl,
@@ -518,10 +539,10 @@ export default function BachelorDashboard() {
         id: '4',
         name: `${destination} Pool House`,
         type: 'airbnb',
-        pricePerPerson: 150 + Math.random() * 70,
+        pricePerPerson: Math.round((150 + Math.random() * 70) * 100) / 100,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 3),
-        rating: 4.85 + Math.random() * 0.15,
+        rating: Math.round((4.85 + Math.random() * 0.15) * 100) / 100,
         location: `${destination} Near Attractions`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -1025,7 +1046,7 @@ export default function BachelorDashboard() {
                           Estimated: {flight.duration}
                         </div>
                       ) : (
-                        <div className="text-2xl font-bold text-blue-600">${flight.price}</div>
+                        <div className="text-2xl font-bold text-blue-600">${flight.price.toFixed(2)}</div>
                       )}
                       <a
                         href={flight.bookingUrl}
@@ -1095,7 +1116,7 @@ export default function BachelorDashboard() {
                         <h3 className="font-bold text-gray-900 text-lg">{lodging.name}</h3>
                         <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded">
                           <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-                          <span className="text-sm font-semibold">{lodging.rating}</span>
+                          <span className="text-sm font-semibold">{lodging.rating.toFixed(2)}</span>
                         </div>
                       </div>
 
@@ -1127,7 +1148,7 @@ export default function BachelorDashboard() {
                       <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                         <div>
                           <div className="text-2xl font-bold text-blue-600">
-                            ${lodging.pricePerPerson}
+                            ${lodging.pricePerPerson.toFixed(2)}
                           </div>
                           <div className="text-xs text-gray-600">per person/night</div>
                         </div>
