@@ -113,6 +113,8 @@ export default function BachelorDashboard() {
   // Destination
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
+  const [destinationSearch, setDestinationSearch] = useState('');
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   
   // Flights & Lodging
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -150,7 +152,25 @@ export default function BachelorDashboard() {
 
   useEffect(() => {
     fetchTripData();
+    getUserLocation();
   }, []);
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Location access denied, using default location');
+          setUserLocation({ lat: 40.7128, lng: -74.0060 }); // Default to NYC
+        }
+      );
+    }
+  };
 
   // Calculate budget whenever selections change
   useEffect(() => {
@@ -304,6 +324,41 @@ export default function BachelorDashboard() {
       newExpanded.add(section);
     }
     setExpandedSections(newExpanded);
+  };
+
+  const searchDestination = async () => {
+    if (!destinationSearch.trim()) {
+      alert('Please enter a destination to search');
+      return;
+    }
+
+    // In production, this would call Google Places API
+    // For now, creating a destination from the search
+    const newDestination: Destination = {
+      id: Date.now().toString(),
+      city: destinationSearch,
+      state: '',
+      country: 'USA',
+      avgFlight: 250 + Math.random() * 200,
+      avgLodging: 120 + Math.random() * 100,
+      avgActivityCost: 150 + Math.random() * 100,
+      costPerPerson: 0,
+      rank: 1,
+      whyWins: 'Selected destination with great party options'
+    };
+    newDestination.costPerPerson = newDestination.avgFlight + (newDestination.avgLodging * tripNights) + (newDestination.avgActivityCost * tripNights);
+    
+    setDestinations([newDestination]);
+    setSelectedDestination(newDestination);
+    
+    // Auto-generate flights and lodging after destination is selected
+    setTimeout(() => {
+      generateMockFlights(newDestination.city);
+      generateMockLodging();
+      
+      // Auto-expand those sections
+      setExpandedSections(new Set(['master', 'destination', 'flights', 'lodging']));
+    }, 500);
   };
 
   const generateMockDestinations = () => {
@@ -514,7 +569,8 @@ export default function BachelorDashboard() {
                 value={targetMonth}
                 onChange={(e) => setTargetMonth(e.target.value)}
                 disabled={!isPlanning}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-900 bg-white"
+                style={{ colorScheme: 'light' }}
               />
             </div>
 
@@ -618,6 +674,41 @@ export default function BachelorDashboard() {
           </div>
         </CollapsibleSection>
 
+        {/* Destination Search - Only show if master planning is complete */}
+        {honoreeName && targetMonth && groupSize > 0 && budgetTarget > 0 && tripNights > 0 && isPlanning && (
+          <div className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-600 rounded-2xl shadow-lg p-8 text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <MapPin className="w-7 h-7" />
+              <h2 className="text-2xl font-bold">Search Your Destination</h2>
+            </div>
+            <p className="text-white/90 mb-6">
+              Enter a city or location to find flights from your area and nearby accommodations
+            </p>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={destinationSearch}
+                onChange={(e) => setDestinationSearch(e.target.value)}
+                placeholder="e.g., Las Vegas, Miami, Nashville..."
+                className="flex-1 px-6 py-4 rounded-xl text-gray-900 text-lg font-medium focus:ring-4 focus:ring-white/30 focus:outline-none"
+                onKeyPress={(e) => e.key === 'Enter' && searchDestination()}
+              />
+              <button
+                onClick={searchDestination}
+                className="px-8 py-4 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition flex items-center gap-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                Search & Generate Trip
+              </button>
+            </div>
+            {userLocation && (
+              <p className="text-sm text-white/80 mt-3">
+                📍 Flights will be searched from your current location
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Section 2: Destination Cost Comparison */}
         <CollapsibleSection
           title="2. Destination Cost Comparison"
@@ -627,13 +718,11 @@ export default function BachelorDashboard() {
           locked={!isPlanning}
         >
           {destinations.length === 0 && isPlanning && (
-            <button
-              onClick={generateMockDestinations}
-              className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-5 h-5" />
-              Generate Destination Recommendations
-            </button>
+            <div className="text-center py-12 bg-gray-50 rounded-xl">
+              <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg mb-2">No destination selected yet</p>
+              <p className="text-gray-500 text-sm">Complete the form above and search for a destination</p>
+            </div>
           )}
 
           {destinations.length > 0 && (
