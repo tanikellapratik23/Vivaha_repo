@@ -418,13 +418,30 @@ export default function BachelorDashboard() {
     // Generate Google Maps directions URL
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
 
+    // Estimate drive time (this is rough - actual would come from Distance Matrix API)
+    // Using rough estimates based on common bachelor party destinations
+    const driveTimeEstimates: {[key: string]: string} = {
+      'las vegas': '4-5 hours',
+      'miami': '20-24 hours',
+      'nashville': '12-16 hours',
+      'austin': '14-18 hours',
+      'new orleans': '16-20 hours',
+      'scottsdale': '5-6 hours',
+      'san diego': '2-3 hours',
+      'denver': '10-14 hours',
+      'chicago': '12-16 hours'
+    };
+    
+    const destLower = destination.toLowerCase();
+    const estimatedDuration = driveTimeEstimates[destLower] || 'Check Maps';
+
     const mockDriveOption: Flight = {
       id: '1',
       airline: 'Drive',
       departure: 'Your Location',
       arrival: destination,
-      price: 50 * groupSize, // Gas estimate
-      duration: 'View on Maps',
+      price: 0, // No price for drive
+      duration: estimatedDuration,
       type: 'cheapest',
       bookingUrl: googleMapsUrl
     };
@@ -1003,7 +1020,13 @@ export default function BachelorDashboard() {
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="text-2xl font-bold text-blue-600">${flight.price}</div>
+                      {transportType === 'drive' ? (
+                        <div className="text-lg font-semibold text-gray-900">
+                          Estimated: {flight.duration}
+                        </div>
+                      ) : (
+                        <div className="text-2xl font-bold text-blue-600">${flight.price}</div>
+                      )}
                       <a
                         href={flight.bookingUrl}
                         target="_blank"
