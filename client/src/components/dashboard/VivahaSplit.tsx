@@ -328,6 +328,17 @@ export default function VivahaSplit() {
   const getPersonName = (id: string) => people.find(p => p.id === id)?.name || 'Unknown';
   const getPersonEmail = (id: string) => people.find(p => p.id === id)?.email || '';
 
+  const updateExpensePaidBy = (expenseId: string, newPaidBy: string) => {
+    const updatedExpenses = expenses.map(exp => {
+      if ((exp.id || exp._id) === expenseId) {
+        return { ...exp, paidBy: newPaidBy };
+      }
+      return exp;
+    });
+    setExpenses(updatedExpenses);
+    localStorage.setItem('vivahaSplitExpenses', JSON.stringify(updatedExpenses));
+  };
+
   const openInvoiceModal = (expense: Expense) => {
     setSelectedExpenseForInvoice(expense);
     setShowInvoiceModal(true);
@@ -624,10 +635,25 @@ export default function VivahaSplit() {
                       </div>
                       
                       <h3 className="font-semibold text-gray-900 text-lg mb-1">{expense.description}</h3>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Paid by <span className="font-semibold text-gray-900">{getPersonName(expense.paidBy)}</span> • 
-                        {new Date(expense.date).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm text-gray-600">Paid by</span>
+                        <select
+                          value={expense.paidBy}
+                          onChange={(e) => updateExpensePaidBy(expense.id || expense._id || '', e.target.value)}
+                          className="text-sm font-semibold text-gray-900 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Unknown</option>
+                          {people.map((person) => (
+                            <option key={person.id} value={person.id}>
+                              {person.name}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-gray-600">•</span>
+                        <span className="text-sm text-gray-600">
+                          {new Date(expense.date).toLocaleDateString()}
+                        </span>
+                      </div>
                       
                       <div className="flex flex-wrap gap-2">
                         {expense.splits.map((split) => (
