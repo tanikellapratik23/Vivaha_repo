@@ -20,13 +20,33 @@ export default function Overview() {
   });
 
   const [userSettings, setUserSettings] = useState<any>(null);
+  const [userName, setUserName] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [ceremonySuggestions, setCeremonySuggestions] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [localRestoreAvailable, setLocalRestoreAvailable] = useState(false);
   const [restored, setRestored] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Helper to capitalize first letter of name
+  const capitalizeName = (name: string) => {
+    if (!name) return '';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
 
   useEffect(() => {
+    // Load user name immediately from localStorage to prevent glitch
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const firstName = user.name?.split(' ')[0] || '';
+        setUserName(capitalizeName(firstName));
+      }
+    } catch (e) {
+      console.error('Failed to load user name:', e);
+    }
+    
     fetchUserSettings();
   }, []);
 
@@ -47,6 +67,12 @@ export default function Overview() {
           confirmedGuests: 0,
           totalBudget: data.estimatedBudget || 0,
         }));
+        
+        // Ensure user name is set from local data
+        if (localUser?.name && !userName) {
+          const firstName = localUser.name.split(' ')[0] || '';
+          setUserName(capitalizeName(firstName));
+        }
       }
     } catch (e) {
       // ignore local parse errors
@@ -114,9 +140,11 @@ export default function Overview() {
           setCeremonySuggestions(ceremonyTips);
         }
         setLocalRestoreAvailable(false);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Failed to fetch user settings:', error);
+      setIsLoading(false);
       setLoadError('Failed to load user settings from server');
       // Fallback to local onboarding data indicator
       try {
@@ -221,14 +249,16 @@ export default function Overview() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Heart className="w-16 h-16" />
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight mb-3">Welcome back!</h1>
-              {userSettings?.weddingDate && (
+            <div className="min-h-[120px]">
+              <h1 className="text-4xl font-bold tracking-tight mb-3">
+                Welcome back{userName ? `, ${userName}` : ''}!
+              </h1>
+              {!isLoading && userSettings?.weddingDate && (
                 <p className="text-primary-100 text-sm mb-2">
                   📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               )}
-              {stats.daysUntilWedding > 0 && (
+              {!isLoading && stats.daysUntilWedding > 0 && (
                 <div>
                   <p className="text-primary-100 text-lg">
                     {stats.daysUntilWedding} days until your special day 💕
@@ -240,7 +270,7 @@ export default function Overview() {
                   )}
                 </div>
               )}
-              {userSettings?.weddingCity && (
+              {!isLoading && userSettings?.weddingCity && (
                 <div className="flex items-center gap-2 mt-2 text-primary-100">
                   <MapPin className="w-4 h-4" />
                   <span>{userSettings.weddingCity}, {userSettings.weddingState || userSettings.weddingCountry}</span>
