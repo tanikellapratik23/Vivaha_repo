@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
-import { Music, Plus, Play, Pause, Search, Trash2, List, Heart, Volume2, Download, Share2, X } from 'lucide-react';
+import { Music, Plus, Play, Pause, Search, Trash2, List, Heart, Volume2, Download, Share2, X, Lightbulb, Apple, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import { exportPlaylistToCSV } from '../../utils/excelExport';
+import { getPlaylistSuggestions, generateSpotifyPlaylistUrl, generateAppleMusicPlaylistUrl, downloadPlaylistFile, SongSuggestion } from '../../utils/musicSuggestions';
 
 interface Song {
   id: string;
@@ -28,12 +29,14 @@ export default function MusicPlanner() {
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [showNewPlaylist, setShowNewPlaylist] = useState(false);
   const [showSongSearch, setShowSongSearch] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [searching, setSearching] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [pageReady, setPageReady] = useState(false);
+  const [suggestions, setSuggestions] = useState<SongSuggestion[]>([]);
   
   const [newPlaylist, setNewPlaylist] = useState({
     name: '',
@@ -296,6 +299,80 @@ export default function MusicPlanner() {
     }
   };
 
+  const showSuggestionsForPlaylist = () => {
+    if (!selectedPlaylist) return;
+    const playlistSuggestions = getPlaylistSuggestions(selectedPlaylist.eventType);
+    setSuggestions(playlistSuggestions);
+    setShowSuggestions(true);
+  };
+
+  const addSuggestionToPlaylist = (suggestion: SongSuggestion) => {
+    if (!selectedPlaylist) return;
+    
+    // Convert suggestion to Song format
+    const song: Song = {
+      id: Date.now().toString() + Math.random(),
+      title: suggestion.title,
+      artist: suggestion.artist,
+      album: '',
+      duration: '3:30', // Default duration
+    };
+    
+    // Check if song already exists
+    if (selectedPlaylist.songs.some(s => s.title === song.title && s.artist === song.artist)) {
+      alert('This song is already in your playlist!');
+      return;
+    }
+    
+    const updatedPlaylist = {
+      ...selectedPlaylist,
+      songs: [...selectedPlaylist.songs, song],
+    };
+    
+    const updatedPlaylists = (Array.isArray(playlists) ? playlists : []).map(p =>
+      p.id === selectedPlaylist.id ? updatedPlaylist : p
+    );
+    
+    savePlaylists(updatedPlaylists);
+    setSelectedPlaylist(updatedPlaylist);
+  };
+
+  const downloadForSpotify = () => {
+    if (!selectedPlaylist || selectedPlaylist.songs.length === 0) {
+      alert('Please add songs to the playlist first');
+      return;
+    }
+    
+    // Download text file with instructions
+    downloadPlaylistFile(selectedPlaylist.name, selectedPlaylist.songs);
+    
+    // Open Spotify search
+    setTimeout(() => {
+      const spotifyUrl = generateSpotifyPlaylistUrl(selectedPlaylist.name, selectedPlaylist.songs);
+      window.open(spotifyUrl, '_blank');
+    }, 500);
+    
+    alert('Playlist file downloaded! Opening Spotify to help you create the playlist. Copy song names from the downloaded file and search in Spotify.');
+  };
+
+  const downloadForAppleMusic = () => {
+    if (!selectedPlaylist || selectedPlaylist.songs.length === 0) {
+      alert('Please add songs to the playlist first');
+      return;
+    }
+    
+    // Download text file with instructions
+    downloadPlaylistFile(selectedPlaylist.name, selectedPlaylist.songs);
+    
+    // Open Apple Music search
+    setTimeout(() => {
+      const appleMusicUrl = generateAppleMusicPlaylistUrl(selectedPlaylist.name, selectedPlaylist.songs);
+      window.open(appleMusicUrl, '_blank');
+    }, 500);
+    
+    alert('Playlist file downloaded! Opening Apple Music to help you create the playlist. Copy song names from the downloaded file and search in Apple Music.');
+  };
+
   if (!pageReady) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -401,7 +478,7 @@ export default function MusicPlanner() {
         <div className="lg:col-span-2">
           {selectedPlaylist ? (
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{selectedPlaylist.name}</h2>
                   <p className="text-gray-500">{selectedPlaylist.description}</p>
@@ -410,6 +487,13 @@ export default function MusicPlanner() {
                   </span>
                 </div>
                 <div className="flex gap-2">
+                  <button
+                    onClick={showSuggestionsForPlaylist}
+                    className="p-2 border border-yellow-300 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition"
+                    title="Get Song Suggestions"
+                  >
+                    <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  </button>
                   <button
                     onClick={exportPlaylist}
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
@@ -427,17 +511,50 @@ export default function MusicPlanner() {
                 </div>
               </div>
 
+              {/* Download to Music Platforms */}
+              {selectedPlaylist.songs.length > 0 && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-gray-200">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Export to your music provider:</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={downloadForSpotify}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition text-sm font-medium"
+                    >
+                      <Music className="w-4 h-4" />
+                      Export to Spotify
+                    </button>
+                    <button
+                      onClick={downloadForAppleMusic}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white rounded-lg transition text-sm font-medium"
+                    >
+                      <Apple className="w-4 h-4" />
+                      Export to Apple Music
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Downloads a text file with your songs and opens your music app for easy playlist creation</p>
+                </div>
+              )}
+
               {/* Songs List */}
               {selectedPlaylist.songs.length === 0 ? (
                 <div className="text-center py-12">
                   <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 mb-4">No songs in this playlist yet</p>
-                  <button
-                    onClick={() => setShowSongSearch(true)}
-                    className="px-6 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition"
-                  >
-                    Add Your First Song
-                  </button>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={showSuggestionsForPlaylist}
+                      className="flex items-center gap-2 px-6 py-2 border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition font-medium"
+                    >
+                      <Lightbulb className="w-5 h-5" />
+                      Get Suggestions
+                    </button>
+                    <button
+                      onClick={() => setShowSongSearch(true)}
+                      className="px-6 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition font-medium"
+                    >
+                      Add Your Own
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -643,6 +760,75 @@ export default function MusicPlanner() {
                 <p className="text-gray-500">Search for songs to add to your playlist</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Song Suggestions Modal */}
+      {showSuggestions && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Song Suggestions for {selectedPlaylist?.eventType}</h3>
+                <p className="text-sm text-gray-500 mt-1">Curated songs perfect for this moment</p>
+              </div>
+              <button
+                onClick={() => setShowSuggestions(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {suggestions.length > 0 ? (
+              <div className="space-y-2">
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{suggestion.title}</div>
+                      <div className="text-sm text-gray-600">{suggestion.artist}</div>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          {suggestion.genre}
+                        </span>
+                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                          {suggestion.mood}
+                        </span>
+                        {suggestion.culturalContext && (
+                          <span className="text-xs px-2 py-1 bg-pink-100 text-pink-700 rounded">
+                            {suggestion.culturalContext}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => addSuggestionToPlaylist(suggestion)}
+                      className="ml-4 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition text-sm font-medium"
+                    >
+                      Add to Playlist
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No suggestions available for this event type</p>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowSuggestions(false)}
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition font-medium"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

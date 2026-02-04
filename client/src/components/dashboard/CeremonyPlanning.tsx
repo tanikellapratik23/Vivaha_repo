@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Church, Sparkles, Check, Plus, X, Clock, Users, Info, Calendar, ChevronRight, Trash2, MapPin, Save, Share2, Download } from 'lucide-react';
+import { Church, Sparkles, Check, Plus, X, Clock, Users, Info, Calendar, ChevronRight, Trash2, MapPin, Save, Share2, Download, BookOpen, Heart } from 'lucide-react';
 import axios from 'axios';
 import { religionCeremonyData, getRitualsForReligion, getTraditionsForReligion, getCeremonyStructure, getInterfaithOptions } from '../../utils/ceremonyData';
+import { getCeremonySchedule, getInterfaithSchedule, supportedReligions, CeremonySchedule } from '../../utils/ceremonySchedules';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface DayEvent {
@@ -39,6 +40,11 @@ export default function CeremonyPlanning() {
   const [weddingDays, setWeddingDays] = useState<WeddingDay[]>([]);
   const [selectedDay, setSelectedDay] = useState(0);
   const [showAddEvent, setShowAddEvent] = useState(false);
+  const [showExampleSchedules, setShowExampleSchedules] = useState(false);
+  const [selectedExampleReligion, setSelectedExampleReligion] = useState<string>('');
+  const [interfaithMode, setInterfaithMode] = useState(false);
+  const [interfaithReligion1, setInterfaithReligion1] = useState<string>('');
+  const [interfaithReligion2, setInterfaithReligion2] = useState<string>('');
   const [newEvent, setNewEvent] = useState<DayEvent>({
     id: '',
     name: '',
@@ -526,13 +532,24 @@ export default function CeremonyPlanning() {
 
       {/* Multi-Day Wedding Timeline */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg p-6 text-white">
-        <div className="flex items-center gap-3 mb-2">
-          <Calendar className="w-8 h-8" />
-          <h2 className="text-2xl font-bold">Your Multi-Day Wedding</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <Calendar className="w-8 h-8" />
+              <h2 className="text-2xl font-bold">Your Multi-Day Wedding</h2>
+            </div>
+            <p className="text-purple-100">
+              Plan your {weddingDays.length}-day wedding celebration with detailed timeline for each event
+            </p>
+          </div>
+          <button
+            onClick={() => setShowExampleSchedules(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg transition font-medium border-2 border-white/40"
+          >
+            <BookOpen className="w-5 h-5" />
+            <span>Need help planning?<br />View example schedules</span>
+          </button>
         </div>
-        <p className="text-purple-100">
-          Plan your {weddingDays.length}-day wedding celebration with detailed timeline for each event
-        </p>
       </div>
 
       {/* Day Tabs */}
@@ -1025,6 +1042,327 @@ export default function CeremonyPlanning() {
           {saving ? 'Saving...' : 'Save Ceremony Details'}
         </button>
       </div>
+
+      {/* Example Wedding Schedules Modal */}
+      {showExampleSchedules && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto my-8">
+            <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Example Wedding Schedules</h2>
+                <p className="text-sm text-gray-500 mt-1">Browse templates to inspire your perfect day-by-day schedule</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowExampleSchedules(false);
+                  setInterfaithMode(false);
+                  setSelectedExampleReligion('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Interfaith Toggle */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-pink-600" />
+                  <span className="font-semibold text-gray-900">Planning an interfaith wedding?</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setInterfaithMode(!interfaithMode);
+                    setSelectedExampleReligion('');
+                    setInterfaithReligion1('');
+                    setInterfaithReligion2('');
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    interfaithMode
+                      ? 'bg-pink-500 text-white'
+                      : 'bg-white border-2 border-pink-300 text-pink-700 hover:bg-pink-50'
+                  }`}
+                >
+                  {interfaithMode ? 'Yes, show interfaith options' : 'No, single faith'}
+                </button>
+              </div>
+              {interfaithMode && (
+                <p className="text-sm text-gray-600">
+                  Select two faiths to see beautifully blended ceremony schedules with tips on combining traditions
+                </p>
+              )}
+            </div>
+
+            {!interfaithMode ? (
+              <>
+                {/* Single Religion Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Select Your Religion:</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {['hindu', 'christian', 'jewish', 'muslim'].map((religion) => (
+                      <button
+                        key={religion}
+                        onClick={() => setSelectedExampleReligion(religion)}
+                        className={`p-4 rounded-lg border-2 transition ${
+                          selectedExampleReligion === religion
+                            ? 'border-pink-500 bg-pink-50 text-pink-700'
+                            : 'border-gray-300 hover:border-pink-300 bg-white'
+                        }`}
+                      >
+                        <div className="font-semibold capitalize">{religion}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Show Selected Religion Schedule */}
+                {selectedExampleReligion && (() => {
+                  const schedule = getCeremonySchedule(selectedExampleReligion);
+                  if (!schedule) return null;
+
+                  return (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 text-white">
+                        <h3 className="text-2xl font-bold mb-2">{schedule.religion}</h3>
+                        <p className="text-purple-100 mb-4">{schedule.description}</p>
+                        <div className="inline-block px-4 py-2 bg-white/20 rounded-full text-sm font-medium">
+                          {schedule.totalDays}-Day Celebration
+                        </div>
+                      </div>
+
+                      {schedule.schedule.map((day) => (
+                        <div key={day.dayNumber} className="bg-white border-2 border-gray-200 rounded-xl p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900">Day {day.dayNumber}: {day.dayName}</h4>
+                              <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
+                                day.dayType === 'wedding' ? 'bg-pink-100 text-pink-700' :
+                                day.dayType === 'pre-wedding' ? 'bg-purple-100 text-purple-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
+                                {day.dayType.replace('-', ' ').toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Why This Works */}
+                          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <div className="font-semibold text-green-900 mb-1">Why this schedule is effective:</div>
+                                <p className="text-sm text-green-800">{day.whyEffective}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Events */}
+                          <div className="space-y-3">
+                            {day.events.map((event, idx) => (
+                              <div key={idx} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-l-4 border-pink-500">
+                                <div className="flex items-start gap-3">
+                                  <Clock className="w-5 h-5 text-pink-600 mt-1" />
+                                  <div className="flex-1">
+                                    <div className="font-bold text-gray-900 mb-1">{event.name}</div>
+                                    <div className="flex gap-3 text-sm text-gray-600 mb-2">
+                                      <span>⏰ {event.time}</span>
+                                      <span>⏱️ {event.duration}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 mb-2">{event.description}</p>
+                                    {event.significance && (
+                                      <div className="text-sm bg-yellow-50 border border-yellow-200 rounded p-2 mb-2">
+                                        <span className="font-semibold text-yellow-900">Significance:</span>
+                                        <span className="text-yellow-800 ml-1">{event.significance}</span>
+                                      </div>
+                                    )}
+                                    {event.tips && event.tips.length > 0 && (
+                                      <div className="mt-2">
+                                        <div className="text-xs font-semibold text-gray-700 mb-1">💡 Tips:</div>
+                                        <ul className="text-xs text-gray-600 space-y-1">
+                                          {event.tips.map((tip, tipIdx) => (
+                                            <li key={tipIdx} className="flex items-start gap-1">
+                                              <span className="text-pink-500">•</span>
+                                              <span>{tip}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </>
+            ) : (
+              <>
+                {/* Interfaith Selection */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">First Faith:</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {['hindu', 'christian', 'jewish', 'muslim'].map((religion) => (
+                        <button
+                          key={religion}
+                          onClick={() => setInterfaithReligion1(religion)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            interfaithReligion1 === religion
+                              ? 'border-pink-500 bg-pink-50 text-pink-700'
+                              : 'border-gray-300 hover:border-pink-300 bg-white'
+                          }`}
+                        >
+                          <div className="font-semibold capitalize">{religion}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Second Faith:</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {['hindu', 'christian', 'jewish', 'muslim'].filter(r => r !== interfaithReligion1).map((religion) => (
+                        <button
+                          key={religion}
+                          onClick={() => setInterfaithReligion2(religion)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            interfaithReligion2 === religion
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-gray-300 hover:border-purple-300 bg-white'
+                          }`}
+                        >
+                          <div className="font-semibold capitalize">{religion}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Show Interfaith Schedule */}
+                {interfaithReligion1 && interfaithReligion2 && (() => {
+                  const schedule = getInterfaithSchedule(interfaithReligion1, interfaithReligion2);
+                  if (!schedule) {
+                    return (
+                      <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        <p className="text-gray-600">Example schedule for this combination is coming soon!</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 rounded-lg p-6 text-white">
+                        <h3 className="text-2xl font-bold mb-2">{schedule.religions} Wedding</h3>
+                        <p className="text-purple-100 mb-4">{schedule.description}</p>
+                        <div className="inline-block px-4 py-2 bg-white/20 rounded-full text-sm font-medium">
+                          {schedule.totalDays}-Day Celebration
+                        </div>
+                      </div>
+
+                      {/* Overall Why Effective */}
+                      {schedule.whyEffective && (
+                        <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-xl">
+                          <div className="flex items-start gap-3">
+                            <Heart className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
+                            <div>
+                              <div className="font-bold text-green-900 text-lg mb-2">Why This Interfaith Approach Works:</div>
+                              <p className="text-green-800">{schedule.whyEffective}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {schedule.schedule.map((day: any, dayIdx: number) => (
+                        <div key={dayIdx} className="bg-white border-2 border-purple-300 rounded-xl p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900">Day {day.dayNumber}: {day.dayName}</h4>
+                              <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
+                                day.dayType === 'wedding' ? 'bg-pink-100 text-pink-700' :
+                                day.dayType === 'pre-wedding' ? 'bg-purple-100 text-purple-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
+                                {day.dayType.replace('-', ' ').toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {day.whyEffective && (
+                            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <div className="font-semibold text-green-900 mb-1">Why this works:</div>
+                                  <p className="text-sm text-green-800">{day.whyEffective}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-3">
+                            {day.events.map((event: any, idx: number) => (
+                              <div key={idx} className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 rounded-lg p-4 border-l-4 border-purple-500">
+                                <div className="flex items-start gap-3">
+                                  <Clock className="w-5 h-5 text-purple-600 mt-1" />
+                                  <div className="flex-1">
+                                    <div className="font-bold text-gray-900 mb-1">{event.name}</div>
+                                    <div className="flex gap-3 text-sm text-gray-600 mb-2">
+                                      <span>⏰ {event.time}</span>
+                                      <span>⏱️ {event.duration}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 mb-2">{event.description}</p>
+                                    {event.significance && (
+                                      <div className="text-sm bg-yellow-50 border border-yellow-200 rounded p-2 mb-2">
+                                        <span className="font-semibold text-yellow-900">Significance:</span>
+                                        <span className="text-yellow-800 ml-1">{event.significance}</span>
+                                      </div>
+                                    )}
+                                    {event.tips && event.tips.length > 0 && (
+                                      <div className="mt-2">
+                                        <div className="text-xs font-semibold text-gray-700 mb-1">💡 Interfaith Tips:</div>
+                                        <ul className="text-xs text-gray-600 space-y-1">
+                                          {event.tips.map((tip: string, tipIdx: number) => (
+                                            <li key={tipIdx} className="flex items-start gap-1">
+                                              <span className="text-purple-500">•</span>
+                                              <span>{tip}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+
+            <div className="mt-6 pt-6 border-t flex justify-end">
+              <button
+                onClick={() => {
+                  setShowExampleSchedules(false);
+                  setInterfaithMode(false);
+                  setSelectedExampleReligion('');
+                }}
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
