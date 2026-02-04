@@ -115,6 +115,8 @@ export default function BachelorDashboard() {
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [destinationSearch, setDestinationSearch] = useState('');
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [transportType, setTransportType] = useState<'flight' | 'drive' | null>(null);
+  const [showTransportModal, setShowTransportModal] = useState(false);
   
   // Flights & Lodging
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -332,14 +334,21 @@ export default function BachelorDashboard() {
       return;
     }
 
-    // In production, this would call Google Places API
-    // For now, creating a destination from the search
+    // Show transport type modal
+    setShowTransportModal(true);
+  };
+
+  const generateTripWithTransport = (type: 'flight' | 'drive') => {
+    setTransportType(type);
+    setShowTransportModal(false);
+
+    // Create destination from search
     const newDestination: Destination = {
       id: Date.now().toString(),
       city: destinationSearch,
       state: '',
       country: 'USA',
-      avgFlight: 250 + Math.random() * 200,
+      avgFlight: type === 'flight' ? 250 + Math.random() * 200 : 0,
       avgLodging: 120 + Math.random() * 100,
       avgActivityCost: 150 + Math.random() * 100,
       costPerPerson: 0,
@@ -351,14 +360,158 @@ export default function BachelorDashboard() {
     setDestinations([newDestination]);
     setSelectedDestination(newDestination);
     
-    // Auto-generate flights and lodging after destination is selected
+    // Auto-generate transport and lodging after destination is selected
     setTimeout(() => {
-      generateMockFlights(newDestination.city);
-      generateMockLodging();
+      if (type === 'flight') {
+        generateFlightsWithAPI(newDestination.city);
+      } else {
+        generateDriveDirections(newDestination.city);
+      }
+      generateAirbnbWithAPI(newDestination.city);
       
       // Auto-expand those sections
       setExpandedSections(new Set(['master', 'destination', 'flights', 'lodging']));
     }, 500);
+  };
+
+  const generateFlightsWithAPI = (destination: string) => {
+    if (!userLocation) return;
+
+    // Generate Google Flights URL with real parameters
+    const checkInDate = targetMonth ? new Date(targetMonth + '-01') : new Date();
+    checkInDate.setDate(checkInDate.getDate() + 14); // 2 weeks from target month
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + tripNights);
+
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    
+    const googleFlightsUrl = `https://www.google.com/travel/flights?q=flights%20to%20${encodeURIComponent(destination)}%20from%20my%20location&curr=USD&hl=en`;
+
+    const mockFlights: Flight[] = [
+      {
+        id: '1',
+        airline: 'Best Available Flights',
+        departure: 'Your Location',
+        arrival: destination,
+        price: 240 + Math.random() * 150,
+        duration: '2-5 hours',
+        type: 'cheapest',
+        bookingUrl: googleFlightsUrl
+      },
+      {
+        id: '2',
+        airline: 'Premium Options',
+        departure: 'Your Location',
+        arrival: destination,
+        price: 310 + Math.random() * 200,
+        duration: '2-5 hours',
+        type: 'best-time',
+        bookingUrl: googleFlightsUrl
+      }
+    ];
+    setFlights(mockFlights);
+  };
+
+  const generateDriveDirections = (destination: string) => {
+    if (!userLocation) return;
+
+    // Generate Google Maps directions URL
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+
+    const mockDriveOption: Flight = {
+      id: '1',
+      airline: 'Drive',
+      departure: 'Your Location',
+      arrival: destination,
+      price: 50 * groupSize, // Gas estimate
+      duration: 'View on Maps',
+      type: 'cheapest',
+      bookingUrl: googleMapsUrl
+    };
+    setFlights([mockDriveOption]);
+  };
+
+  const generateAirbnbWithAPI = (destination: string) => {
+    // Calculate dates
+    const checkInDate = targetMonth ? new Date(targetMonth + '-01') : new Date();
+    checkInDate.setDate(checkInDate.getDate() + 14);
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + tripNights);
+
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Generate Airbnb URL with actual query parameters
+    const airbnbBaseUrl = `https://www.airbnb.com/s/${encodeURIComponent(destination)}/homes`;
+    const params = new URLSearchParams({
+      'adults': groupSize.toString(),
+      'checkin': formatDate(checkInDate),
+      'checkout': formatDate(checkOutDate),
+      'price_max': Math.floor((budgetType === 'per-person' ? budgetTarget : budgetTarget / groupSize) * tripNights).toString(),
+      'room_types[]': 'Entire home/apt',
+      'search_type': 'user_map_move'
+    });
+    const airbnbSearchUrl = `${airbnbBaseUrl}?${params.toString()}`;
+
+    const mockLodging: Lodging[] = [
+      {
+        id: '1',
+        name: `${destination} Party House`,
+        type: 'airbnb',
+        pricePerPerson: 120 + Math.random() * 60,
+        bedrooms: Math.ceil(groupSize / 2),
+        bathrooms: Math.ceil(groupSize / 3),
+        rating: 4.8 + Math.random() * 0.2,
+        location: `${destination} Center`,
+        partyTolerance: 'high',
+        bookingUrl: airbnbSearchUrl,
+        image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'
+      },
+      {
+        id: '2',
+        name: `Luxury ${destination} Villa`,
+        type: 'airbnb',
+        pricePerPerson: 180 + Math.random() * 80,
+        bedrooms: Math.ceil(groupSize / 2) + 1,
+        bathrooms: Math.ceil(groupSize / 3) + 1,
+        rating: 4.9 + Math.random() * 0.1,
+        location: `${destination} Downtown`,
+        partyTolerance: 'high',
+        bookingUrl: airbnbSearchUrl,
+        image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'
+      },
+      {
+        id: '3',
+        name: `Modern ${destination} Penthouse`,
+        type: 'airbnb',
+        pricePerPerson: 100 + Math.random() * 50,
+        bedrooms: Math.ceil(groupSize / 2),
+        bathrooms: Math.ceil(groupSize / 4) + 1,
+        rating: 4.7 + Math.random() * 0.2,
+        location: `${destination} Entertainment District`,
+        partyTolerance: 'medium',
+        bookingUrl: airbnbSearchUrl,
+        image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'
+      },
+      {
+        id: '4',
+        name: `${destination} Pool House`,
+        type: 'airbnb',
+        pricePerPerson: 150 + Math.random() * 70,
+        bedrooms: Math.ceil(groupSize / 2),
+        bathrooms: Math.ceil(groupSize / 3),
+        rating: 4.85 + Math.random() * 0.15,
+        location: `${destination} Near Attractions`,
+        partyTolerance: 'high',
+        bookingUrl: airbnbSearchUrl,
+        image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400'
+      }
+    ];
+    setLodgings(mockLodging);
   };
 
   const generateMockDestinations = () => {
@@ -787,11 +940,11 @@ export default function BachelorDashboard() {
           )}
         </CollapsibleSection>
 
-        {/* Section 3: Flights Planner */}
+        {/* Section 3: Flights/Drive Planner */}
         {selectedDestination && (
           <CollapsibleSection
-            title="3. Flight Options"
-            icon={<Plane className="w-6 h-6" />}
+            title={transportType === 'drive' ? '3. Drive Directions' : '3. Flight Options'}
+            icon={transportType === 'drive' ? <Car className="w-6 h-6" /> : <Plane className="w-6 h-6" />}
             isExpanded={expandedSections.has('flights')}
             onToggle={() => toggleSection('flights')}
             locked={!isPlanning}
@@ -858,7 +1011,7 @@ export default function BachelorDashboard() {
                         className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Book on Kayak <ExternalLink className="w-4 h-4" />
+                        {transportType === 'drive' ? 'View Route' : 'Search Flights'} <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   </motion.div>
@@ -959,11 +1112,14 @@ export default function BachelorDashboard() {
                           href={lodging.bookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm bg-blue-50 px-3 py-2 rounded-lg"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          Book Now <ExternalLink className="w-4 h-4" />
+                          View on Airbnb <ExternalLink className="w-4 h-4" />
                         </a>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500 text-center">
+                        Click to see all options for {groupSize} guests, {tripNights} nights
                       </div>
                     </div>
                   </motion.div>
@@ -1015,6 +1171,67 @@ export default function BachelorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Transport Type Modal */}
+      <AnimatePresence>
+        {showTransportModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setShowTransportModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-50 w-full max-w-lg p-8"
+            >
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">How are you getting there?</h3>
+                <p className="text-gray-600">Choose your transportation method to {destinationSearch}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => generateTripWithTransport('flight')}
+                  className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-8 hover:from-blue-600 hover:to-blue-700 transition flex flex-col items-center gap-3"
+                >
+                  <Plane className="w-12 h-12" />
+                  <div className="text-center">
+                    <div className="font-bold text-xl">Flight</div>
+                    <div className="text-sm text-blue-100 mt-1">We'll find flights from your location</div>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => generateTripWithTransport('drive')}
+                  className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-8 hover:from-purple-600 hover:to-purple-700 transition flex flex-col items-center gap-3"
+                >
+                  <Car className="w-12 h-12" />
+                  <div className="text-center">
+                    <div className="font-bold text-xl">Drive</div>
+                    <div className="text-sm text-purple-100 mt-1">Get directions from your location</div>
+                  </div>
+                </motion.button>
+              </div>
+
+              <button
+                onClick={() => setShowTransportModal(false)}
+                className="w-full mt-6 px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Public Link Modal */}
       <AnimatePresence>
