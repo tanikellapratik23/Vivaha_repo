@@ -10,6 +10,7 @@ import WelcomeBack from './components/WelcomeBack';
 import Landing from './components/Landing';
 import WhatIsVivaha from './components/WhatIsVivaha';
 import DemoPage from './components/DemoPage';
+import SharedDashboard from './components/dashboard/SharedDashboard';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -100,6 +101,9 @@ function App() {
           <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Shared Dashboard - No Auth Required */}
+          <Route path="/shared/:token" element={<SharedDashboard />} />
           
           <Route 
             path="/welcome-back" 
