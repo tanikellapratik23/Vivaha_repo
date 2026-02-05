@@ -501,7 +501,7 @@ export default function VendorSearch() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Vendor Search</h1>
-          <p className="text-gray-500 mt-1">Find local vendors and services</p>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Find local vendors and services</p>
         </div>
 
         {showLocationPrompt ? (
@@ -557,7 +557,7 @@ export default function VendorSearch() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white drop-shadow-md">Vendor Search</h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-100 mt-1 drop-shadow-md">
           Find local vendors and services
           {userCity && <span className="font-medium text-primary-600"> in {userCity}, {userState}</span>}
         </p>
@@ -769,7 +769,7 @@ export default function VendorSearch() {
                 <div className="flex items-start justify-between mb-4 pr-8">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900">{vendor.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{vendor.category}</p>
+                    <p className="text-sm text-gray-100 mt-1 drop-shadow-md">{vendor.category}</p>
                     <div className="flex items-center space-x-2 mt-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">

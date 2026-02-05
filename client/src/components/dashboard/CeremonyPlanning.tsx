@@ -457,7 +457,7 @@ export default function CeremonyPlanning() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Ceremony Planning</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-100 mt-1 drop-shadow-md">
             {ceremonyType} Wedding - Plan your celebration day by day
           </p>
         </div>
@@ -789,7 +789,7 @@ export default function CeremonyPlanning() {
                       placeholder="Full address for Google Maps"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 bg-gray-50"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-100 mt-1 drop-shadow-md">
                       Address will link to Google Maps
                     </p>
                   </div>
@@ -1050,7 +1050,7 @@ export default function CeremonyPlanning() {
             <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Example Wedding Schedules</h2>
-                <p className="text-sm text-gray-500 mt-1">Browse templates to inspire your perfect day-by-day schedule</p>
+                <p className="text-sm text-gray-100 mt-1 drop-shadow-md">Browse templates to inspire your perfect day-by-day schedule</p>
               </div>
               <button
                 onClick={() => {

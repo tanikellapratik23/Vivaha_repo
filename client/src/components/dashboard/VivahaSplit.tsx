@@ -437,7 +437,7 @@ export default function VivahaSplit() {
             </div>
             Vivaha Split
           </h1>
-          <p className="text-gray-600 mt-2">Split wedding expenses fairly with family and friends</p>
+          <p className="text-gray-100 mt-2 drop-shadow-md">Split wedding expenses fairly with family and friends</p>
         </div>
         
         <div className="flex gap-3">

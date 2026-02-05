@@ -390,7 +390,7 @@ export default function MusicPlanner() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Sound & Music</h1>
-          <p className="text-gray-500 mt-1">Create playlists for every moment of your wedding</p>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Create playlists for every moment of your wedding</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -771,7 +771,7 @@ export default function MusicPlanner() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Song Suggestions for {selectedPlaylist?.eventType}</h3>
-                <p className="text-sm text-gray-500 mt-1">Curated songs perfect for this moment</p>
+                <p className="text-sm text-gray-100 mt-1 drop-shadow-md">Curated songs perfect for this moment</p>
               </div>
               <button
                 onClick={() => setShowSuggestions(false)}

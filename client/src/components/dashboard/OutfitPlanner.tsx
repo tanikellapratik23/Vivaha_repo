@@ -316,7 +316,7 @@ export default function OutfitPlanner() {
         <div className="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
           <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-600">No outfits assigned yet</p>
-          <p className="text-sm text-gray-500 mt-1">Click "Add Outfit" to start planning</p>
+          <p className="text-sm text-gray-100 mt-1 drop-shadow-md">Click "Add Outfit" to start planning</p>
         </div>
       )}
     </div>

@@ -73,7 +73,7 @@ export default function VendorManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Vendor Management</h1>
-          <p className="text-gray-500 mt-1">Manage your wedding vendors and contracts</p>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Manage your wedding vendors and contracts</p>
         </div>
         <button className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
           <Plus className="w-5 h-5" />
@@ -147,7 +147,7 @@ export default function VendorManagement() {
             <div className="flex items-start justify-between mb-4 pr-24">
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900">{vendor.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">{vendor.category}</p>
+                <p className="text-sm text-gray-100 mt-1 drop-shadow-md">{vendor.category}</p>
                 {(vendor as any).rating && (
                   <div className="flex items-center gap-1 mt-2">
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />

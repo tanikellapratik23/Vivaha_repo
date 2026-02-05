@@ -135,7 +135,7 @@ export default function SeatingPlanner() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Seating Planner</h1>
-          <p className="text-gray-500 mt-1">Arrange your guests' seating</p>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Arrange your guests' seating</p>
         </div>
         <div className="flex gap-3">
           {tables.length > 0 && (

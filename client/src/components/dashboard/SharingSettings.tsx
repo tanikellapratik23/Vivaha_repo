@@ -166,7 +166,7 @@ export default function SharingSettings() {
                       {window.location.origin}/shared/{link.token.substring(0, 16)}...
                     </code>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-100 mt-1 drop-shadow-md">
                     Created: {new Date(link.createdAt).toLocaleDateString()} • Expires:{' '}
                     {new Date(link.expiresAt).toLocaleDateString()}
                   </p>
@@ -201,7 +201,7 @@ export default function SharingSettings() {
         <div className="bg-gray-50 rounded-xl p-8 text-center border-2 border-dashed border-gray-300">
           <Share2 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-600">No active shared links</p>
-          <p className="text-sm text-gray-500 mt-1">Create a link above to share your dashboard</p>
+          <p className="text-sm text-gray-100 mt-1 drop-shadow-md">Create a link above to share your dashboard</p>
         </div>
       )}
     </div>

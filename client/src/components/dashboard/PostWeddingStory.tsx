@@ -280,7 +280,7 @@ export default function PostWeddingStoryBuilder() {
           <div className="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
             <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-600">No memories added yet</p>
-            <p className="text-sm text-gray-500 mt-1">Click "Add Memory" to start building your wedding story</p>
+            <p className="text-sm text-gray-100 mt-1 drop-shadow-md">Click "Add Memory" to start building your wedding story</p>
           </div>
         ) : (
           entries.map((entry, idx) => (

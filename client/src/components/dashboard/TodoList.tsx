@@ -289,7 +289,7 @@ export default function TodoList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white drop-shadow-md">To-Do List</h1>
-          <p className="text-gray-500 mt-1">Track your wedding planning tasks</p>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Track your wedding planning tasks</p>
         </div>
         <div className="flex items-center gap-3">
           {todos.length > 0 && (
@@ -394,7 +394,7 @@ export default function TodoList() {
                       {todo.title}
                     </h3>
                     {todo.description && (
-                      <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
+                      <p className="text-sm text-gray-100 mt-1 drop-shadow-md">{todo.description}</p>
                     )}
                   </div>
 
