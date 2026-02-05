@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authStorage } from '../utils/auth';
 
 export default function WelcomeBack() {
   const navigate = useNavigate();
@@ -7,11 +8,10 @@ export default function WelcomeBack() {
   const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
-    // Get user's first name from localStorage
+    // Get user's first name from auth storage
     try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
+      const user = authStorage.getUser();
+      if (user) {
         const name = user.name || '';
         const first = name.split(' ')[0]; // Get first name
         setFirstName(first);

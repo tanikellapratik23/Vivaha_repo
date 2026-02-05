@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { authStorage } from './utils/auth';
 import Onboarding from './components/onboarding/Onboarding';
 import Dashboard from './components/dashboard/Dashboard';
 import Login from './components/auth/Login';
@@ -19,8 +20,8 @@ function App() {
   const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
 
   useEffect(() => {
-    // Check authentication status - simple: if token exists, user is authenticated
-    const token = localStorage.getItem('token');
+    // Check authentication status using sessionStorage (auto-clears on tab close)
+    const token = authStorage.getToken();
     setIsAuthenticated(!!token);
     
     // Check if admin from token
@@ -38,10 +39,10 @@ function App() {
     }
   }, []);
 
-  // Listen for storage changes (e.g., when login updates localStorage)
+  // Listen for storage changes
   useEffect(() => {
     const handleStorageChange = () => {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
       setIsAuthenticated(!!token);
       
       if (token) {
@@ -61,24 +62,6 @@ function App() {
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Auto-logout when tab is closed
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Clear authentication data when tab is closed
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('onboardingCompleted');
-      localStorage.removeItem('offlineMode');
-      localStorage.removeItem('onboarding');
-      localStorage.removeItem('ceremony');
-      localStorage.removeItem('wantsBachelorParty');
-      localStorage.removeItem('isNewUser');
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
   useEffect(() => {

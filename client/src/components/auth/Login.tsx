@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { importBackupFile } from '../../utils/offlineBackup';
+import { authStorage } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock } from 'lucide-react';
@@ -43,20 +44,17 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       }
       clearTimeout(timer);
       console.log('Login successful:', response.data);
-      localStorage.setItem('token', response.data.token);
-      // Store user data so WelcomeBack can display the user's name
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      authStorage.setToken(response.data.token);
+      authStorage.setUser(response.data.user);
+      sessionStorage.setItem('onboardingCompleted', 'true');
       setIsAuthenticated(true);
 
       // Check if admin - go directly to dashboard
       if (response.data.user.isAdmin) {
-        localStorage.setItem('onboardingCompleted', 'true');
         navigate('/dashboard');
       } else {
         // For ALL returning users (anyone who successfully logs in), show welcome back
-        // If they haven't completed onboarding, the backend would have rejected or they'd be new
         console.log('✅ Returning user, showing welcome back');
-        localStorage.setItem('onboardingCompleted', 'true');
         navigate('/welcome-back');
       }
     } catch (err: any) {

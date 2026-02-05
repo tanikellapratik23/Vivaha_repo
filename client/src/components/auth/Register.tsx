@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { importBackupFile } from '../../utils/offlineBackup';
+import { authStorage } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock, User } from 'lucide-react';
@@ -54,8 +55,9 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
       }
       clearTimeout(timer);
       console.log('Registration successful:', response.data);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('isNewUser', 'true'); // Mark as new user so onboarding is required
+      authStorage.setToken(response.data.token);
+      authStorage.setUser(response.data.user);
+      sessionStorage.setItem('isNewUser', 'true'); // Mark as new user so onboarding is required
       setIsAuthenticated(true);
       navigate('/onboarding');
     } catch (err: any) {
