@@ -252,15 +252,15 @@ export default function BachelorDashboard() {
   };
 
   const calculateBudget = () => {
-    const flightCost = selectedFlight ? selectedFlight.price * groupSize : 0;
-    const lodgingCost = selectedLodging ? selectedLodging.pricePerPerson * groupSize * tripNights : 0;
-    const transportCost = selectedTransport ? selectedTransport.estimatedCost : 0;
-    const activitiesCost = activities
+    const flightCost = selectedFlight ? parseFloat((selectedFlight.price * groupSize).toFixed(2)) : 0;
+    const lodgingCost = selectedLodging ? parseFloat((selectedLodging.pricePerPerson * groupSize * tripNights).toFixed(2)) : 0;
+    const transportCost = selectedTransport ? parseFloat(selectedTransport.estimatedCost.toFixed(2)) : 0;
+    const activitiesCost = parseFloat(activities
       .filter(a => selectedActivities.includes(a.id))
-      .reduce((sum, a) => sum + (a.cost * groupSize), 0);
-    const buffer = (flightCost + lodgingCost + transportCost + activitiesCost) * 0.15;
-    const total = flightCost + lodgingCost + transportCost + activitiesCost + buffer;
-    const perPerson = total / groupSize;
+      .reduce((sum, a) => sum + (a.cost * groupSize), 0).toFixed(2));
+    const buffer = parseFloat(((flightCost + lodgingCost + transportCost + activitiesCost) * 0.15).toFixed(2));
+    const total = parseFloat((flightCost + lodgingCost + transportCost + activitiesCost + buffer).toFixed(2));
+    const perPerson = parseFloat((total / groupSize).toFixed(2));
 
     setBudget({
       flights: flightCost,
@@ -348,9 +348,9 @@ export default function BachelorDashboard() {
       city: destinationSearch,
       state: '',
       country: 'USA',
-      avgFlight: type === 'flight' ? 250 + Math.random() * 200 : 0,
-      avgLodging: 120 + Math.random() * 100,
-      avgActivityCost: 150 + Math.random() * 100,
+      avgFlight: type === 'flight' ? 300.00 : 0,
+      avgLodging: 150.00,
+      avgActivityCost: 200.00,
       costPerPerson: 0,
       rank: 1,
       whyWins: 'Selected destination with great party options'
@@ -414,7 +414,7 @@ export default function BachelorDashboard() {
         airline: `${destInfo.airlines[0]} • ${destInfo.airlines[1]}`,
         departure: `Your Nearest Airport → ${destInfo.code}`,
         arrival: destInfo.name,
-        price: Math.round((240 + Math.random() * 100) * 100) / 100,
+        price: 289.00,
         duration: destInfo.duration,
         type: 'cheapest',
         bookingUrl: googleFlightsUrl
@@ -424,7 +424,7 @@ export default function BachelorDashboard() {
         airline: `${destInfo.airlines[0]} • Premium`,
         departure: `Your Nearest Airport → ${destInfo.code}`,
         arrival: destInfo.name,
-        price: Math.round((310 + Math.random() * 150) * 100) / 100,
+        price: 385.00,
         duration: destInfo.duration,
         type: 'best-time',
         bookingUrl: googleFlightsUrl
@@ -500,10 +500,10 @@ export default function BachelorDashboard() {
         id: '1',
         name: `${destination} Party House`,
         type: 'airbnb',
-        pricePerPerson: Math.round((120 + Math.random() * 60) * 100) / 100,
+        pricePerPerson: 150.00,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 3),
-        rating: Math.round((4.8 + Math.random() * 0.2) * 100) / 100,
+        rating: 4.85,
         location: `${destination} Center`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -539,10 +539,10 @@ export default function BachelorDashboard() {
         id: '4',
         name: `${destination} Pool House`,
         type: 'airbnb',
-        pricePerPerson: Math.round((150 + Math.random() * 70) * 100) / 100,
+        pricePerPerson: 180.00,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 3),
-        rating: Math.round((4.85 + Math.random() * 0.15) * 100) / 100,
+        rating: 4.88,
         location: `${destination} Near Attractions`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -825,7 +825,7 @@ export default function BachelorDashboard() {
                 <span className="font-semibold">Total Estimated Cost</span>
               </div>
               <div className="text-3xl font-bold text-blue-900">
-                ${budget.total.toFixed(0)}
+                ${budget.total.toFixed(2)}
               </div>
             </div>
 
@@ -835,7 +835,7 @@ export default function BachelorDashboard() {
                 <span className="font-semibold">Cost Per Person</span>
               </div>
               <div className="text-3xl font-bold text-purple-900">
-                ${budget.perPerson.toFixed(0)}
+                ${budget.perPerson.toFixed(2)}
               </div>
             </div>
 
@@ -1183,30 +1183,30 @@ export default function BachelorDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
               <div className="text-sm opacity-90 mb-1">Flights</div>
-              <div className="text-2xl font-bold">${budget.flights.toFixed(0)}</div>
+              <div className="text-2xl font-bold">${budget.flights.toFixed(2)}</div>
             </div>
             <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
               <div className="text-sm opacity-90 mb-1">Lodging</div>
-              <div className="text-2xl font-bold">${budget.lodging.toFixed(0)}</div>
+              <div className="text-2xl font-bold">${budget.lodging.toFixed(2)}</div>
             </div>
             <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
               <div className="text-sm opacity-90 mb-1">Transport</div>
-              <div className="text-2xl font-bold">${budget.transport.toFixed(0)}</div>
+              <div className="text-2xl font-bold">${budget.transport.toFixed(2)}</div>
             </div>
             <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
               <div className="text-sm opacity-90 mb-1">Activities</div>
-              <div className="text-2xl font-bold">${budget.activities.toFixed(0)}</div>
+              <div className="text-2xl font-bold">${budget.activities.toFixed(2)}</div>
             </div>
             <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
               <div className="text-sm opacity-90 mb-1">Buffer (15%)</div>
-              <div className="text-2xl font-bold">${budget.buffer.toFixed(0)}</div>
+              <div className="text-2xl font-bold">${budget.buffer.toFixed(2)}</div>
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-6 border-t border-white/30">
             <div>
               <div className="text-lg opacity-90">Total Trip Cost</div>
-              <div className="text-4xl font-bold">${budget.total.toFixed(0)}</div>
+              <div className="text-4xl font-bold">${budget.total.toFixed(2)}</div>
             </div>
             <div className="text-right">
               <div className="text-lg opacity-90">Per Person ({groupSize} people)</div>
