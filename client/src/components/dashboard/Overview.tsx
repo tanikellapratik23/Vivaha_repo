@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, DollarSign, CheckSquare, TrendingUp, Heart, MapPin, Church, Sparkles, Briefcase } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import axios from 'axios';
+import { authStorage } from '../../utils/auth';
 import { getBudgetOptimizationSuggestions, getCeremonyPlanningSuggestions, getCityAverageCost } from '../../utils/cityData';
 
 export default function Overview() {
@@ -35,11 +36,10 @@ export default function Overview() {
   };
 
   useEffect(() => {
-    // Load user name immediately from localStorage to prevent glitch
+    // Load user name immediately from sessionStorage to prevent glitch
     try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
+      const user = authStorage.getUser();
+      if (user) {
         const firstName = user.name?.split(' ')[0] || '';
         setUserName(capitalizeName(firstName));
       }
@@ -78,7 +78,12 @@ export default function Overview() {
       // ignore local parse errors
     }
     try {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
+      if (!token) {
+        setLoadError('Not authenticated. Please log in again.');
+        setIsLoading(false);
+        return;
+      }
       const response = await axios.get('/api/onboarding', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -250,28 +255,28 @@ export default function Overview() {
           <div className="flex items-center space-x-4">
             <Heart className="w-16 h-16" />
             <div className="min-h-[120px]">
-              <h1 className="text-4xl font-bold tracking-tight mb-3">
+              <h1 className="text-4xl font-bold tracking-tight mb-3 text-white drop-shadow-lg">
                 Welcome back{userName ? `, ${userName}` : ''}!
               </h1>
               {!isLoading && userSettings?.weddingDate && (
-                <p className="text-primary-100 text-sm mb-2">
+                <p className="text-white text-sm mb-2 drop-shadow-md">
                   📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               )}
               {!isLoading && stats.daysUntilWedding > 0 && (
                 <div>
-                  <p className="text-primary-100 text-lg">
+                  <p className="text-white text-lg font-semibold drop-shadow-md">
                     {stats.daysUntilWedding} days until your special day 💕
                   </p>
                   {userSettings?.weddingTime && (
-                    <p className="text-primary-100 text-sm mt-1">
+                    <p className="text-white text-sm mt-1 drop-shadow-md">
                       {stats.hoursUntilWedding} hours, {stats.minutesUntilWedding} minutes
                     </p>
                   )}
                 </div>
               )}
               {!isLoading && userSettings?.weddingCity && (
-                <div className="flex items-center gap-2 mt-2 text-primary-100">
+                <div className="flex items-center gap-2 mt-2 text-white drop-shadow-md">
                   <MapPin className="w-4 h-4" />
                   <span>{userSettings.weddingCity}, {userSettings.weddingState || userSettings.weddingCountry}</span>
                 </div>
@@ -280,11 +285,11 @@ export default function Overview() {
           </div>
           {userSettings?.isReligious && userSettings?.religions && (
             <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 text-white">
                 <Church className="w-5 h-5" />
                 <span className="font-semibold">Ceremony Type</span>
               </div>
-              <p className="text-sm text-primary-100">
+              <p className="text-sm text-white drop-shadow-md">
                 {userSettings.religions.length > 1 ? 'Interfaith' : userSettings.religions[0]} Wedding
               </p>
             </div>

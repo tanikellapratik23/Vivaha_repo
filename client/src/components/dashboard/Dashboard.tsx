@@ -2,6 +2,7 @@ import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-r
 import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
+import { authStorage } from '../../utils/auth';
 import axios from 'axios';
 import Overview from './Overview';
 import GuestList from './GuestList';
@@ -55,8 +56,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
 
   useEffect(() => {
     // Check if user is admin from token
-    const token = localStorage.getItem('token');
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+    const token = authStorage.getToken();
+    const onboardingCompleted = sessionStorage.getItem('onboardingCompleted') === 'true';
     setHasCompletedOnboarding(onboardingCompleted);
     
     if (token) {
@@ -81,7 +82,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
 
   const sendWelcomeEmail = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
       const hasEmailBeenSent = sessionStorage.getItem('welcomeEmailSent');
       if (hasEmailBeenSent || emailSent) return;
 
@@ -98,7 +99,9 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
 
   const fetchUserSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
+      if (!token) return;
+      
       const response = await axios.get('/api/onboarding', {
         headers: { Authorization: `Bearer ${token}` },
         timeout: 5000,
@@ -122,9 +125,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
   };
 
   const confirmLogout = () => {
-    // Clear all stored data
-    localStorage.removeItem('token');
-    localStorage.removeItem('onboardingCompleted');
+    // Clear all stored data using authStorage helper
+    authStorage.clearAll();
+    sessionStorage.clear();
+    // Also clear other app data from localStorage
     localStorage.removeItem('guests');
     localStorage.removeItem('todos');
     localStorage.removeItem('budget');
@@ -133,6 +137,9 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     localStorage.removeItem('playlists');
     localStorage.removeItem('seatingCharts');
     localStorage.removeItem('wantsBachelorParty');
+    localStorage.removeItem('onboarding');
+    localStorage.removeItem('ceremony');
+    localStorage.removeItem('isNewUser');
     // Navigate and reload to ensure App component re-evaluates auth state
     navigate('/', { replace: true });
     window.location.reload();
