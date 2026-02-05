@@ -63,6 +63,24 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Auto-logout when tab is closed
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear authentication data when tab is closed
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('onboardingCompleted');
+      localStorage.removeItem('offlineMode');
+      localStorage.removeItem('onboarding');
+      localStorage.removeItem('ceremony');
+      localStorage.removeItem('wantsBachelorParty');
+      localStorage.removeItem('isNewUser');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   useEffect(() => {
     // Respect explicit user preference stored in localStorage, otherwise follow OS setting
     const applyPref = () => {
