@@ -138,45 +138,84 @@ export default function DemoPage() {
               <div className="flex flex-col min-w-0">
                 <h3 className="text-lg md:text-xl font-semibold mb-4">Your Dashboard</h3>
                 <div className="bg-gradient-to-br from-gray-50 to-primary-50 rounded-xl p-4 md:p-6 flex-1 overflow-auto border border-gray-200">
-                  <div className="space-y-4">
-                    {/* Location Card */}
-                    <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
-                      <div className="text-xs text-gray-500 uppercase font-semibold">📍 Location</div>
-                      <div className="text-2xl font-bold text-primary-600 mt-2">{data.weddingCity || '—'}, {data.weddingState || '—'}</div>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-4 bg-primary-100 rounded-lg border border-primary-200 shadow-sm">
-                        <div className="text-xs text-primary-700 uppercase font-semibold">👥 Guests</div>
-                        <div className="text-3xl font-bold text-primary-700 mt-2">{data.guestCount || '—'}</div>
+                  {!showDashboard ? (
+                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                      <div className="text-center">
+                        <div className="text-4xl mb-3">⏳</div>
+                        <p>Setting up your dashboard...</p>
                       </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Welcome Banner */}
+                      <div className="p-4 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-white shadow-lg">
+                        <div className="text-2xl font-bold">Welcome to Your Wedding Hub! 🎉</div>
+                        <p className="text-primary-100 mt-1">Everything you need in one place</p>
+                      </div>
+
+                      {/* Location Card */}
+                      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
+                        <div className="text-xs text-gray-500 uppercase font-semibold">📍 Location</div>
+                        <div className="text-2xl font-bold text-primary-600 mt-2">{data.weddingCity || 'San Francisco'}, {data.weddingState || 'CA'}</div>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 bg-primary-100 rounded-lg border border-primary-200 shadow-sm">
+                          <div className="text-xs text-primary-700 uppercase font-semibold">👥 Guests</div>
+                          <div className="text-3xl font-bold text-primary-700 mt-2">{data.guestCount || 120}</div>
+                        </div>
+                        <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                          <div className="text-xs text-gray-500 uppercase font-semibold">💰 Budget</div>
+                          <div className="text-2xl font-bold text-gray-900 mt-2">${(data.estimatedBudget || 15000).toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      {/* Quick Actions */}
                       <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                        <div className="text-xs text-gray-500 uppercase font-semibold">💰 Budget</div>
-                        <div className="text-2xl font-bold text-gray-900 mt-2">${(data.estimatedBudget || 0).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 uppercase font-semibold mb-3">🚀 Quick Actions</div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <span className="text-green-500">✓</span> Guest list created
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <span className="text-green-500">✓</span> Budget tracker set up
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <span className="text-green-500">✓</span> Venue search ready
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Favorites Card */}
-                    <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-                      <div className="text-xs text-gray-500 uppercase font-semibold">⭐ Favorites</div>
-                      <div className="mt-3 text-sm text-gray-700">
-                        <div>📷 SF Elite Photography</div>
-                        <div>🏛️ Grand SF Ballroom</div>
+                      {/* Suggested Vendors */}
+                      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <div className="text-xs text-gray-500 uppercase font-semibold">⭐ Suggested Vendors</div>
+                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                          <div className="flex justify-between items-center">
+                            <span>📷 SF Elite Photography</span>
+                            <span className="text-xs text-primary-600">View</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span>🏛️ Grand SF Ballroom</span>
+                            <span className="text-xs text-primary-600">View</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span>🍰 Sweet Moments Bakery</span>
+                            <span className="text-xs text-primary-600">View</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Complete Message */}
-                    {showDashboard && (
+                      {/* Success Message */}
                       <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200 shadow-md">
                         <div className="text-center">
                           <div className="text-3xl mb-2">✨</div>
-                          <p className="text-sm font-semibold text-green-800">Your dashboard is personalized!</p>
-                          <p className="text-xs text-green-700 mt-1">All your wedding details are ready to go</p>
+                          <p className="text-sm font-semibold text-green-800">Your dashboard is ready!</p>
+                          <p className="text-xs text-green-700 mt-1">Start planning your dream wedding</p>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
