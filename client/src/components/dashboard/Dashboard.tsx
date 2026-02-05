@@ -255,7 +255,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar Navigation */}
             <aside className="lg:w-64 flex-shrink-0">
-              <nav className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-4 space-y-1 border border-gray-200/50">
+              <nav className="bg-white backdrop-blur-md rounded-2xl shadow-lg p-4 space-y-1 border border-gray-200">
                 {navigation.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -264,10 +264,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-all font-medium ${
+                    className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-all font-semibold ${
                       isActive
-                        ? 'bg-gradient-to-r from-primary-50 to-pink-50 text-primary-700 shadow-sm border border-primary-200'
-                        : 'text-gray-700 hover:bg-white/60 hover:shadow-sm'
+                        ? 'bg-gradient-to-r from-primary-500 to-pink-500 text-white shadow-md border border-primary-300'
+                        : 'text-gray-900 hover:bg-gradient-to-r hover:from-primary-50 hover:to-pink-50 hover:text-primary-700 hover:shadow-sm'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -281,7 +281,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
                 <button
                   ref={moreButtonRef}
                   onClick={() => setShowMoreFeatures(!showMoreFeatures)}
-                  className="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-gray-700 hover:bg-white/60 hover:shadow-sm transition-all font-medium"
+                  className="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-gray-900 hover:bg-gradient-to-r hover:from-primary-50 hover:to-pink-50 hover:text-primary-700 hover:shadow-sm transition-all font-semibold"
                 >
                   <MoreHorizontal className="w-5 h-5" />
                   <span>More features</span>
@@ -295,7 +295,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
                       onClick={() => setShowMoreFeatures(false)}
                     />
                     {/* Dropdown menu */}
-                    <div className="absolute left-0 mt-2 w-full bg-white/95 backdrop-blur-md rounded-xl shadow-xl z-50 border border-gray-200 overflow-hidden">
+                    <div className="absolute left-0 mt-2 w-full bg-white backdrop-blur-md rounded-xl shadow-xl z-50 border border-gray-200 overflow-hidden">
                       {moreFeatures.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.path;
@@ -304,10 +304,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
                             key={item.path}
                             to={item.path}
                             onClick={() => setShowMoreFeatures(false)}
-                            className={`flex items-center space-x-3 px-4 py-3.5 transition-all block w-full text-left font-medium ${
+                            className={`flex items-center space-x-3 px-4 py-3.5 transition-all block w-full text-left font-semibold ${
                               isActive
-                                ? 'bg-gradient-to-r from-primary-50 to-pink-50 text-primary-700'
-                                : 'text-gray-700 hover:bg-gray-50'
+                                ? 'bg-gradient-to-r from-primary-500 to-pink-500 text-white'
+                                : 'text-gray-900 hover:bg-gradient-to-r hover:from-primary-50 hover:to-pink-50 hover:text-primary-700'
                             }`}
                           >
                             <Icon className="w-5 h-5" />
