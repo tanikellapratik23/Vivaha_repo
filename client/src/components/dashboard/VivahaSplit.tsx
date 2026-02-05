@@ -431,7 +431,7 @@ export default function VivahaSplit() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-white drop-shadow-lg flex items-center gap-3">
             <div className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-3 rounded-xl">
               <DollarSign className="w-8 h-8" />
             </div>
