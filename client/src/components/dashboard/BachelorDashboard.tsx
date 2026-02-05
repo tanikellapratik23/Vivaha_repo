@@ -385,8 +385,16 @@ export default function BachelorDashboard() {
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
     
-    const googleFlightsUrl = `https://www.google.com/travel/flights?q=flights%20to%20${encodeURIComponent(destination)}%20from%20my%20location&curr=USD&hl=en`;
+    // Get user's nearest airport code based on their location
+    const getUserAirportCode = () => {
+      if (!userLocation) return 'JFK'; // Default to JFK if no location
+      // This is a simplified mapping - in production you'd use a proper geolocation to airport API
+      // For now, we'll just use a major airport as origin
+      return 'JFK'; // You can enhance this with actual geolocation-to-airport mapping
+    };
 
+    const originAirport = getUserAirportCode();
+    
     // Map destinations to airports and realistic flight info
     const destinationAirports: {[key: string]: {code: string, name: string, airlines: string[], duration: string}} = {
       'las vegas': {code: 'LAS', name: 'Harry Reid Intl', airlines: ['Southwest', 'Delta', 'American'], duration: '5h 15m'},
@@ -402,17 +410,22 @@ export default function BachelorDashboard() {
 
     const destLower = destination.toLowerCase();
     const destInfo = destinationAirports[destLower] || {
-      code: 'N/A',
+      code: destination.substring(0, 3).toUpperCase(),
       name: destination,
       airlines: ['Major Airlines'],
       duration: '4-6 hours'
     };
 
+    // Create proper Google Flights URL with origin, destination, and dates
+    const departureDate = formatDate(checkInDate);
+    const returnDate = formatDate(checkOutDate);
+    const googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(destination)}%20from%20${originAirport}%20on%20${departureDate}%20returning%20${returnDate}&curr=USD&hl=en`;
+
     const mockFlights: Flight[] = [
       {
         id: '1',
         airline: `${destInfo.airlines[0]} • ${destInfo.airlines[1]}`,
-        departure: `Your Nearest Airport → ${destInfo.code}`,
+        departure: `${originAirport} → ${destInfo.code}`,
         arrival: destInfo.name,
         price: 289.00,
         duration: destInfo.duration,
@@ -422,7 +435,7 @@ export default function BachelorDashboard() {
       {
         id: '2',
         airline: `${destInfo.airlines[0]} • Premium`,
-        departure: `Your Nearest Airport → ${destInfo.code}`,
+        departure: `${originAirport} → ${destInfo.code}`,
         arrival: destInfo.name,
         price: 385.00,
         duration: destInfo.duration,
@@ -513,10 +526,10 @@ export default function BachelorDashboard() {
         id: '2',
         name: `Luxury ${destination} Villa`,
         type: 'airbnb',
-        pricePerPerson: Math.round((180 + Math.random() * 80) * 100) / 100,
+        pricePerPerson: 225.00,
         bedrooms: Math.ceil(groupSize / 2) + 1,
         bathrooms: Math.ceil(groupSize / 3) + 1,
-        rating: Math.round((4.9 + Math.random() * 0.1) * 100) / 100,
+        rating: 4.92,
         location: `${destination} Downtown`,
         partyTolerance: 'high',
         bookingUrl: airbnbSearchUrl,
@@ -526,10 +539,10 @@ export default function BachelorDashboard() {
         id: '3',
         name: `Modern ${destination} Penthouse`,
         type: 'airbnb',
-        pricePerPerson: Math.round((100 + Math.random() * 50) * 100) / 100,
+        pricePerPerson: 175.00,
         bedrooms: Math.ceil(groupSize / 2),
         bathrooms: Math.ceil(groupSize / 4) + 1,
-        rating: Math.round((4.7 + Math.random() * 0.2) * 100) / 100,
+        rating: 4.78,
         location: `${destination} Entertainment District`,
         partyTolerance: 'medium',
         bookingUrl: airbnbSearchUrl,
