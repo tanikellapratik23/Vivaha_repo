@@ -126,9 +126,14 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
 
       // mark completed locally and navigate
       localStorage.setItem('onboardingCompleted', 'true');
+      sessionStorage.setItem('onboardingCompleted', 'true'); // Dashboard checks sessionStorage
       localStorage.removeItem('isNewUser'); // Clear new user flag now that onboarding is done
       setHasCompletedOnboarding(true);
-      navigate('/dashboard');
+      
+      // Add delay to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 100);
 
       // fallback: if SPA navigation doesn't land on the dashboard (basename mismatch), force full reload
       setTimeout(() => {
@@ -137,7 +142,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
         if (!window.location.pathname.includes('/dashboard')) {
           window.location.href = expected;
         }
-      }, 250);
+      }, 350);
     } finally {
       (handleComplete as any)._running = false;
     }
