@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  X, ChevronRight, ChevronLeft, Lock, FileText, AlertTriangle, 
-  Calendar, DollarSign, Users, Sparkles, CheckCircle
+  X, ChevronRight, ChevronLeft, LayoutGrid, Users, DollarSign, 
+  CheckSquare, Church, Music, Search, Briefcase, Settings, PartyPopper, Split, Sparkles, CheckCircle
 } from 'lucide-react';
 
 interface TutorialStep {
@@ -17,85 +17,155 @@ interface TutorialStep {
 const tutorialSteps: TutorialStep[] = [
   {
     id: 1,
-    title: '🔒 Lock Decisions',
-    description: 'Once something\'s decided, it\'s frozen. No more endless debates.',
-    icon: <Lock className="w-12 h-12 text-pink-600" />,
+    title: '📊 Overview',
+    description: 'Your wedding dashboard hub with quick actions and AI suggestions.',
+    icon: <LayoutGrid className="w-12 h-12 text-blue-600" />,
     features: [
-      'Venue, date, and guest count get locked once finalized',
-      'Changing locked items shows extra costs and downstream breakage',
-      'Requires both partners to unlock decisions',
-      'Prevents endless re-litigation of settled decisions',
-      'See impact on vendors, travel, and invites before changing'
+      'See days until your wedding at a glance',
+      'Quick actions for common tasks (Add Guest, Add Expense)',
+      'AI Budget Optimization suggestions based on your city',
+      'Welcome banner with wedding date and location',
+      'Always-visible AI tips for better planning'
     ],
     position: 'center'
   },
   {
     id: 2,
-    title: '📄 Single Source of Truth',
-    description: 'One page you can send to anyone with all the essential details.',
-    icon: <FileText className="w-12 h-12 text-blue-600" />,
+    title: '👥 Guest List',
+    description: 'Manage your wedding guests with RSVP tracking and meal preferences.',
+    icon: <Users className="w-12 h-12 text-pink-600" />,
     features: [
-      'Share one link with date, venue, dress code, hotel block',
-      'Auto-updates everywhere when you make changes',
-      'Contact person info always accessible',
-      'Stops "what time is it again?" messages',
-      'Way more valuable than guest chat features'
+      'Add guests with contact info and meal preferences',
+      'Track RSVP status (Confirmed, Pending, Declined)',
+      'Plus-one management for each guest',
+      'Dietary restrictions and special notes',
+      'Export guest list for vendors'
     ],
     position: 'center'
   },
   {
     id: 3,
-    title: '⚠️ Vendor Reality Log',
-    description: 'Track vendor reliability so you know who to trust on wedding week.',
-    icon: <AlertTriangle className="w-12 h-12 text-orange-600" />,
+    title: '💰 Budget Tracker',
+    description: 'Track wedding expenses by category with real-time totals.',
+    icon: <DollarSign className="w-12 h-12 text-green-600" />,
     features: [
-      'Log: Did they respond on time? Did price change?',
-      'Add notes after each interaction',
-      'Wedding week highlights vendors with risk flags',
-      'Catches issues early without drama',
-      'Know who you can count on before the big day'
+      'Create custom budget categories (Venue, Catering, etc.)',
+      'Set estimated amounts and track actual spending',
+      'Mark expenses as paid with payment tracking',
+      'See total spent vs estimated budget',
+      'Auto-save keeps your data safe'
     ],
     position: 'center'
   },
   {
     id: 4,
-    title: '📱 Day-Of Control Panel',
-    description: 'Minimal, offline-accessible control panel for wedding day chaos.',
-    icon: <Calendar className="w-12 h-12 text-purple-600" />,
+    title: '🔀 Vivaha Split',
+    description: 'Split wedding costs fairly among family and friends.',
+    icon: <Split className="w-12 h-12 text-purple-600" />,
     features: [
-      'Final timeline at your fingertips',
-      'All vendor phone numbers in one place',
-      'One assigned decision-maker per issue type',
-      'Emergency notes and backup plans',
-      'Works offline - no wifi needed on the big day'
+      'Create expenses and assign payers',
+      'Track who owes what with running balances',
+      'Settle up transactions when paid',
+      'Like Splitwise but for your wedding',
+      'Export settlement summary'
     ],
     position: 'center'
   },
   {
     id: 5,
-    title: '💰 Real Spend Mode',
-    description: 'See where money actually is: planned, committed, paid, and outstanding.',
-    icon: <DollarSign className="w-12 h-12 text-green-600" />,
+    title: '✅ To-Dos',
+    description: 'Never miss a wedding task with organized to-do lists.',
+    icon: <CheckSquare className="w-12 h-12 text-orange-600" />,
     features: [
-      'Shows: Planned → Committed → Paid → Outstanding',
-      'Splitwise integration ties to actual payments',
-      'No more panic about where money went',
-      'Track deposits vs final payments clearly',
-      'Real-time budget vs actual spend comparison'
+      'Create tasks with due dates and priorities',
+      'Mark tasks complete as you go',
+      'High/Medium/Low priority levels',
+      'Filter by status or search tasks',
+      'Stay organized throughout planning'
     ],
     position: 'center'
   },
   {
     id: 6,
-    title: '👥 One-Person Mode',
-    description: 'Bachelor/bachelorette trips work better with one planner in control.',
-    icon: <Users className="w-12 h-12 text-indigo-600" />,
+    title: '⛪ Ceremony Planning',
+    description: 'Plan ceremony details and cultural traditions.',
+    icon: <Church className="w-12 h-12 text-indigo-600" />,
     features: [
-      'One planner controls all trip details',
-      'Others only see: what they owe, dates, location',
-      'No group chaos with everyone editing everything',
-      'Clean decision-making without committee paralysis',
-      'Bachelor trips succeed when one person leads'
+      'Add multiple ceremonies (Religious, Reception, etc.)',
+      'Set venue, time, and dress code for each',
+      'Track ceremony-specific details',
+      'Cultural tradition planning',
+      'Generate ceremony schedules'
+    ],
+    position: 'center'
+  },
+  {
+    id: 7,
+    title: '🎵 Sound & Music',
+    description: 'Curate your wedding playlists and music preferences.',
+    icon: <Music className="w-12 h-12 text-pink-600" />,
+    features: [
+      'Create playlists for different parts of wedding',
+      'Add songs with artist names',
+      'First dance, ceremony, reception music',
+      'Share playlist with DJ or band',
+      'Genre and mood suggestions'
+    ],
+    position: 'center'
+  },
+  {
+    id: 8,
+    title: '🔍 Vendor Search',
+    description: 'Find wedding vendors near you with ratings and pricing.',
+    icon: <Search className="w-12 h-12 text-cyan-600" />,
+    features: [
+      'Search photographers, DJs, venues, caterers, florists',
+      'Filter by location, price, and rating',
+      'Save favorites with heart button',
+      'Real vendor data from your area',
+      'Contact info and estimated costs'
+    ],
+    position: 'center'
+  },
+  {
+    id: 9,
+    title: '📋 My Vendors',
+    description: 'Manage your selected vendors and track contracts.',
+    icon: <Briefcase className="w-12 h-12 text-blue-600" />,
+    features: [
+      'View all your favorited vendors',
+      'Track contract status and payments',
+      'Vendor contact information',
+      'Notes and communication history',
+      'Payment schedules and deposits'
+    ],
+    position: 'center'
+  },
+  {
+    id: 10,
+    title: '🎉 Bachelor/Bachelorette',
+    description: 'Plan bachelor or bachelorette trips with flights and lodging.',
+    icon: <PartyPopper className="w-12 h-12 text-purple-600" />,
+    features: [
+      'Search destinations and compare costs',
+      'Find flights from your location',
+      'Browse Airbnb lodging options',
+      'Generate trip budget estimates',
+      'Drive directions for road trips'
+    ],
+    position: 'center'
+  },
+  {
+    id: 11,
+    title: '⚙️ Settings',
+    description: 'Manage account settings and wedding preferences.',
+    icon: <Settings className="w-12 h-12 text-gray-600" />,
+    features: [
+      'Update wedding date and location',
+      'Change email and password',
+      'Manage notification preferences',
+      'Delete account if needed',
+      'Privacy and data settings'
     ],
     position: 'center'
   }
@@ -251,12 +321,17 @@ export default function Tutorial({ onClose }: TutorialProps) {
                     <span className="text-sm font-bold text-purple-900">Why This Matters</span>
                   </div>
                   <p className="text-sm text-purple-800 leading-relaxed">
-                    {currentStep === 0 && 'No other app enforces finality - prevent endless re-litigation of decisions.'}
-                    {currentStep === 1 && 'Stops 200 "what time is it again?" texts - one link, always up to date.'}
-                    {currentStep === 2 && 'Vendors flake. This catches it early without being dramatic.'}
-                    {currentStep === 3 && 'When things go wrong, nobody opens a planning app — unless it\'s this simple.'}
-                    {currentStep === 4 && 'Couples don\'t panic when they see where the money actually is.'}
-                    {currentStep === 5 && 'Bachelor trips fail when everyone edits everything - one leader wins.'}
+                    {currentStep === 0 && 'Your wedding at a glance with AI-powered suggestions for your city.'}
+                    {currentStep === 1 && 'Track RSVPs, meal preferences, and plus-ones all in one place.'}
+                    {currentStep === 2 && 'Never lose track of spending - see exactly where every dollar goes.'}
+                    {currentStep === 3 && 'Split costs fairly with family and friends, like Splitwise for weddings.'}
+                    {currentStep === 4 && 'Stay organized with tasks, priorities, and due dates.'}
+                    {currentStep === 5 && 'Plan multiple ceremonies with different venues and traditions.'}
+                    {currentStep === 6 && 'Create the perfect soundtrack for every moment of your day.'}
+                    {currentStep === 7 && 'Find trusted vendors in your area with real pricing and reviews.'}
+                    {currentStep === 8 && 'Keep all your vendor details and contracts organized.'}
+                    {currentStep === 9 && 'Plan the perfect bachelor or bachelorette trip with cost estimates.'}
+                    {currentStep === 10 && 'Manage your account and wedding preferences in one place.'}
                   </p>
                 </div>
               </div>

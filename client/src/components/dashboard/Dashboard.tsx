@@ -1,10 +1,12 @@
 import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split } from 'lucide-react';
+import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
 import axios from 'axios';
 import Tutorial from '../Tutorial';
+import SingleSourceOfTruth from './SingleSourceOfTruth';
+import HotelBlock from './HotelBlock';
 import Overview from './Overview';
 import GuestList from './GuestList';
 import BudgetTracker from './BudgetTracker';
@@ -159,6 +161,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     { name: 'To-Dos', path: '/dashboard/todos', icon: CheckSquare },
     { name: 'Ceremony', path: '/dashboard/ceremony', icon: Church },
     { name: 'Sound & Music', path: '/dashboard/music', icon: Music },
+    { name: 'Hotel Block', path: '/dashboard/hotel-block', icon: Hotel },
     { name: 'Vendor Search', path: '/dashboard/vendor-search', icon: Search },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
@@ -187,6 +190,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate('/dashboard/single-source')}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <FileText className="w-4 h-4" />
+                Share Wedding Info
+              </button>
               <button
                 onClick={() => setShowTutorial(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
@@ -314,6 +324,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Overview />} />
+                <Route path="/single-source" element={<SingleSourceOfTruth />} />
+                <Route path="/hotel-block" element={<HotelBlock />} />
                 <Route path="/guests" element={<GuestList />} />
                 <Route path="/budget" element={<BudgetTracker />} />
                 <Route path="/split" element={<VivahaSplit />} />
