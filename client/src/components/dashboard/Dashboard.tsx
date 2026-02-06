@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical, MessageSquare, Share2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
@@ -24,6 +24,7 @@ import OutfitPlanner from './OutfitPlanner';
 import PostWeddingStory from './PostWeddingStory';
 import VivahaSplit from './VivahaSplit';
 import AdminDashboard from './AdminDashboard';
+import VivahaPost from './VivahaPost';
 import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -62,6 +63,12 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
   const [customNavOrder, setCustomNavOrder] = useState<string[]>([]);
   const [hiddenNavItems, setHiddenNavItems] = useState<string[]>([]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [shareAccess, setShareAccess] = useState<'view' | 'edit'>('view');
+  const [shareEmail, setShareEmail] = useState('');
+  const [shareLinkType, setShareLinkType] = useState<'anyone' | 'email'>('anyone');
+  const [linkCopied, setLinkCopied] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -206,6 +213,36 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     setIsEditingNav(false);
   };
 
+  const generateShareLink = async () => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      const response = await axios.post(
+        `${API_URL}/api/sharing/generate`,
+        { accessLevel: shareAccess },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.shareToken) {
+        const currentUrl = window.location.origin;
+        const link = shareLinkType === 'anyone' 
+          ? `${currentUrl}/shared/${response.data.shareToken}`
+          : `${currentUrl}/shared/${response.data.shareToken}?email=${shareEmail}`;
+        setShareLink(link);
+      }
+    } catch (error) {
+      console.error('Failed to generate share link:', error);
+      alert('Failed to generate share link');
+    }
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
   const toggleNavItemVisibility = (itemName: string) => {
     if (hiddenNavItems.includes(itemName)) {
       setHiddenNavItems(hiddenNavItems.filter((name) => name !== itemName));
@@ -248,6 +285,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     { name: 'Hotel Block', path: '/dashboard/hotel-block', icon: Hotel },
     { name: 'Vendor Search', path: '/dashboard/vendor-search', icon: Search },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
+    { name: 'VivahaPost', path: '/dashboard/community', icon: MessageSquare },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
     { name: 'Settings', path: '/dashboard/settings', icon: SettingsIcon },
     ...(wantsBachelorParty ? [{ name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper }] : []),
@@ -274,6 +312,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
               <button
                 onClick={() => navigate('/dashboard/single-source')}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
@@ -495,6 +540,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
                 <Route path="/vendor-search" element={<VendorSearch />} />
                 <Route path="/vendors" element={<VendorManagement />} />
                 <Route path="/seating" element={<SeatingPlanner />} />
+                <Route path="/community" element={<VivahaPost />} />
                 <Route path="/outfits" element={<OutfitPlanner />} />
                 <Route path="/story" element={<PostWeddingStory />} />
                 <Route path="/settings" element={<Settings />} />
@@ -505,6 +551,130 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
         </div>
         )}
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Share Dashboard</h2>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Share Type */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Share With</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShareLinkType('anyone')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      shareLinkType === 'anyone'
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-900">Anyone with link</div>
+                    <div className="text-xs text-gray-600 mt-1">No login required</div>
+                  </button>
+                  <button
+                    onClick={() => setShareLinkType('email')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      shareLinkType === 'email'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-900">Specific User</div>
+                    <div className="text-xs text-gray-600 mt-1">Must be logged in</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Email Input (if specific user) */}
+              {shareLinkType === 'email' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">User Email</label>
+                  <input
+                    type="email"
+                    value={shareEmail}
+                    onChange={(e) => setShareEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+
+              {/* Access Level */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Access Level</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShareAccess('view')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      shareAccess === 'view'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <Eye className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                    <div className="font-semibold text-gray-900">View Only</div>
+                  </button>
+                  <button
+                    onClick={() => setShareAccess('edit')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      shareAccess === 'edit'
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <Edit3 className="w-6 h-6 mx-auto mb-2 text-purple-500" />
+                    <div className="font-semibold text-gray-900">Can Edit</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Generate Link Button */}
+              <button
+                onClick={generateShareLink}
+                disabled={shareLinkType === 'email' && !shareEmail}
+                className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate Share Link
+              </button>
+
+              {/* Generated Link */}
+              {shareLink && (
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Share Link</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={shareLink}
+                      readOnly
+                      className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-mono"
+                    />
+                    <button
+                      onClick={copyShareLink}
+                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                    >
+                      {linkCopied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    {shareAccess === 'view' ? 'Recipients can view but not edit' : 'Recipients can view and edit'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tutorial Modal */}
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
