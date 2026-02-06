@@ -740,8 +740,8 @@ export default function VendorSearch() {
 
       {/* Results Count */}
       <div className="flex items-center justify-between">
-        <p className="text-gray-600">
-          Found <span className="font-semibold text-gray-900">{filteredVendors.length}</span> vendor{filteredVendors.length !== 1 ? 's' : ''} {filteredVendors.length > vendorsPerPage && `(showing ${displayedVendors.length} per page)`}
+        <p className="text-white">
+          Found <span className="font-semibold text-white">{filteredVendors.length}</span> vendor{filteredVendors.length !== 1 ? 's' : ''} {filteredVendors.length > vendorsPerPage && `(showing ${displayedVendors.length} per page)`}
         </p>
         {filteredVendors.length > 0 && (
           <button
