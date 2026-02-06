@@ -101,9 +101,12 @@ export default function BachelorDashboard() {
   const [partyType, setPartyType] = useState<PartyType>('bachelor');
   const [honoreeName, setHonoreeName] = useState('');
   const [targetMonth, setTargetMonth] = useState('');
+  const [targetDayOfMonth, setTargetDayOfMonth] = useState('15');
   const [groupSize, setGroupSize] = useState(8);
   const [budgetTarget, setBudgetTarget] = useState(2000);
   const [budgetType, setBudgetType] = useState<'per-person' | 'total'>('per-person');
+  const [flyingFrom, setFlyingFrom] = useState('');
+  const [flyingFromAirport, setFlyingFromAirport] = useState('');
   
   // Date Optimizer
   const [candidateDates, setCandidateDates] = useState<DateRange[]>([]);
@@ -342,6 +345,12 @@ export default function BachelorDashboard() {
     setTransportType(type);
     setShowTransportModal(false);
 
+    // For flights, require flying from location
+    if (type === 'flight' && !flyingFrom.trim()) {
+      alert('Please enter where you\'re flying from first');
+      return;
+    }
+
     // Create destination from search
     const newDestination: Destination = {
       id: Date.now().toString(),
@@ -375,25 +384,25 @@ export default function BachelorDashboard() {
   };
 
   const generateFlightsWithAPI = (destination: string) => {
-    if (!userLocation) return;
+    // Use flying from location or fallback
+    const originAirport = flyingFromAirport || flyingFrom.substring(0, 3).toUpperCase() || 'JFK';
 
-    // Generate Google Flights URL with real parameters
-    const checkInDate = targetMonth ? new Date(targetMonth + '-01') : new Date();
-    checkInDate.setDate(checkInDate.getDate() + 14); // 2 weeks from target month
-    const checkOutDate = new Date(checkInDate);
-    checkOutDate.setDate(checkOutDate.getDate() + tripNights);
+    // Generate dates based on target month and day
+    let departureDate: Date;
+    if (targetMonth && targetDayOfMonth) {
+      // Parse YYYY-MM format and add day
+      const [year, month] = targetMonth.split('-');
+      departureDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(targetDayOfMonth));
+    } else {
+      // Default to 2 weeks from now
+      departureDate = new Date();
+      departureDate.setDate(departureDate.getDate() + 14);
+    }
+    
+    const returnDate = new Date(departureDate);
+    returnDate.setDate(returnDate.getDate() + tripNights);
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
-    
-    // Get user's nearest airport code based on their location
-    const getUserAirportCode = () => {
-      if (!userLocation) return 'JFK'; // Default to JFK if no location
-      // This is a simplified mapping - in production you'd use a proper geolocation to airport API
-      // For now, we'll just use a major airport as origin
-      return 'JFK'; // You can enhance this with actual geolocation-to-airport mapping
-    };
-
-    const originAirport = getUserAirportCode();
     
     // Map destinations to airports and realistic flight info
     const destinationAirports: {[key: string]: {code: string, name: string, airlines: string[], duration: string}} = {
@@ -417,9 +426,9 @@ export default function BachelorDashboard() {
     };
 
     // Create proper Google Flights URL with origin, destination, and dates
-    const departureDate = formatDate(checkInDate);
-    const returnDate = formatDate(checkOutDate);
-    const googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(destination)}%20from%20${originAirport}%20on%20${departureDate}%20returning%20${returnDate}&curr=USD&hl=en`;
+    const departureDateStr = formatDate(departureDate);
+    const returnDateStr = formatDate(returnDate);
+    const googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(destination)}%20from%20${originAirport}%20on%20${departureDateStr}%20returning%20${returnDateStr}&curr=USD&hl=en`;
 
     const mockFlights: Flight[] = [
       {
@@ -451,6 +460,8 @@ export default function BachelorDashboard() {
 
     // Generate Google Maps directions URL
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+    
+    setDriveDirectionsUrl(googleMapsUrl);
 
     // Estimate drive time (this is rough - actual would come from Distance Matrix API)
     // Using rough estimates based on common bachelor party destinations
@@ -467,25 +478,23 @@ export default function BachelorDashboard() {
     };
     
     const destLower = destination.toLowerCase();
-    const estimatedDuration = driveTimeEstimates[destLower] || 'Check Maps';
-
-    const mockDriveOption: Flight = {
-      id: '1',
-      airline: 'Drive',
-      departure: 'Your Location',
-      arrival: destination,
-      price: 0, // No price for drive
-      duration: estimatedDuration,
-      type: 'cheapest',
-      bookingUrl: googleMapsUrl
-    };
-    setFlights([mockDriveOption]);
+    const estimatedDuration = driveTimeEstimates[destLower] || 'Check Google Maps';
+    
+    setDriveTime(estimatedDuration);
   };
 
   const generateAirbnbWithAPI = (destination: string) => {
-    // Calculate dates
-    const checkInDate = targetMonth ? new Date(targetMonth + '-01') : new Date();
-    checkInDate.setDate(checkInDate.getDate() + 14);
+    // Calculate dates based on target month and day
+    let checkInDate: Date;
+    if (targetMonth && targetDayOfMonth) {
+      const [year, month] = targetMonth.split('-');
+      checkInDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(targetDayOfMonth));
+    } else {
+      // Default to 2 weeks from now
+      checkInDate = new Date();
+      checkInDate.setDate(checkInDate.getDate() + 14);
+    }
+    
     const checkOutDate = new Date(checkInDate);
     checkOutDate.setDate(checkOutDate.getDate() + tripNights);
 
@@ -767,15 +776,55 @@ export default function BachelorDashboard() {
 
             {/* Target Month */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Target Month(s)</label>
-              <input
-                type="month"
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Target Month</label>
+              <select
                 value={targetMonth}
                 onChange={(e) => setTargetMonth(e.target.value)}
                 disabled={!isPlanning}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 text-gray-900 bg-white"
-                style={{ colorScheme: 'light' }}
-              />
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              >
+                <option value="">Select month...</option>
+                <option value="2024-01">January 2024</option>
+                <option value="2024-02">February 2024</option>
+                <option value="2024-03">March 2024</option>
+                <option value="2024-04">April 2024</option>
+                <option value="2024-05">May 2024</option>
+                <option value="2024-06">June 2024</option>
+                <option value="2024-07">July 2024</option>
+                <option value="2024-08">August 2024</option>
+                <option value="2024-09">September 2024</option>
+                <option value="2024-10">October 2024</option>
+                <option value="2024-11">November 2024</option>
+                <option value="2024-12">December 2024</option>
+                <option value="2025-01">January 2025</option>
+                <option value="2025-02">February 2025</option>
+                <option value="2025-03">March 2025</option>
+                <option value="2025-04">April 2025</option>
+                <option value="2025-05">May 2025</option>
+                <option value="2025-06">June 2025</option>
+                <option value="2025-07">July 2025</option>
+                <option value="2025-08">August 2025</option>
+                <option value="2025-09">September 2025</option>
+                <option value="2025-10">October 2025</option>
+                <option value="2025-11">November 2025</option>
+                <option value="2025-12">December 2025</option>
+              </select>
+            </div>
+
+            {/* Day of Month */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Day of Month</label>
+              <select
+                value={targetDayOfMonth}
+                onChange={(e) => setTargetDayOfMonth(e.target.value)}
+                disabled={!isPlanning}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              >
+                <option value="">Select day...</option>
+                {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
             </div>
 
             {/* Group Size */}
@@ -816,17 +865,33 @@ export default function BachelorDashboard() {
               </div>
             </div>
 
-            {/* Trip Length */}
+            {/* Trip Length (Nights) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">Trip Length (Nights)</label>
-              <input
-                type="number"
+              <select
                 value={tripNights}
-                onChange={(e) => setTripNights(parseInt(e.target.value) || 0)}
+                onChange={(e) => setTripNights(parseInt(e.target.value) || 2)}
                 disabled={!isPlanning}
-                min="1"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              >
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(nights => (
+                  <option key={nights} value={nights}>{nights} {nights === 1 ? 'night' : 'nights'}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Flying From Location (for flights) */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Flying From (City/Airport)</label>
+              <input
+                type="text"
+                value={flyingFrom}
+                onChange={(e) => setFlyingFrom(e.target.value)}
+                disabled={!isPlanning}
+                placeholder="e.g., Charlotte, CLT"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
               />
+              <p className="text-xs text-gray-500 mt-1">Required for flight searches</p>
             </div>
           </div>
 
@@ -1000,79 +1065,114 @@ export default function BachelorDashboard() {
             onToggle={() => toggleSection('flights')}
             locked={!isPlanning}
           >
-            {flights.length === 0 && isPlanning && (
-              <button
-                onClick={() => generateMockFlights(selectedDestination.city)}
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition flex items-center justify-center gap-2"
-              >
-                <Plane className="w-5 h-5" />
-                Find Best Flights to {selectedDestination.city}
-              </button>
+            {/* Only show flights if transport type is flight */}
+            {transportType === 'flight' && (
+              <>
+                {flights.length === 0 && isPlanning && (
+                  <button
+                    onClick={() => generateMockFlights(selectedDestination.city)}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition flex items-center justify-center gap-2"
+                  >
+                    <Plane className="w-5 h-5" />
+                    Find Best Flights to {selectedDestination.city}
+                  </button>
+                )}
+
+                {flights.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {flights.map((flight) => (
+                      <motion.div
+                        key={flight.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`border-2 rounded-xl p-6 cursor-pointer transition ${
+                          selectedFlight?.id === flight.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 bg-white hover:border-blue-300'
+                        }`}
+                        onClick={() => isPlanning && setSelectedFlight(flight)}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <div className="font-bold text-gray-900 text-lg">{flight.airline}</div>
+                            <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-2 ${
+                              flight.type === 'cheapest' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {flight.type === 'cheapest' ? '💰 Cheapest' : '⏰ Best Time'}
+                            </div>
+                          </div>
+                          {selectedFlight?.id === flight.id && (
+                            <CheckCircle className="w-6 h-6 text-blue-600" />
+                          )}
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Departure:</span>
+                            <span className="font-semibold">{flight.departure}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Arrival:</span>
+                            <span className="font-semibold">{flight.arrival}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Duration:</span>
+                            <span className="font-semibold">{flight.duration}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                          <div className="text-2xl font-bold text-blue-600">${flight.price.toFixed(2)}</div>
+                          <a
+                            href={flight.bookingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Search Flights <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
-            {flights.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {flights.map((flight) => (
-                  <motion.div
-                    key={flight.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`border-2 rounded-xl p-6 cursor-pointer transition ${
-                      selectedFlight?.id === flight.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 bg-white hover:border-blue-300'
-                    }`}
-                    onClick={() => isPlanning && setSelectedFlight(flight)}
-                  >
-                    <div className="flex items-start justify-between mb-4">
+            {/* Only show drive directions if transport type is drive */}
+            {transportType === 'drive' && driveTime && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <Car className="w-8 h-8 text-green-600" />
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-xl">Drive to {selectedDestination.city}</h3>
+                    <p className="text-gray-600 text-sm">Road trip directions from your location</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-green-200">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-6 h-6 text-green-600" />
                       <div>
-                        <div className="font-bold text-gray-900 text-lg">{flight.airline}</div>
-                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-2 ${
-                          flight.type === 'cheapest' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {flight.type === 'cheapest' ? '💰 Cheapest' : '⏰ Best Time'}
-                        </div>
+                        <div className="text-sm text-gray-600">Estimated Drive Time</div>
+                        <div className="text-2xl font-bold text-gray-900">{driveTime}</div>
                       </div>
-                      {selectedFlight?.id === flight.id && (
-                        <CheckCircle className="w-6 h-6 text-blue-600" />
-                      )}
                     </div>
+                  </div>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Departure:</span>
-                        <span className="font-semibold">{flight.departure}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Arrival:</span>
-                        <span className="font-semibold">{flight.arrival}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-semibold">{flight.duration}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      {transportType === 'drive' ? (
-                        <div className="text-lg font-semibold text-gray-900">
-                          Estimated: {flight.duration}
-                        </div>
-                      ) : (
-                        <div className="text-2xl font-bold text-blue-600">${flight.price.toFixed(2)}</div>
-                      )}
-                      <a
-                        href={flight.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {transportType === 'drive' ? 'View Route' : 'Search Flights'} <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
+                  <a
+                    href={driveDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition"
+                  >
+                    <MapPin className="w-5 h-5" />
+                    View Directions on Google Maps
+                    <ExternalLink className="w-5 h-5" />
+                  </a>
+                </div>
               </div>
             )}
           </CollapsibleSection>
