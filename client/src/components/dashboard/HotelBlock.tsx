@@ -64,6 +64,7 @@ export default function HotelBlock() {
           amenities: ['Free WiFi', 'Breakfast Included', 'Pool', 'Fitness Center'],
           weddingServices: ['Group Rates', 'Event Space', 'Catering Available'],
           phone: '(555) 123-4567',
+          bookingUrl: `https://www.marriott.com/search/default.mi?search=${encodeURIComponent(city + ' ' + state)}&roomCount=1&numAdultsPerRoom=2`,
           image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop',
         },
         {
@@ -77,6 +78,7 @@ export default function HotelBlock() {
           amenities: ['Free Parking', 'Restaurant', 'Bar', 'Business Center'],
           weddingServices: ['Wedding Coordinator', 'Discounted Blocks', 'Shuttle Service'],
           phone: '(555) 234-5678',
+          bookingUrl: `https://www.hilton.com/en/search/hotels/?query=${encodeURIComponent(city + ', ' + state)}&arrivalDate=${new Date().toISOString().split('T')[0]}`,
           image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&h=400&fit=crop',
         },
         {
@@ -90,6 +92,7 @@ export default function HotelBlock() {
           amenities: ['Spa', 'Fine Dining', 'Valet Parking', 'Concierge'],
           weddingServices: ['Complimentary Suite Upgrade', 'Welcome Gifts', 'Group Discounts'],
           phone: '(555) 345-6789',
+          bookingUrl: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(city + ' ' + state)}&group_adults=2&group_children=0&label=wedding-group`,
           image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=400&fit=crop',
         },
         {
@@ -103,6 +106,7 @@ export default function HotelBlock() {
           amenities: ['Free WiFi', 'Fitness Center', 'Meeting Rooms'],
           weddingServices: ['Block Rates', 'Extended Stay Discounts'],
           phone: '(555) 456-7890',
+          bookingUrl: `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(city + ', ' + state)}&adults=2&startDate=${new Date().toISOString().split('T')[0]}`,
           image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&fit=crop',
         },
       ];
@@ -192,9 +196,14 @@ export default function HotelBlock() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-600 text-sm mb-4">
+                <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span>{hotel.address}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-gray-700 text-sm font-semibold mb-4">
+                  <Phone className="w-4 h-4 flex-shrink-0" />
+                  <span>{hotel.phone}</span>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">
@@ -246,9 +255,14 @@ export default function HotelBlock() {
                     <Phone className="w-4 h-4" />
                     Call Hotel
                   </a>
-                  <button className="flex-1 px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-lg transition-all">
+                  <a
+                    href={hotel.bookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-lg transition-all"
+                  >
                     Book Block
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

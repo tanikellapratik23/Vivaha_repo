@@ -33,10 +33,26 @@ export default function SingleSourceOfTruth() {
     }
   };
 
-  const generateShareLink = () => {
-    const currentUrl = window.location.origin;
-    const link = `${currentUrl}/wedding-info`;
-    setShareLink(link);
+  const generateShareLink = async () => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      const response = await axios.post(
+        `${API_URL}/api/sharing/generate`,
+        { accessLevel: 'view' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.shareLink) {
+        setShareLink(response.data.shareLink);
+      }
+    } catch (error) {
+      console.error('Failed to generate share link:', error);
+      // Fallback to simple link if API fails
+      const currentUrl = window.location.origin;
+      setShareLink(`${currentUrl}/dashboard/single-source`);
+    }
   };
 
   const copyToClipboard = () => {
