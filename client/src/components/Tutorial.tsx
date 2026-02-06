@@ -210,41 +210,41 @@ export default function Tutorial({ onClose }: TutorialProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-2xl mx-4"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden"
           >
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Header with gradient */}
-              <div className="bg-gradient-to-r from-primary-500 via-pink-500 to-purple-600 p-8 text-white">
-                <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-r from-primary-500 via-pink-500 to-purple-600 p-6 text-white flex-shrink-0">
+                <div className="flex items-center justify-center mb-3">
                   {currentStepData.icon}
                 </div>
-                <h2 className="text-3xl font-bold text-center mb-2">
+                <h2 className="text-2xl font-bold text-center mb-2">
                   {currentStepData.title}
                 </h2>
-                <p className="text-white/90 text-center text-lg">
+                <p className="text-white/90 text-center text-base">
                   {currentStepData.description}
                 </p>
               </div>
 
-              {/* Content */}
-              <div className="p-8">
-                <div className="space-y-3">
+              {/* Content - Scrollable */}
+              <div className="p-6 overflow-y-auto flex-1">
+                <div className="space-y-2">
                   {currentStepData.features.map((feature, idx) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="flex items-start gap-3 bg-gradient-to-r from-gray-50 to-white p-4 rounded-lg border border-gray-200 hover:border-primary-300 transition-all"
+                      className="flex items-start gap-3 bg-gradient-to-r from-gray-50 to-white p-3 rounded-lg border border-gray-200 hover:border-primary-300 transition-all"
                     >
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <p className="text-gray-700 text-sm leading-relaxed">{feature}</p>
                     </motion.div>
                   ))}
                 </div>
 
                 {/* Why It Matters Badge */}
-                <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                <div className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-5 h-5 text-purple-600" />
                     <span className="text-sm font-bold text-purple-900">Why This Matters</span>
@@ -261,7 +261,7 @@ export default function Tutorial({ onClose }: TutorialProps) {
               </div>
 
               {/* Navigation Footer */}
-              <div className="bg-gray-50 px-8 py-6 flex items-center justify-between border-t border-gray-200">
+              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200 flex-shrink-0">
                 <button
                   onClick={handlePrev}
                   disabled={isFirstStep}
@@ -275,8 +275,8 @@ export default function Tutorial({ onClose }: TutorialProps) {
                   Previous
                 </button>
 
-                <div className="text-sm text-gray-500 font-medium">
-                  Use ← → keys to navigate
+                <div className="text-xs text-gray-500 font-medium">
+                  Use ← → keys
                 </div>
 
                 {!isLastStep ? (

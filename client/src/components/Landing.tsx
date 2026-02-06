@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { Heart, MapPin, Star, Loader, Phone, Mail, BookOpen } from 'lucide-react';
+import { Heart, MapPin, Star, Loader, Phone, Mail } from 'lucide-react';
 import axios from 'axios';
-import Tutorial from './Tutorial';
 import Welcome from './onboarding/steps/Welcome';
 import RoleSelection from './onboarding/steps/RoleSelection';
 import WeddingDate from './onboarding/steps/WeddingDate';
@@ -381,7 +380,6 @@ export default function Landing() {
   const [showHero, setShowHero] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
   const [demoPlaying, setDemoPlaying] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
   const demoRef = useRef<HTMLDivElement | null>(null);
   useScrollIntoDemo(demoRef, demoPlaying);
 
@@ -451,13 +449,6 @@ export default function Landing() {
             </div>
           </div>
           <nav className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowTutorial(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md font-medium hover:from-purple-600 hover:to-pink-600 transition shadow-lg hover:shadow-xl"
-            >
-              <BookOpen className="w-4 h-4" />
-              Tutorial
-            </button>
             <Link to="/what-is-vivaha" className="px-4 py-2 bg-transparent text-black rounded-md font-medium border-2 border-black hover:bg-black hover:text-white transition">About</Link>
             <Link to="/login" className="px-4 py-2 bg-white text-primary-700 rounded-md font-medium">Log in</Link>
             <Link to="/register" className="px-4 py-2 bg-primary-600 text-white rounded-md font-medium">Sign up</Link>
@@ -563,9 +554,6 @@ export default function Landing() {
           <div className="text-sm">Use the top-right buttons to Sign up or Log in.</div>
         </div>
       </div>
-
-      {/* Tutorial Modal */}
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }

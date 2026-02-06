@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
 import axios from 'axios';
+import Tutorial from '../Tutorial';
 import Overview from './Overview';
 import GuestList from './GuestList';
 import BudgetTracker from './BudgetTracker';
@@ -52,6 +53,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [showMoreFeatures, setShowMoreFeatures] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -185,6 +187,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <BookOpen className="w-4 h-4" />
+                Tutorial
+              </button>
               <button
                 onClick={() => downloadBackupAsDoc()}
                 className="px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-primary-50 to-pink-50 text-primary-700 rounded-lg hover:from-primary-100 hover:to-pink-100 transition-all shadow-sm"
@@ -346,6 +355,9 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
         </div>
         )}
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }
