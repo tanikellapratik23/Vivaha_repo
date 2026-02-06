@@ -85,8 +85,8 @@ export default function BudgetTracker() {
   };
 
   const addCategory = async () => {
-    if (!newCategory.name || newCategory.estimatedAmount <= 0) {
-      alert('Please enter category name and estimated amount');
+    if (!newCategory.name || !newCategory.name.trim() || newCategory.estimatedAmount <= 0) {
+      alert('Please enter a valid category name and estimated amount');
       return;
     }
     

@@ -349,6 +349,15 @@ export default function BachelorDashboard() {
     setTransportType(type);
     setShowTransportModal(false);
 
+    // Clear opposite transport data when switching
+    if (type === 'drive') {
+      setFlights([]);
+      setSelectedFlight(null);
+    } else {
+      setDriveTime('');
+      setDriveDirectionsUrl('');
+    }
+
     // For flights, require flying from location
     if (type === 'flight' && !flyingFrom.trim()) {
       alert('Please enter where you\'re flying from first');
@@ -1190,6 +1199,25 @@ export default function BachelorDashboard() {
                     View Directions on Google Maps
                     <ExternalLink className="w-5 h-5" />
                   </a>
+
+                  {/* Changed your mind? Switch to flight */}
+                  <div className="mt-4 text-center">
+                    <p className="text-gray-600 text-sm mb-2">Changed your mind and want to fly?</p>
+                    <button
+                      onClick={() => {
+                        setTransportType('flight');
+                        setDriveTime('');
+                        setDriveDirectionsUrl('');
+                        if (selectedDestination && flyingFrom.trim()) {
+                          generateFlightsWithAPI(selectedDestination.city);
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition"
+                    >
+                      <Plane className="w-4 h-4" />
+                      Switch to Flight
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

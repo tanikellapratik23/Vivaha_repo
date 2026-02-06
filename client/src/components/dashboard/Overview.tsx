@@ -140,19 +140,19 @@ export default function Overview() {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-primary-500 via-pink-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white border border-primary-400/30">
         <div className="flex items-center space-x-4">
-          <Heart className="w-12 h-12 drop-shadow-lg" />
+          <Heart className="w-10 h-10 drop-shadow-lg" />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2 text-white drop-shadow-lg">
+            <h1 className="text-2xl font-bold tracking-tight mb-2 text-white drop-shadow-lg">
               Welcome back{userName ? `, ${userName}` : ''}!
             </h1>
             {!isLoading && userSettings?.weddingCity && (
-              <div className="flex items-center gap-2 text-white/90 text-sm drop-shadow-md mb-2">
-                <MapPin className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-white/90 text-xs drop-shadow-md mb-2">
+                <MapPin className="w-3 h-3" />
                 <span className="font-medium">{userSettings.weddingCity}, {userSettings.weddingState || userSettings.weddingCountry}</span>
               </div>
             )}
             {!isLoading && userSettings?.weddingDate && (
-              <p className="text-white/90 text-sm drop-shadow-md">
+              <p className="text-white/90 text-xs drop-shadow-md">
                 📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             )}
@@ -181,8 +181,8 @@ export default function Overview() {
 
       {/* AI Budget Optimization - ALWAYS SHOWN */}
       <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-2xl shadow-lg p-6 border border-purple-200/50 backdrop-blur-sm">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-4 flex items-center">
-          <Sparkles className="w-7 h-7 mr-2 text-purple-600" />
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-4 flex items-center">
+          <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
           AI Budget Optimization
         </h2>
         {aiSuggestions.length > 0 ? (
@@ -219,7 +219,7 @@ export default function Overview() {
 
       {/* Quick Actions */}
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-6">Quick Actions</h2>
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Add Guest', icon: Users, color: 'bg-gradient-to-br from-blue-500 to-blue-600', action: () => navigate('/dashboard/guests') },
