@@ -736,10 +736,10 @@ export default function BachelorDashboard() {
                 <PartyPopper className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white drop-shadow-md">
+                <h1 className="text-3xl font-bold text-gray-900 drop-shadow-sm">
                   Bachelor/Bachelorette Party Planner
                 </h1>
-                <p className="text-gray-100 mt-1 drop-shadow-md">
+                <p className="text-gray-700 mt-1">
                   {isPlanning ? 'Plan your perfect trip' : '🔒 Plan locked - Share with your crew'}
                 </p>
               </div>
