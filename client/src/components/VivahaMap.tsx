@@ -125,42 +125,88 @@ export default function VivahaMap({ onClose }: { onClose?: () => void }) {
         {/* Map Container */}
         <div className="flex-1 overflow-auto p-6">
           <div className="relative bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
-            {/* Actual USA-shaped Map */}
+            {/* Proper USA Map with State Boundaries */}
             <svg viewBox="0 0 960 600" className="w-full h-auto">
               {/* Background */}
               <rect x="0" y="0" width="960" height="600" fill="#f0f9ff" />
               
-              {/* Accurate USA mainland outline */}
-              <path
-                d="M 895,230 L 885,235 L 870,240 L 860,250 L 855,265 L 850,275 L 840,285 L 825,290 L 815,300 L 810,315 L 800,325 L 790,330 L 780,340 L 770,345 L 760,350 L 750,360 L 740,365 L 730,370 L 720,372 L 710,370 L 700,365 L 695,360 L 690,350 L 688,340 L 690,330 L 695,320 L 700,315 L 710,310 L 715,305 L 720,295 L 725,285 L 730,280 L 735,275 L 740,268 L 745,260 L 748,250 L 750,242 L 750,235 L 748,228 L 745,222 L 740,218 L 735,215 L 728,213 L 720,212 L 710,213 L 700,215 L 690,218 L 680,222 L 670,228 L 660,232 L 650,238 L 640,243 L 630,247 L 620,250 L 610,252 L 600,253 L 590,254 L 580,254 L 570,253 L 560,251 L 550,248 L 540,244 L 530,240 L 520,236 L 510,233 L 500,231 L 490,230 L 480,230 L 470,232 L 460,235 L 450,238 L 440,242 L 430,245 L 420,247 L 410,248 L 400,248 L 390,247 L 380,245 L 370,242 L 360,239 L 350,237 L 340,236 L 330,236 L 320,237 L 310,239 L 300,242 L 290,245 L 280,249 L 270,252 L 260,254 L 250,255 L 240,255 L 230,254 L 220,252 L 210,250 L 200,247 L 190,245 L 180,244 L 170,244 L 160,245 L 150,247 L 140,250 L 130,254 L 125,260 L 122,268 L 120,277 L 119,287 L 119,297 L 120,307 L 122,317 L 125,327 L 128,337 L 130,347 L 131,357 L 131,367 L 130,377 L 128,387 L 125,395 L 122,402 L 120,408 L 119,414 L 119,420 L 120,426 L 122,432 L 125,438 L 130,443 L 135,447 L 142,450 L 150,452 L 158,453 L 167,453 L 176,452 L 185,450 L 194,448 L 203,446 L 212,445 L 221,445 L 230,446 L 239,448 L 248,450 L 257,452 L 266,453 L 275,453 L 284,452 L 293,450 L 302,448 L 311,446 L 320,445 L 329,445 L 338,446 L 347,448 L 356,450 L 365,452 L 374,453 L 383,453 L 392,452 L 401,450 L 410,448 L 419,446 L 428,445 L 437,445 L 446,446 L 455,448 L 464,450 L 473,452 L 482,453 L 491,453 L 500,452 L 509,450 L 518,448 L 527,446 L 536,445 L 545,445 L 554,446 L 563,448 L 572,450 L 581,452 L 590,453 L 599,453 L 608,452 L 617,450 L 626,448 L 635,446 L 644,445 L 653,445 L 662,446 L 671,448 L 680,450 L 689,451 L 698,451 L 707,450 L 716,448 L 725,445 L 734,442 L 743,439 L 752,437 L 761,436 L 770,436 L 779,437 L 788,439 L 797,442 L 806,445 L 815,448 L 824,450 L 833,451 L 842,451 L 851,450 L 860,448 L 869,445 L 878,442 L 887,438 L 895,433 L 900,428 L 903,422 L 905,415 L 905,408 L 903,401 L 900,394 L 897,387 L 895,380 L 894,373 L 894,366 L 895,359 L 897,352 L 900,345 L 903,338 L 905,331 L 905,324 L 903,317 L 900,310 L 897,303 L 895,296 L 894,289 L 894,282 L 895,275 L 897,268 L 900,261 L 903,254 L 905,247 L 905,240 Z"
-                fill="#dbeafe"
-                stroke="#3b82f6"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
-              />
+              {/* California */}
+              <path d="M 180,240 L 180,280 L 185,320 L 190,360 L 195,400 L 200,440 L 205,480 L 230,485 L 250,475 L 265,455 L 275,430 L 280,400 L 285,370 L 285,340 L 280,310 L 270,280 L 255,255 L 235,240 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="220" y="370" fontSize="11" fill="#1e40af" fontWeight="600">CA</text>
               
-              {/* Florida peninsula */}
-              <path
-                d="M 730,370 L 735,380 L 738,392 L 740,405 L 741,418 L 740,431 L 738,444 L 735,456 L 731,467 L 726,476 L 720,483 L 713,488 L 705,491 L 697,492 L 689,491 L 682,488 L 676,483 L 671,476 L 668,467 L 666,456 L 665,444 L 666,431 L 668,418 L 671,405 L 675,392 L 680,380 L 686,370 Z"
-                fill="#dbeafe"
-                stroke="#3b82f6"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
-              />
+              {/* Oregon */}
+              <path d="M 180,240 L 235,240 L 255,235 L 270,225 L 280,210 L 285,195 L 280,180 L 270,170 L 250,165 L 230,165 L 210,170 L 190,180 L 180,195 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="240" y="200" fontSize="11" fill="#1e40af" fontWeight="600">OR</text>
               
-              {/* Alaska (scaled down, positioned top-left) */}
-              <path
-                d="M 50,80 L 80,75 L 110,78 L 140,85 L 165,95 L 185,108 L 200,123 L 208,140 L 210,158 L 205,175 L 195,188 L 180,197 L 162,202 L 142,202 L 122,197 L 104,188 L 88,175 L 75,158 L 67,140 L 63,120 L 62,100 L 65,85 Z"
-                fill="#dbeafe"
-                stroke="#3b82f6"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
+              {/* Washington */}
+              <path d="M 180,195 L 190,180 L 210,170 L 230,165 L 250,165 L 270,170 L 285,175 L 300,170 L 315,160 L 325,145 L 330,130 L 325,115 L 310,110 L 290,105 L 270,105 L 250,110 L 230,120 L 210,130 L 190,145 L 180,160 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="260" y="140" fontSize="11" fill="#1e40af" fontWeight="600">WA</text>
               
-              {/* Hawaii (positioned bottom-left) */}
-              <ellipse cx="90" cy="520" rx="15" ry="8" fill="#dbeafe" stroke="#3b82f6" strokeWidth="2"/>
-              <ellipse cx="120" cy="525" rx="18" ry="10" fill="#dbeafe" stroke="#3b82f6" strokeWidth="2"/>
-              <ellipse cx="155" cy="520" rx="12" ry="7" fill="#dbeafe" stroke="#3b82f6" strokeWidth="2"/>
+              {/* Nevada */}
+              <path d="M 230,485 L 250,475 L 265,455 L 275,430 L 280,400 L 285,370 L 285,340 L 290,310 L 295,280 L 300,250 L 310,255 L 325,265 L 335,280 L 340,300 L 340,320 L 335,340 L 330,360 L 325,380 L 320,400 L 315,420 L 305,440 L 295,460 L 280,475 L 260,485 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="310" y="360" fontSize="11" fill="#1e40af" fontWeight="600">NV</text>
+              
+              {/* Arizona */}
+              <path d="M 295,460 L 305,440 L 315,420 L 320,400 L 325,380 L 330,360 L 335,340 L 340,320 L 350,325 L 360,335 L 370,350 L 375,370 L 380,390 L 385,410 L 385,430 L 380,450 L 370,465 L 355,475 L 340,480 L 320,480 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="355" y="410" fontSize="11" fill="#1e40af" fontWeight="600">AZ</text>
+              
+              {/* Texas */}
+              <path d="M 385,410 L 395,415 L 410,420 L 430,425 L 450,430 L 470,435 L 490,440 L 510,445 L 530,450 L 550,455 L 565,460 L 575,470 L 580,485 L 575,500 L 560,510 L 540,515 L 520,515 L 500,510 L 480,500 L 460,490 L 440,480 L 420,470 L 400,460 L 385,450 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="490" y="475" fontSize="11" fill="#1e40af" fontWeight="600">TX</text>
+              
+              {/* Colorado */}
+              <path d="M 340,300 L 350,300 L 360,300 L 370,300 L 380,300 L 390,300 L 400,300 L 410,300 L 420,300 L 420,320 L 420,340 L 420,360 L 420,380 L 410,380 L 400,380 L 390,380 L 380,380 L 370,380 L 360,380 L 350,380 L 340,380 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="375" y="345" fontSize="11" fill="#1e40af" fontWeight="600">CO</text>
+              
+              {/* New Mexico */}
+              <path d="M 350,380 L 360,380 L 370,380 L 380,380 L 390,380 L 400,380 L 410,380 L 420,380 L 420,400 L 420,420 L 420,440 L 420,460 L 410,460 L 400,460 L 390,460 L 380,455 L 370,450 L 360,445 L 350,440 L 345,420 L 345,400 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="380" y="425" fontSize="11" fill="#1e40af" fontWeight="600">NM</text>
+              
+              {/* Illinois */}
+              <path d="M 560,275 L 570,280 L 575,295 L 578,310 L 580,325 L 580,340 L 578,355 L 575,370 L 570,385 L 565,400 L 560,415 L 555,430 L 548,440 L 540,435 L 535,420 L 532,405 L 530,390 L 530,375 L 532,360 L 535,345 L 540,330 L 545,315 L 550,300 L 555,285 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="555" y="360" fontSize="11" fill="#1e40af" fontWeight="600">IL</text>
+              
+              {/* Florida */}
+              <path d="M 730,370 L 735,380 L 738,395 L 740,410 L 741,425 L 740,440 L 738,455 L 735,468 L 730,478 L 723,485 L 715,490 L 705,492 L 695,490 L 687,485 L 680,478 L 675,468 L 672,455 L 670,440 L 671,425 L 673,410 L 677,395 L 682,382 L 690,372 L 700,368 L 710,367 L 720,368 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="705" y="435" fontSize="11" fill="#1e40af" fontWeight="600">FL</text>
+              
+              {/* New York */}
+              <path d="M 780,210 L 795,215 L 808,225 L 815,238 L 820,252 L 822,268 L 820,283 L 815,295 L 805,305 L 792,310 L 778,312 L 765,310 L 755,303 L 748,292 L 745,278 L 745,263 L 748,248 L 755,235 L 765,225 L 775,217 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="785" y="265" fontSize="11" fill="#1e40af" fontWeight="600">NY</text>
+              
+              {/* Pennsylvania */}
+              <path d="M 755,303 L 765,310 L 778,312 L 790,310 L 800,305 L 808,298 L 815,290 L 820,282 L 825,275 L 825,285 L 823,295 L 818,305 L 810,313 L 800,318 L 788,320 L 775,320 L 763,318 L 753,313 L 748,305 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="785" y="305" fontSize="11" fill="#1e40af" fontWeight="600">PA</text>
+              
+              {/* Ohio */}
+              <path d="M 660,285 L 672,290 L 682,298 L 690,308 L 695,320 L 698,333 L 695,346 L 688,358 L 678,367 L 665,372 L 652,372 L 642,367 L 635,358 L 630,346 L 628,333 L 630,320 L 635,308 L 643,298 L 652,290 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="665" y="333" fontSize="11" fill="#1e40af" fontWeight="600">OH</text>
+              
+              {/* Georgia */}
+              <path d="M 665,400 L 675,405 L 685,412 L 692,422 L 697,433 L 700,445 L 700,457 L 697,468 L 690,477 L 680,483 L 668,485 L 656,483 L 647,477 L 640,468 L 637,457 L 637,445 L 640,433 L 647,422 L 655,412 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="665" y="448" fontSize="11" fill="#1e40af" fontWeight="600">GA</text>
+              
+              {/* North Carolina */}
+              <path d="M 690,345 L 705,348 L 720,353 L 732,360 L 740,370 L 745,382 L 743,395 L 735,405 L 722,410 L 708,412 L 695,410 L 685,403 L 678,393 L 675,382 L 675,370 L 678,358 L 683,350 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="708" y="380" fontSize="11" fill="#1e40af" fontWeight="600">NC</text>
+              
+              {/* Michigan */}
+              <path d="M 610,255 L 625,258 L 638,265 L 648,275 L 655,288 L 658,302 L 655,316 L 648,328 L 638,337 L 625,342 L 610,343 L 597,340 L 587,333 L 580,322 L 577,308 L 580,295 L 587,283 L 597,273 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="615" y="305" fontSize="11" fill="#1e40af" fontWeight="600">MI</text>
+              
+              {/* Minnesota */}
+              <path d="M 490,225 L 505,228 L 518,235 L 528,245 L 535,258 L 538,272 L 535,286 L 528,298 L 518,308 L 505,315 L 490,318 L 477,315 L 467,308 L 460,298 L 457,286 L 460,272 L 467,258 L 477,245 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="1.5"/>
+              <text x="500" y="275" fontSize="11" fill="#1e40af" fontWeight="600">MN</text>
+              
+              {/* Alaska (top-left) */}
+              <path d="M 50,80 L 80,75 L 110,78 L 140,85 L 165,95 L 185,108 L 200,123 L 208,140 L 210,158 L 205,175 L 195,188 L 180,197 L 162,202 L 142,202 L 122,197 L 104,188 L 88,175 L 75,158 L 67,140 L 63,120 L 62,100 L 65,85 Z" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="2"/>
+              <text x="120" y="145" fontSize="12" fill="#1e40af" fontWeight="600">AK</text>
+              
+              {/* Hawaii (bottom-left) */}
+              <ellipse cx="90" cy="520" rx="15" ry="8" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="2"/>
+              <ellipse cx="120" cy="525" rx="18" ry="10" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="2"/>
+              <ellipse cx="155" cy="520" rx="12" ry="7" fill="#bfdbfe" stroke="#3b82f6" strokeWidth="2"/>
+              <text x="105" y="545" fontSize="12" fill="#1e40af" fontWeight="600">HI</text>
               
               {/* Wedding pins */}
               {weddingData.map((wedding) => {
