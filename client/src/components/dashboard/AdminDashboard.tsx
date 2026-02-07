@@ -55,14 +55,17 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       // Use mock data for demo
       setStats({
         totalUsers: 127,
+        completedOnboarding: 89,
+        pendingOnboarding: 38,
+        newUsersLast30Days: 23,
         activeLogins: 34,
         weddingsPlanned: 89,
         venueSearches: 245,
       });
       setLoggedInUsers([
-        { id: '1', name: 'Sarah', email: 'sarah@test.com', lastActive: new Date().toISOString() },
-        { id: '2', name: 'Marcus', email: 'marcus@test.com', lastActive: new Date(Date.now() - 3600000).toISOString() },
-        { id: '3', name: 'Priya', email: 'priya@test.com', lastActive: new Date(Date.now() - 7200000).toISOString() },
+        { id: '1', name: 'Sarah', email: 'sarah@test.com', role: 'bride', onboardingCompleted: true, lastActive: new Date().toISOString() },
+        { id: '2', name: 'Marcus', email: 'marcus@test.com', role: 'groom', onboardingCompleted: true, lastActive: new Date(Date.now() - 3600000).toISOString() },
+        { id: '3', name: 'Priya', email: 'priya@test.com', role: 'bride', onboardingCompleted: false, lastActive: new Date(Date.now() - 7200000).toISOString() },
       ]);
     } finally {
       setLoading(false);
