@@ -4,7 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'bride' | 'groom' | 'parent' | 'friend' | 'planner' | 'other';
+  role: 'bride' | 'groom' | 'parent' | 'friend' | 'planner' | 'other' | 'admin';
   onboardingCompleted: boolean;
   isAdmin?: boolean;
   resetToken?: string;

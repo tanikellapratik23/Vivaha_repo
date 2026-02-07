@@ -15,27 +15,44 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
     // Get total users
     const totalUsers = await User.countDocuments();
 
-    // Get users with completed onboarding (roughly "active")
-    const activeUsers = await User.countDocuments({ onboardingCompleted: true });
+    // Get users with completed onboarding
+    const completedOnboarding = await User.countDocuments({ onboardingCompleted: true });
+    
+    // Get users by role
+    const usersByRole = await User.aggregate([
+      { $group: { _id: '$role', count: { $sum: 1 } } }
+    ]);
+    
+    // Users created in last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newUsersLast30Days = await User.countDocuments({
+      createdAt: { $gte: thirtyDaysAgo }
+    });
 
-    // Mock stats - in production these would come from actual data
     const stats = {
       totalUsers,
-      activeLogins: Math.ceil(activeUsers * 0.3), // ~30% of active users currently online
-      weddingsPlanned: Math.ceil(activeUsers * 0.7), // ~70% have started planning
-      venueSearches: Math.ceil(activeUsers * 2), // Average 2 searches per user this month
+      completedOnboarding,
+      pendingOnboarding: totalUsers - completedOnboarding,
+      newUsersLast30Days,
+      usersByRole,
+      activeLogins: Math.ceil(completedOnboarding * 0.3),
+      weddingsPlanned: completedOnboarding,
+      venueSearches: Math.ceil(completedOnboarding * 2),
     };
 
-    // Get recently logged in users (mock data for demo)
+    // Get recently registered users
     const recentUsers = await User.find()
-      .select('name email createdAt')
-      .limit(10)
+      .select('name email createdAt onboardingCompleted role')
+      .limit(15)
       .sort({ createdAt: -1 });
 
     const loggedInUsers = recentUsers.map(user => ({
       id: user._id.toString(),
       name: user.name || 'Unknown',
       email: user.email,
+      role: user.role || 'user',
+      onboardingCompleted: user.onboardingCompleted || false,
       lastActive: user.createdAt?.toISOString() || new Date().toISOString(),
     }));
 

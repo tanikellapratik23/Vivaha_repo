@@ -6,21 +6,30 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface AdminStats {
   totalUsers: number;
+  completedOnboarding: number;
+  pendingOnboarding: number;
+  newUsersLast30Days: number;
   activeLogins: number;
   weddingsPlanned: number;
   venueSearches: number;
+  usersByRole?: Array<{ _id: string; count: number }>;
 }
 
 interface LoggedInUser {
   id: string;
   name: string;
   email: string;
+  role: string;
+  onboardingCompleted: boolean;
   lastActive: string;
 }
 
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
+    completedOnboarding: 0,
+    pendingOnboarding: 0,
+    newUsersLast30Days: 0,
     activeLogins: 0,
     weddingsPlanned: 0,
     venueSearches: 0,
@@ -88,42 +97,42 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <p className="text-xs text-gray-500 mt-2">Registered accounts</p>
         </div>
 
-        {/* Active Logins */}
+        {/* Completed Onboarding */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-gray-700 font-semibold">Active Now</h3>
+            <h3 className="text-gray-700 font-semibold">Completed Onboarding</h3>
             <TrendingUp className="w-5 h-5 text-green-600" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.activeLogins}</p>
-          <p className="text-xs text-gray-500 mt-2">Users online</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.completedOnboarding}</p>
+          <p className="text-xs text-gray-500 mt-2">Users who finished setup</p>
+        </div>
+
+        {/* New Users (30 days) */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-gray-700 font-semibold">New Users</h3>
+            <Calendar className="w-5 h-5 text-rose-600" />
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{stats.newUsersLast30Days}</p>
+          <p className="text-xs text-gray-500 mt-2">Last 30 days</p>
         </div>
 
         {/* Weddings Planned */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-gray-700 font-semibold">Weddings Planned</h3>
-            <Calendar className="w-5 h-5 text-rose-600" />
+            <BarChart3 className="w-5 h-5 text-orange-600" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.weddingsPlanned}</p>
           <p className="text-xs text-gray-500 mt-2">Active wedding plans</p>
         </div>
-
-        {/* Venue Searches */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-gray-700 font-semibold">Venue Searches</h3>
-            <BarChart3 className="w-5 h-5 text-orange-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.venueSearches}</p>
-          <p className="text-xs text-gray-500 mt-2">This month</p>
-        </div>
       </div>
 
-      {/* Logged In Users */}
+      {/* Recent Users */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <Users className="w-5 h-5 text-blue-600" />
-          Currently Logged In Users
+          Recent Users
         </h2>
 
         {loggedInUsers.length > 0 ? (
@@ -133,20 +142,21 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div>
                   <p className="font-semibold text-gray-900">{user.name}</p>
                   <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="text-xs text-gray-400 mt-1">Role: {user.role}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-gray-600">
-                    Last active: {new Date(user.lastActive).toLocaleTimeString()}
+                    Registered: {new Date(user.lastActive).toLocaleDateString()}
                   </p>
-                  <span className="inline-block mt-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                    Active
+                  <span className={`inline-block mt-1 px-2 py-1 text-xs rounded-full ${user.onboardingCompleted ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {user.onboardingCompleted ? 'Completed' : 'Pending'}
                   </span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">No active users</p>
+          <p className="text-gray-500 text-center py-8">No users yet</p>
         )}
       </div>
 

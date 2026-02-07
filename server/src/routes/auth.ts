@@ -4,11 +4,21 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import axios from 'axios';
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const router = Router();
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
+// Gmail transporter (free & unlimited)
+const gmailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'your-email@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD || 'your-app-password'
+  }
+});
 
 // Send welcome email to new user
 const sendWelcomeEmail = async (user: any) => {
@@ -299,16 +309,37 @@ router.post('/forgot-password', async (req, res) => {
     user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    // Send email
-    if (resend) {
-      try {
-        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
-        
-        const emailResult = await resend.emails.send({
-          from: 'Vivaha <hello@vivahaplan.com>',
+    // Use Resend (works reliably)
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    
+    try {
+      if (resend) {
+        await resend.emails.send({
+          from: 'Vivaha <onboarding@resend.dev>',
           to: user.email,
           subject: '🔐 Reset Your Vivaha Password',
-          html: `
+          html: generateResetPasswordEmail(user.name, resetUrl)
+        });
+        console.log('✅ Password reset email sent via Resend');
+      } else {
+        console.warn('⚠️ Resend not configured - email not sent');
+        throw new Error('Email service not configured');
+      }
+    } catch (emailError) {
+      console.error('❌ Failed to send reset email:', emailError);
+      throw emailError; // Throw error so frontend knows it failed
+    }
+
+    res.json({ message: 'If email exists, reset link has been sent' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+// Helper function to generate reset password email HTML
+function generateResetPasswordEmail(userName: string, resetUrl: string) {
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -334,11 +365,11 @@ router.post('/forgot-password', async (req, res) => {
                 <div style="font-size: 22px; font-weight: bold; color: #EC4899; margin-bottom: 20px;">Reset Your Password</div>
                 
                 <p style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 20px;">
-                    Hi ${user.name},
+                    Hi ${userName},
                 </p>
 
                 <p style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 20px;">
-                    We received a request to reset your password. Click the button below to create a new password and get back to planning your special day.
+                    We received a request to reset your password. Click the button below to create a new password.
                 </p>
 
                 <p style="text-align: center; margin: 30px 0;">
@@ -347,17 +378,17 @@ router.post('/forgot-password', async (req, res) => {
 
                 <div style="background-color: #FFF7ED; border-left: 4px solid #F97316; padding: 20px; margin: 30px 0; border-radius: 4px;">
                     <p style="font-size: 14px; color: #555; margin: 0;">
-                        <strong>🕐 Quick note:</strong> This link will expire in <strong>1 hour</strong> for security reasons.
+                        <strong>🕐 Quick note:</strong> This link expires in <strong>1 hour</strong>.
                     </p>
                 </div>
 
                 <p style="font-size: 13px; color: #888; line-height: 1.6;">
-                    Or copy and paste this link into your browser:<br>
+                    Or copy this link:<br>
                     <a href="${resetUrl}" style="color: #EC4899; word-break: break-all;">${resetUrl}</a>
                 </p>
 
                 <p style="font-size: 13px; color: #888; line-height: 1.6; margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
-                    <strong>Didn't request this?</strong> You can safely ignore this email. Your password will remain unchanged.
+                    <strong>Didn't request this?</strong> Ignore this email.
                 </p>
             </td>
         </tr>
@@ -365,10 +396,8 @@ router.post('/forgot-password', async (req, res) => {
             <td style="background-color: #f8f5f0; padding: 30px; text-align: center; font-size: 12px; color: #888;">
                 <div style="margin: 10px 0;">
                     <strong>Vivaha Team</strong><br>
-                    Making wedding planning joyful<br>
                     <a href="mailto:support@vivahaplan.com" style="color: #EC4899; text-decoration: none;">support@vivahaplan.com</a>
                 </div>
-
                 <div style="margin-top: 20px; font-size: 11px; color: #aaa;">
                     © ${new Date().getFullYear()} Vivaha. All rights reserved.
                 </div>
@@ -377,24 +406,8 @@ router.post('/forgot-password', async (req, res) => {
     </table>
 </body>
 </html>
-`,
-        });
-
-        console.log('✅ Password reset email sent successfully:', emailResult);
-      } catch (emailError) {
-        console.error('❌ Failed to send reset email:', emailError);
-        // Continue anyway - don't fail the request if email fails
-      }
-    } else {
-      console.warn('⚠️ Email not sent - Resend API key not configured');
-    }
-
-    res.json({ message: 'If email exists, reset link has been sent' });
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ error: 'Failed to process request' });
-  }
-});
+`;
+}
 
 // Reset password - validate token and update password
 router.post('/reset-password', async (req, res) => {

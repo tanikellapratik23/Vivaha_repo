@@ -158,9 +158,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     localStorage.removeItem('onboarding');
     localStorage.removeItem('ceremony');
     localStorage.removeItem('isNewUser');
-    // Navigate and reload to ensure App component re-evaluates auth state
+    // Navigate directly to landing without reload
     navigate('/', { replace: true });
-    window.location.reload();
   };
 
   const cancelLogout = () => {
