@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Phone, Mail, Hotel, Shirt, Copy, Check, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Users, Phone, Mail, Hotel, Shirt, Copy, Check, ExternalLink, Edit2, Save, X } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 
@@ -7,9 +7,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function SingleSourceOfTruth() {
   const [weddingInfo, setWeddingInfo] = useState<any>(null);
+  const [editedInfo, setEditedInfo] = useState<any>(null);
   const [shareLink, setShareLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchWeddingInfo();
@@ -26,6 +29,7 @@ export default function SingleSourceOfTruth() {
       });
 
       setWeddingInfo(response.data);
+      setEditedInfo(response.data); // Initialize edit state
     } catch (error) {
       console.error('Failed to fetch wedding info:', error);
     } finally {
@@ -63,6 +67,43 @@ export default function SingleSourceOfTruth() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Cancel edit - reset to original
+      setEditedInfo(weddingInfo);
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      await axios.put(
+        `${API_URL}/api/onboarding`,
+        editedInfo,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setWeddingInfo(editedInfo);
+      setIsEditing(false);
+      alert('Wedding information updated successfully!');
+    } catch (error) {
+      console.error('Failed to save wedding info:', error);
+      alert('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateField = (field: string, value: any) => {
+    setEditedInfo({ ...editedInfo, [field]: value });
+  };
+
+  const displayInfo = isEditing ? editedInfo : weddingInfo;
 
   if (loading) {
     return (

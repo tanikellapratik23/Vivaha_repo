@@ -647,8 +647,6 @@ function useScrollIntoDemo(demoRef: React.RefObject<HTMLDivElement>, playing: bo
   }, [playing, demoRef]);
 }
 
-import { useNavigate } from 'react-router-dom';
-
 function DemoLauncher({ stopHero }: { stopHero?: () => void }) {
   const navigate = useNavigate();
   return (
