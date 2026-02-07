@@ -453,7 +453,7 @@ export default function Landing() {
           <nav className="flex items-center gap-3">
             <button
               onClick={() => setShowMap(true)}
-              className="p-2 bg-transparent text-black rounded-md border-2 border-black hover:bg-black hover:text-white transition flex items-center justify-center"
+              className="hidden p-2 bg-transparent text-black rounded-md border-2 border-black hover:bg-black hover:text-white transition flex items-center justify-center"
               title="Explore Weddings"
             >
               <Map className="h-5 w-5" />
