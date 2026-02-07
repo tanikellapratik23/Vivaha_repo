@@ -171,7 +171,7 @@ export default function CeremonyPlanning() {
         defaultDays.push({
           dayNumber: index + 1,
           date: dayDate.toISOString().split('T')[0],
-          title: day.dayName || day.title || `Day ${index + 1}`,
+          title: day.dayName || `Day ${index + 1}`,
           dayType: day.dayType,
           events: (day.events || []).map((event, eventIndex) => ({
             id: `day${index}-event${eventIndex}`,
