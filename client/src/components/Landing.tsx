@@ -451,6 +451,13 @@ export default function Landing() {
             </div>
           </div>
           <nav className="flex items-center gap-3">
+            <button
+              onClick={() => setShowMap(true)}
+              className="p-2 bg-transparent text-black rounded-md border-2 border-black hover:bg-black hover:text-white transition flex items-center justify-center"
+              title="Explore Weddings"
+            >
+              <Map className="h-5 w-5" />
+            </button>
             <Link to="/what-is-vivaha" className="px-4 py-2 bg-transparent text-black rounded-md font-medium border-2 border-black hover:bg-black hover:text-white transition">About</Link>
             <Link to="/login" className="px-4 py-2 bg-white text-primary-700 rounded-md font-medium">Log in</Link>
             <Link to="/register" className="px-4 py-2 bg-primary-600 text-white rounded-md font-medium">Sign up</Link>
@@ -468,13 +475,6 @@ export default function Landing() {
 
               <div className="flex gap-3 mb-4">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
-                <button 
-                  onClick={() => setShowMap(true)}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-purple-700 transition-colors"
-                >
-                  <Map className="h-5 w-5" />
-                  Explore Weddings
-                </button>
                 <DemoLauncher stopHero={() => setShowHero(false)} />
               </div>
 
