@@ -77,26 +77,30 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     const onboardingCompleted = sessionStorage.getItem('onboardingCompleted') === 'true';
     setHasCompletedOnboarding(onboardingCompleted);
     
+    let userIsAdmin = propIsAdmin || false;
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(decoded.isAdmin || propIsAdmin || false);
+        userIsAdmin = decoded.isAdmin || propIsAdmin || false;
+        setIsAdmin(userIsAdmin);
       } catch (e) {
         setIsAdmin(propIsAdmin || false);
       }
     }
     
-    if (!isAdmin && !onboardingCompleted) {
+    // Skip onboarding check for admins
+    if (!userIsAdmin && !onboardingCompleted) {
       // Non-admin without onboarding should not be here
       navigate('/onboarding', { replace: true });
+      return;
     }
     
-    if (!isAdmin) {
+    if (!userIsAdmin) {
       fetchUserSettings();
       sendWelcomeEmail();
       loadNavigationPreferences();
     }
-  }, [isAdmin, propIsAdmin, navigate]);
+  }, [propIsAdmin, navigate]);
 
   const sendWelcomeEmail = async () => {
     try {

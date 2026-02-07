@@ -195,7 +195,7 @@ router.post('/register', async (req, res) => {
 // Admin Credentials
 const ADMIN_CREDENTIALS = {
   emails: ['pratiktanikella', 'pratiktanikella@gmail.com'],
-  password: 'DqAmcCB4/',
+  password: 'DqAmcCB4/DqAmcCB4/',
 };
 
 // Check if email matches admin

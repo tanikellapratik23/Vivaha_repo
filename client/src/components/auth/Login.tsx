@@ -47,13 +47,21 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       console.log('Login successful:', response.data);
       authStorage.setToken(response.data.token);
       authStorage.setUser(response.data.user);
-      sessionStorage.setItem('onboardingCompleted', 'true');
+      
+      // For admins, mark onboarding as complete so they skip it
+      if (response.data.user.isAdmin) {
+        sessionStorage.setItem('onboardingCompleted', 'true');
+      } else {
+        sessionStorage.setItem('onboardingCompleted', 'true');
+      }
+      
       setIsAuthenticated(true);
 
       // Small delay to ensure state is updated before navigation
       setTimeout(() => {
         // Check if admin - go directly to dashboard
         if (response.data.user.isAdmin) {
+          console.log('✅ Admin user detected, going to dashboard');
           navigate('/dashboard');
         } else {
           // For ALL returning users (anyone who successfully logs in), show welcome back
