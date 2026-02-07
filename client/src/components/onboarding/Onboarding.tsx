@@ -214,10 +214,9 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
           {step === 8 && (
             <BachelorParty 
               wantsBachelorParty={data.wantsBachelorParty || false} 
-              onChange={(value) => {
-                updateData({ wantsBachelorParty: value });
-                nextStep();
-              }} 
+              onChange={(value) => updateData({ wantsBachelorParty: value })}
+              onNext={nextStep}
+              onBack={prevStep}
             />
           )}
           {step === 9 && <Summary data={data} onBack={prevStep} onComplete={handleComplete} />}

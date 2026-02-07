@@ -4,6 +4,7 @@ import { Calendar, Users, DollarSign, CheckSquare, Heart, MapPin, Briefcase, Spa
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 import { getBudgetOptimizationSuggestions, getCityAverageCost } from '../../utils/cityData';
+import { generateAIBudgetSuggestions } from '../../utils/aiBudgetHelper';
 
 export default function Overview() {
   const navigate = useNavigate();
@@ -118,13 +119,37 @@ export default function Overview() {
         
         // Generate AI suggestions
         if (response.data.weddingCity && response.data.estimatedBudget) {
-          const suggestions = getBudgetOptimizationSuggestions(
-            response.data.estimatedBudget,
-            response.data.guestCount || 150,
-            response.data.weddingCity,
-            response.data.topPriority || []
-          );
-          setAiSuggestions(suggestions);
+          // Try AI-powered suggestions first
+          try {
+            const aiSuggestions = await generateAIBudgetSuggestions(
+              response.data.estimatedBudget,
+              response.data.guestCount || 150,
+              response.data.weddingCity,
+              response.data.topPriority || []
+            );
+            
+            if (aiSuggestions.length > 0) {
+              setAiSuggestions(aiSuggestions);
+            } else {
+              // Fallback to static suggestions
+              const staticSuggestions = getBudgetOptimizationSuggestions(
+                response.data.estimatedBudget,
+                response.data.guestCount || 150,
+                response.data.weddingCity,
+                response.data.topPriority || []
+              );
+              setAiSuggestions(staticSuggestions);
+            }
+          } catch (error) {
+            console.error('Failed to generate AI suggestions, using fallback:', error);
+            const staticSuggestions = getBudgetOptimizationSuggestions(
+              response.data.estimatedBudget,
+              response.data.guestCount || 150,
+              response.data.weddingCity,
+              response.data.topPriority || []
+            );
+            setAiSuggestions(staticSuggestions);
+          }
         }
         
         setIsLoading(false);

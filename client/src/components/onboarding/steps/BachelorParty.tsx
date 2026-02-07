@@ -3,9 +3,11 @@ import { PartyPopper, Check } from 'lucide-react';
 interface BachelorPartyProps {
   wantsBachelorParty: boolean;
   onChange: (value: boolean) => void;
+  onNext: () => void;
+  onBack: () => void;
 }
 
-export default function BachelorParty({ wantsBachelorParty, onChange }: BachelorPartyProps) {
+export default function BachelorParty({ wantsBachelorParty, onChange, onNext, onBack }: BachelorPartyProps) {
   return (
     <div className="space-y-8">
       <div>
@@ -71,6 +73,21 @@ export default function BachelorParty({ wantsBachelorParty, onChange }: Bachelor
           <li>✓ Accommodation booking integration</li>
           <li>✓ Real-time cost coordination</li>
         </ul>
+      </div>
+
+      <div className="flex gap-4 pt-4">
+        <button
+          onClick={onBack}
+          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium"
+        >
+          Back
+        </button>
+        <button
+          onClick={onNext}
+          className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition font-semibold shadow-lg"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

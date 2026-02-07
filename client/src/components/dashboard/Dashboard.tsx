@@ -362,13 +362,6 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-sm mx-auto border border-gray-200">
             <h3 className="text-xl font-bold text-gray-900 mb-3">Confirm Logout</h3>

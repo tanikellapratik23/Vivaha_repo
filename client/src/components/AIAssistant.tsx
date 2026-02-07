@@ -11,10 +11,13 @@ interface CeremonyResponse {
   notes: string[];
 }
 
-// Use environment variable for HF token (set in .env)
-const HF_TOKEN = import.meta.env.VITE_HF_TOKEN || '';
-const HF_MODEL = 'moonshotai/Kimi-K2-Instruct-0905';
-const HF_ENDPOINT = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+// Use environment variable for API keys
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_HF_TOKEN || '';
+const USE_GROQ = !!import.meta.env.VITE_GROQ_API_KEY;
+
+// API Configuration
+const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.1-8b-instant'; // Fast and free
 
 // System prompt for VivahaPlan AI
 const SYSTEM_PROMPT = `You are VivahaPlan AI, an expert assistant helping couples plan interfaith weddings. You provide:
@@ -50,39 +53,53 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const [editableResponse, setEditableResponse] = useState<CeremonyResponse | null>(null);
 
-  // Call Hugging Face Kimi-K2 API
-  const callHuggingFaceAPI = async (prompt: string): Promise<string> => {
+  // Call AI API (Groq or HuggingFace)
+  const callAIAPI = async (prompt: string): Promise<string> => {
+    console.log('🔑 API Key present:', !!API_KEY);
+    console.log('📡 Using Groq:', USE_GROQ);
+    
     try {
-      const response = await fetch(HF_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HF_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: `${SYSTEM_PROMPT}\n\nUser: ${prompt}\n\nAssistant:`,
-          parameters: {
-            temperature: 0.6,
-            max_new_tokens: 800,
-            return_full_text: false,
+      if (USE_GROQ) {
+        // Use Groq API (OpenAI compatible)
+        const response = await fetch(GROQ_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
           },
-        }),
-      });
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.6,
+            max_tokens: 800,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HF API error: ${response.status}`);
-      }
+        console.log('📊 Response status:', response.status);
 
-      const data = await response.json();
-      
-      // HF returns array of responses
-      if (Array.isArray(data) && data[0]?.generated_text) {
-        return data[0].generated_text;
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ API Error Response:', errorText);
+          throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ API Response:', data);
+        
+        if (data.choices && data.choices[0]?.message?.content) {
+          return data.choices[0].message.content;
+        }
+        
+        throw new Error('Unexpected API response format');
+      } else {
+        // Fallback: Show helpful message
+        return '⚠️ AI Assistant needs an API key to function. Please:\n\n1. Get a free API key from https://console.groq.com\n2. Add VITE_GROQ_API_KEY=your-key to client/.env\n3. Restart the dev server\n\nGroq offers free, fast AI with generous limits!';
       }
-      
-      throw new Error('Unexpected API response format');
     } catch (error) {
-      console.error('HF API Error:', error);
+      console.error('❌ AI API Error:', error);
       throw error;
     }
   };
@@ -98,7 +115,7 @@ export default function AIAssistant() {
     setEditableResponse(null);
 
     try {
-      const response = await callHuggingFaceAPI(prompt);
+      const response = await callAIAPI(prompt);
       
       // Try to parse as JSON for ceremony suggestions
       let parsedResponse = null;
