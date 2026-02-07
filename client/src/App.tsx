@@ -140,7 +140,7 @@ function App() {
             path="/dashboard/*" 
             element={
               isAuthenticated ? (
-                <Dashboard isAdmin={isAdmin} />
+                <Dashboard isAdmin={isAdmin} setIsAuthenticated={setIsAuthenticated} />
               ) : (
                 <Navigate to="/login" />
               )

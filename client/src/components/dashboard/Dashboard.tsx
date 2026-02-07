@@ -44,9 +44,10 @@ function AutoSaveToggle() {
 
 interface DashboardProps {
   isAdmin?: boolean;
+  setIsAuthenticated?: (value: boolean) => void;
 }
 
-export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardProps) {
+export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthenticated }: DashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isReligious, setIsReligious] = useState(false);
@@ -162,6 +163,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false }: DashboardPro
     localStorage.removeItem('onboarding');
     localStorage.removeItem('ceremony');
     localStorage.removeItem('isNewUser');
+    // Update authentication state first
+    if (setIsAuthenticated) {
+      setIsAuthenticated(false);
+    }
     // Navigate directly to landing without reload
     navigate('/', { replace: true });
   };
