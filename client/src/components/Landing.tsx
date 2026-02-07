@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { Heart, MapPin, Star, Loader, Phone, Mail } from 'lucide-react';
+import { Heart, MapPin, Star, Loader, Phone, Mail, Map, X } from 'lucide-react';
 import axios from 'axios';
 import Welcome from './onboarding/steps/Welcome';
 import RoleSelection from './onboarding/steps/RoleSelection';
@@ -11,6 +11,7 @@ import CeremonyDetails from './onboarding/steps/CeremonyDetails';
 import Goals from './onboarding/steps/Goals';
 import Summary from './onboarding/steps/Summary';
 import { OnboardingData } from './onboarding/Onboarding';
+import VivahaMap from './VivahaMap';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -370,6 +371,7 @@ function OnboardingPreview() {
 
 export default function Landing() {
   const [step, setStep] = useState(0);
+  const [showMap, setShowMap] = useState(false);
   const base = import.meta.env.BASE_URL || '/';
   const heroImages = [
     `${base}hero-images/back-view-islamic-couple-spending-time-together.jpg`,
@@ -466,6 +468,13 @@ export default function Landing() {
 
               <div className="flex gap-3 mb-4">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
+                <button 
+                  onClick={() => setShowMap(true)}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-purple-700 transition-colors"
+                >
+                  <Map className="h-5 w-5" />
+                  Explore Weddings
+                </button>
                 <DemoLauncher stopHero={() => setShowHero(false)} />
               </div>
 
@@ -554,6 +563,13 @@ export default function Landing() {
           <div className="text-sm">Use the top-right buttons to Sign up or Log in.</div>
         </div>
       </div>
+      
+      {/* Vivaha Map Modal */}
+      {showMap && (
+        <div className="fixed inset-0 z-50">
+          <VivahaMap onClose={() => setShowMap(false)} />
+        </div>
+      )}
     </div>
   );
 }
