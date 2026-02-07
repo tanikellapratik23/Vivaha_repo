@@ -115,12 +115,45 @@ export default function SingleSourceOfTruth() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Edit/Save buttons */}
       <div className="bg-gradient-to-r from-primary-500 via-pink-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Share Wedding Information</h1>
-        <p className="text-white/90 text-lg">
-          One shareable page with all your wedding details. Auto-updates everywhere when you make changes.
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Share Wedding Information</h1>
+            <p className="text-white/90 text-lg">
+              One shareable page with all your wedding details. Auto-updates everywhere when you make changes.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleEditToggle}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-primary-600 hover:bg-white/90 rounded-lg transition-colors font-semibold disabled:opacity-50"
+                >
+                  <Save className="w-5 h-5" />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEditToggle}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+              >
+                <Edit2 className="w-5 h-5" />
+                Edit
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Share Link Box */}
@@ -155,60 +188,128 @@ export default function SingleSourceOfTruth() {
 
         <div className="p-8 space-y-6">
           {/* Date & Time */}
-          {weddingInfo?.weddingDate && (
+          {displayInfo?.weddingDate && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
               <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-              <div>
-                <div className="font-semibold text-gray-900 text-lg">Date & Time</div>
-                <div className="text-gray-700 mt-1">
-                  {new Date(weddingInfo.weddingDate).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </div>
-                {weddingInfo.weddingTime && (
-                  <div className="text-gray-600 text-sm mt-1">{weddingInfo.weddingTime}</div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 text-lg mb-2">Date & Time</div>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="date"
+                      value={editedInfo.weddingDate?.split('T')[0] || ''}
+                      onChange={(e) => updateField('weddingDate', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <input
+                      type="time"
+                      value={editedInfo.weddingTime || ''}
+                      onChange={(e) => updateField('weddingTime', e.target.value)}
+                      placeholder="Time (optional)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-gray-700 mt-1">
+                      {new Date(displayInfo.weddingDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </div>
+                    {displayInfo.weddingTime && (
+                      <div className="text-gray-600 text-sm mt-1">{displayInfo.weddingTime}</div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           )}
 
           {/* Venue */}
-          {weddingInfo?.weddingCity && (
+          {displayInfo?.weddingCity && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
               <MapPin className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
-              <div>
-                <div className="font-semibold text-gray-900 text-lg">Location</div>
-                <div className="text-gray-700 mt-1">
-                  {weddingInfo.weddingCity}, {weddingInfo.weddingState || weddingInfo.weddingCountry}
-                </div>
-                {weddingInfo.venue && (
-                  <div className="text-gray-600 text-sm mt-1">{weddingInfo.venue}</div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 text-lg mb-2">Location</div>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editedInfo.weddingCity || ''}
+                      onChange={(e) => updateField('weddingCity', e.target.value)}
+                      placeholder="City"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={editedInfo.weddingState || ''}
+                      onChange={(e) => updateField('weddingState', e.target.value)}
+                      placeholder="State/Country"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={editedInfo.venue || ''}
+                      onChange={(e) => updateField('venue', e.target.value)}
+                      placeholder="Venue Name (optional)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-gray-700 mt-1">
+                      {displayInfo.weddingCity}, {displayInfo.weddingState || displayInfo.weddingCountry}
+                    </div>
+                    {displayInfo.venue && (
+                      <div className="text-gray-600 text-sm mt-1">{displayInfo.venue}</div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           )}
 
           {/* Guest Count */}
-          {weddingInfo?.guestCount && (
+          {displayInfo?.guestCount && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
               <Users className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <div className="font-semibold text-gray-900 text-lg">Expected Guests</div>
-                <div className="text-gray-700 mt-1">{weddingInfo.guestCount} guests</div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 text-lg mb-2">Expected Guests</div>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    value={editedInfo.guestCount || ''}
+                    onChange={(e) => updateField('guestCount', parseInt(e.target.value) || 0)}
+                    placeholder="Number of guests"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="text-gray-700 mt-1">{displayInfo.guestCount} guests</div>
+                )}
               </div>
             </div>
           )}
 
           {/* Dress Code */}
-          {weddingInfo?.dressCode && (
+          {displayInfo?.dressCode && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl">
               <Shirt className="w-6 h-6 text-pink-600 flex-shrink-0 mt-1" />
-              <div>
-                <div className="font-semibold text-gray-900 text-lg">Dress Code</div>
-                <div className="text-gray-700 mt-1">{weddingInfo.dressCode}</div>
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 text-lg mb-2">Dress Code</div>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedInfo.dressCode || ''}
+                    onChange={(e) => updateField('dressCode', e.target.value)}
+                    placeholder="e.g., Formal, Semi-Formal, Cocktail Attire"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="text-gray-700 mt-1">{displayInfo.dressCode}</div>
+                )}
               </div>
             </div>
           )}
@@ -216,22 +317,50 @@ export default function SingleSourceOfTruth() {
           {/* Contact Person */}
           <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl">
             <Phone className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
-            <div>
-              <div className="font-semibold text-gray-900 text-lg">Contact Information</div>
-              {weddingInfo?.contactName && (
-                <div className="text-gray-700 mt-1">{weddingInfo.contactName}</div>
-              )}
-              {weddingInfo?.contactPhone && (
-                <div className="text-gray-600 text-sm mt-1">
-                  <Phone className="w-4 h-4 inline mr-1" />
-                  {weddingInfo.contactPhone}
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900 text-lg mb-2">Contact Information</div>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={editedInfo.contactName || ''}
+                    onChange={(e) => updateField('contactName', e.target.value)}
+                    placeholder="Contact Name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <input
+                    type="tel"
+                    value={editedInfo.contactPhone || ''}
+                    onChange={(e) => updateField('contactPhone', e.target.value)}
+                    placeholder="Phone Number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <input
+                    type="email"
+                    value={editedInfo.contactEmail || ''}
+                    onChange={(e) => updateField('contactEmail', e.target.value)}
+                    placeholder="Email Address"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
                 </div>
-              )}
-              {weddingInfo?.contactEmail && (
-                <div className="text-gray-600 text-sm mt-1">
-                  <Mail className="w-4 h-4 inline mr-1" />
-                  {weddingInfo.contactEmail}
-                </div>
+              ) : (
+                <>
+                  {displayInfo?.contactName && (
+                    <div className="text-gray-700 mt-1">{displayInfo.contactName}</div>
+                  )}
+                  {displayInfo?.contactPhone && (
+                    <div className="text-gray-600 text-sm mt-1">
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      {displayInfo.contactPhone}
+                    </div>
+                  )}
+                  {displayInfo?.contactEmail && (
+                    <div className="text-gray-600 text-sm mt-1">
+                      <Mail className="w-4 h-4 inline mr-1" />
+                      {displayInfo.contactEmail}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
