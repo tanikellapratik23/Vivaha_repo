@@ -37,6 +37,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [loggedInUsers, setLoggedInUsers] = useState<LoggedInUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAdminStats();
@@ -48,19 +49,25 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const fetchAdminStats = async () => {
     try {
+      setError(null);
       const token = localStorage.getItem('token');
+      console.log('📊 Fetching admin stats...');
+      
       const response = await axios.get(`${API_URL}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log('Admin stats response:', response.data);
 
       if (response.data.stats) {
         setStats(response.data.stats);
         setLoggedInUsers(response.data.loggedInUsers || []);
         setLastUpdated(new Date());
+        console.log('✅ Admin stats loaded successfully');
       }
     } catch (error) {
-      console.error('Failed to fetch admin stats:', error);
-      // Don't fallback to mock data - show error state instead
+      console.error('❌ Failed to fetch admin stats:', error);
+      setError(`Failed to fetch stats: ${(error as any).message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -76,6 +83,18 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-800">
+          <p className="font-semibold mb-2">⚠️ Error Loading Stats</p>
+          <p className="text-sm">{error}</p>
+          <button
+            onClick={fetchAdminStats}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-8 text-white">
         <div className="flex items-center justify-between">
