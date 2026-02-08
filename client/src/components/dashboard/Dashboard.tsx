@@ -3,6 +3,7 @@ import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, S
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
+import { getThemeClasses } from '../../utils/themeColors';
 import axios from 'axios';
 import Tutorial from '../Tutorial';
 import SingleSourceOfTruth from './SingleSourceOfTruth';
@@ -71,8 +72,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
   const [shareAccess, setShareAccess] = useState<'view' | 'edit'>('view');
   const [shareEmail, setShareEmail] = useState('');
   const [shareLinkType, setShareLinkType] = useState<'anyone' | 'email'>('anyone');
-  const [linkCopied, setLinkCopied] = useState(false);
-  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const [linkCopied, setLinkCopied] = useState(false);  const [preferredColorTheme, setPreferredColorTheme] = useState('');  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Check if user is admin from token
@@ -134,13 +134,19 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
       if (response.data) {
         setIsReligious(response.data.isReligious || false);
         setWantsBachelorParty(response.data.wantsBachelorParty || false);
+        setPreferredColorTheme(response.data.preferredColorTheme || '');
         localStorage.setItem('wantsBachelorParty', response.data.wantsBachelorParty ? 'true' : 'false');
+        localStorage.setItem('preferredColorTheme', response.data.preferredColorTheme || '');
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
       const localWantsBachelor = localStorage.getItem('wantsBachelorParty') === 'true';
+      const localTheme = localStorage.getItem('preferredColorTheme') || '';
       if (localWantsBachelor) {
         setWantsBachelorParty(true);
+      }
+      if (localTheme) {
+        setPreferredColorTheme(localTheme);
       }
     }
   };
@@ -310,7 +316,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-black">
+    <div className={`min-h-screen ${getThemeClasses(preferredColorTheme).bg} dark:from-gray-800 dark:via-gray-900 dark:to-black`}>
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
