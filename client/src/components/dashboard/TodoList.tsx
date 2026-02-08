@@ -68,6 +68,7 @@ export default function TodoList() {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';
       if (offlineMode) {
+        console.log('📴 Offline mode - loading todos from cache');
         const cached = localStorage.getItem('todos');
         if (cached) {
           const parsed = JSON.parse(cached) as any[];
@@ -78,18 +79,37 @@ export default function TodoList() {
       }
 
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/todos`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!token) {
+        console.warn('⚠️ No token found - using cached todos');
+        const cached = localStorage.getItem('todos');
+        if (cached) {
+          const parsed = JSON.parse(cached) as any[];
+          const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
+          setTodos(items);
+        }
+        return;
+      }
+
+      const res = await axios.get(`${API_URL}/api/todos`, { 
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000,
+      });
       if (res.data.success) {
+        console.log('✅ Fetched', res.data.data.length, 'todos from server');
         // convert dates
         const items = res.data.data.map((t: any) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
         setTodos(items);
+        // Update localStorage with server data
+        const serial = items.map((t: any) => ({ ...t, dueDate: t.dueDate ? (t.dueDate as Date).toISOString() : null }));
+        localStorage.setItem('todos', JSON.stringify(serial));
       }
     } catch (error) {
-      console.error('Failed to fetch todos:', error);
+      console.error('❌ Failed to fetch todos from server:', error);
       // fallback to cache
       const cached = localStorage.getItem('todos');
       if (cached) {
         try {
+          console.log('📦 Using cached todos');
           const parsed = JSON.parse(cached) as any[];
           const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
           setTodos(items);

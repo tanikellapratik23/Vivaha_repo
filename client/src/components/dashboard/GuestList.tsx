@@ -88,23 +88,39 @@ export default function GuestList() {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';
       if (offlineMode) {
+        console.log('📴 Offline mode - loading guests from cache');
         const cached = localStorage.getItem('guests');
         if (cached) setGuests(JSON.parse(cached));
         return;
       }
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('⚠️ No token found - using cached guests');
+        const cached = localStorage.getItem('guests');
+        if (cached) setGuests(JSON.parse(cached));
+        return;
+      }
+
       const response = await axios.get(`${API_URL}/api/guests`, {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000,
       });
+      
       if (response.data.success) {
+        console.log('✅ Fetched', response.data.data.length, 'guests from server');
         setGuests(response.data.data);
+        // Update localStorage with server data
+        localStorage.setItem('guests', JSON.stringify(response.data.data));
       }
     } catch (error) {
-      console.error('Failed to fetch guests:', error);
+      console.error('❌ Failed to fetch guests from server:', error);
       // fallback to local cache
       const cached = localStorage.getItem('guests');
-      if (cached) setGuests(JSON.parse(cached));
+      if (cached) {
+        console.log('📦 Using cached guests');
+        setGuests(JSON.parse(cached));
+      }
     }
   };
 
@@ -117,57 +133,72 @@ export default function GuestList() {
     try {
       setLoading(true);
       const offlineMode = localStorage.getItem('offlineMode') === 'true';
-      if (offlineMode) {
-        // locally add guest
-        const guest = {
-          id: `local-${Date.now()}`,
-          name: newGuest.name || '',
-          email: newGuest.email || '',
-          phone: newGuest.phone || '',
-          rsvpStatus: (newGuest.rsvpStatus as any) || 'pending',
-          mealPreference: newGuest.mealPreference || '',
-          plusOne: !!newGuest.plusOne,
-          group: newGuest.group || '',
-        } as Guest;
-        const next = [...guests, guest];
-        setGuests(next);
-        localStorage.setItem('guests', JSON.stringify(next));
-        setShowAddModal(false);
-        setNewGuest({
-          name: '',
-          email: '',
-          phone: '',
-          rsvpStatus: 'pending',
-          mealPreference: '',
-          plusOne: false,
-          group: '',
-        });
-        return;
+      const token = localStorage.getItem('token');
+
+      // Online mode - save to server
+      if (!offlineMode && token) {
+        try {
+          const response = await axios.post(`${API_URL}/api/guests`, newGuest, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 5000,
+          });
+          
+          if (response.data.success) {
+            const updatedGuests = [...guests, response.data.data];
+            setGuests(updatedGuests);
+            localStorage.setItem('guests', JSON.stringify(updatedGuests));
+            console.log('✅ Guest added and saved to server');
+            setShowAddModal(false);
+            setNewGuest({
+              name: '',
+              email: '',
+              phone: '',
+              rsvpStatus: 'pending',
+              mealPreference: '',
+              plusOne: false,
+              group: '',
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Failed to save to server, saving locally:', error);
+        }
       }
 
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/guests`, newGuest, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Offline mode or server failed - save locally
+      const guest = {
+        id: `local-${Date.now()}`,
+        name: newGuest.name || '',
+        email: newGuest.email || '',
+        phone: newGuest.phone || '',
+        rsvpStatus: (newGuest.rsvpStatus as any) || 'pending',
+        mealPreference: newGuest.mealPreference || '',
+        plusOne: !!newGuest.plusOne,
+        group: newGuest.group || '',
+      } as Guest;
       
-      if (response.data.success) {
-        setGuests([...guests, response.data.data]);
-        setShowAddModal(false);
-        setNewGuest({
-          name: '',
-          email: '',
-          phone: '',
-          rsvpStatus: 'pending',
-          mealPreference: '',
-          plusOne: false,
-          group: '',
-        });
-      }
+      const next = [...guests, guest];
+      setGuests(next);
+      localStorage.setItem('guests', JSON.stringify(next));
+      console.log('💾 Guest saved locally');
+      
+      setShowAddModal(false);
+      setNewGuest({
+        name: '',
+        email: '',
+        phone: '',
+        rsvpStatus: 'pending',
+        mealPreference: '',
+        plusOne: false,
+        group: '',
+      });
     } catch (error) {
       console.error('Failed to add guest:', error);
       alert('Failed to add guest');
     } finally {
       setLoading(false);
+    }
+  };
     }
   };
 

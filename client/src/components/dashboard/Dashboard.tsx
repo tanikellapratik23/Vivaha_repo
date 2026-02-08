@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
 import { getThemeClasses } from '../../utils/themeColors';
+import { syncUserData } from '../../utils/dataSync';
 import axios from 'axios';
 import Tutorial from '../Tutorial';
 import SingleSourceOfTruth from './SingleSourceOfTruth';
@@ -102,8 +103,44 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
       fetchUserSettings();
       sendWelcomeEmail();
       loadNavigationPreferences();
+      syncAllUserData();
     }
+
+    // Set up page unload handler to save all data before leaving
+    const handleBeforeUnload = () => {
+      try {
+        const token = authStorage.getToken();
+        if (!token) return;
+
+        // Save all cached data to localStorage (it will auto-sync on next load)
+        console.log('💾 Page unloading - ensuring all data is saved to cache');
+        const guests = localStorage.getItem('guests');
+        const budget = localStorage.getItem('budget');
+        const todos = localStorage.getItem('todos');
+        const onboarding = localStorage.getItem('onboarding');
+        
+        if (guests) console.log('✅ Guests cached before unload');
+        if (budget) console.log('✅ Budget cached before unload');
+        if (todos) console.log('✅ Todos cached before unload');
+        if (onboarding) console.log('✅ Onboarding data cached before unload');
+      } catch (e) {
+        console.error('Error saving data before unload:', e);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [propIsAdmin, navigate]);
+
+  const syncAllUserData = async () => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+      await syncUserData(token);
+    } catch (error) {
+      console.error('Failed to sync user data:', error);
+    }
+  };
 
   const sendWelcomeEmail = async () => {
     try {

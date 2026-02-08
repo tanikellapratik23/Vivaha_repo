@@ -142,22 +142,39 @@ export default function BudgetTracker() {
     try {
       const offlineMode = localStorage.getItem('offlineMode') === 'true';
       if (offlineMode) {
+        console.log('📴 Offline mode - loading budget from cache');
         const cached = localStorage.getItem('budget');
         if (cached) setCategories(JSON.parse(cached));
         return;
       }
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('⚠️ No token found - using cached budget');
+        const cached = localStorage.getItem('budget');
+        if (cached) setCategories(JSON.parse(cached));
+        return;
+      }
+
       const response = await axios.get(`${API_URL}/api/budget`, {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000,
       });
+      
       if (response.data.success) {
+        console.log('✅ Fetched', response.data.data.length, 'budget categories from server');
         setCategories(response.data.data);
+        // Update localStorage with server data
+        localStorage.setItem('budget', JSON.stringify(response.data.data));
       }
     } catch (error) {
-      console.error('Failed to fetch budget categories:', error);
+      console.error('❌ Failed to fetch budget categories from server:', error);
+      // fallback to local cache
       const cached = localStorage.getItem('budget');
-      if (cached) setCategories(JSON.parse(cached));
+      if (cached) {
+        console.log('📦 Using cached budget');
+        setCategories(JSON.parse(cached));
+      }
     }
   };
 
