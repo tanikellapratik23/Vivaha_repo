@@ -246,25 +246,3 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     </div>
   );
 }
-
-            <p className="text-2xl font-bold text-green-600 mt-1">
-              {stats.totalUsers > 0 ? Math.round((stats.weddingsPlanned / stats.totalUsers) * 100) : 0}%
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Admin Controls */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Admin Controls</h2>
-        <button
-          onClick={onLogout}
-          className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition"
-        >
-          <LogOut className="w-5 h-5" />
-          Logout from Admin Dashboard
-        </button>
-      </div>
-    </div>
-  );
-}
