@@ -33,11 +33,22 @@ export const authStorage = {
   
   getUser: (): any => {
     const user = sessionStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    if (user) return JSON.parse(user);
+    
+    // Try localStorage for persistent login
+    const persistedUser = localStorage.getItem('user');
+    if (persistedUser) {
+      sessionStorage.setItem('user', persistedUser);
+      return JSON.parse(persistedUser);
+    }
+    return null;
   },
   
-  setUser: (user: any): void => {
+  setUser: (user: any, persistent: boolean = false): void => {
     sessionStorage.setItem('user', JSON.stringify(user));
+    if (persistent) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
   },
   
   isKeepSignedIn: (): boolean => {

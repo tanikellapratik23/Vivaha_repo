@@ -35,8 +35,16 @@ function App() {
         setHasCompletedOnboarding(true);
       } catch (e) {
         setIsAdmin(false);
-        setHasCompletedOnboarding(true); // If authenticated, onboarding is done
+        // If authenticated, check onboarding status
+        const onboardingCompleted = 
+          localStorage.getItem('onboardingCompleted') === 'true' || 
+          sessionStorage.getItem('onboardingCompleted') === 'true';
+        setHasCompletedOnboarding(onboardingCompleted || true); // Default to true for logged-in users
       }
+    } else {
+      // Not authenticated - check localStorage for onboarding state
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+      setHasCompletedOnboarding(onboardingCompleted);
     }
   }, []);
 

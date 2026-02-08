@@ -45,10 +45,13 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       clearTimeout(timer);
       console.log('Login successful:', response.data);
       authStorage.setToken(response.data.token, keepSignedIn);
-      authStorage.setUser(response.data.user);
+      authStorage.setUser(response.data.user, keepSignedIn);
       
       // Always mark onboarding as complete for authenticated users
       sessionStorage.setItem('onboardingCompleted', 'true');
+      if (keepSignedIn) {
+        localStorage.setItem('onboardingCompleted', 'true');
+      }
       
       setIsAuthenticated(true);
 
