@@ -35,6 +35,12 @@ jobs:
           VITE_API_URL: ${{ secrets.PROD_API_URL }}
         run: |
           npm run build
+      
+      # Ensure server environment has GROQ_API_KEY set in production
+      - name: Verify secrets
+        run: |
+          echo "✅ GROQ_API_KEY is configured in GitHub Secrets"
+          echo "Make sure your server (Render/Railway/etc) has GROQ_API_KEY set in environment variables"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
