@@ -21,6 +21,8 @@ export default function BudgetTracker() {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: '',
     estimatedAmount: 0,
@@ -49,14 +51,65 @@ export default function BudgetTracker() {
     fetchBudgetCategories();
   }, []);
 
-  // Save to localStorage immediately whenever categories change
+  // Auto-save to server whenever categories change (debounced)
   useEffect(() => {
-    try {
-      localStorage.setItem('budget', JSON.stringify(categories));
-      if (isAutoSaveEnabled()) setWithTTL('budget', categories, 24 * 60 * 60 * 1000);
-    } catch (e) {
-      console.error('Failed to save budget:', e);
+    if (!isAutoSaveEnabled() || categories.length === 0) {
+      return;
     }
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Save to localStorage immediately
+    localStorage.setItem('budget', JSON.stringify(categories));
+    setAutoSaveStatus('saving');
+
+    // Debounce server save by 2 seconds
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const offlineMode = localStorage.getItem('offlineMode') === 'true';
+        if (offlineMode) {
+          setAutoSaveStatus('saved');
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setAutoSaveStatus('idle');
+          return;
+        }
+
+        // Save each category individually
+        for (const category of categories) {
+          if (category._id) {
+            // Update existing category
+            await axios.put(`${API_URL}/api/budget/${category._id}`, category, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          } else if (category.id && !category.id.startsWith('local-')) {
+            // Create new category if not local
+            await axios.post(`${API_URL}/api/budget`, category, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+        }
+        setAutoSaveStatus('saved');
+        // Clear saved status after 2 seconds
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setAutoSaveStatus('error');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
   }, [categories]);
 
   // Listen for external budget changes (e.g. AI assistant or other UI)
@@ -130,10 +183,15 @@ export default function BudgetTracker() {
         localStorage.setItem('budget', JSON.stringify(next));
         setShowAddModal(false);
         setNewCategory({ name: '', estimatedAmount: 0 });
+        alert(`✅ Added "${newCategory.name}" to your budget!`);
         return;
       }
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Not authenticated. Please log in.');
+      }
+
       const response = await axios.post(`${API_URL}/api/budget`, {
         name: newCategory.name,
         estimatedAmount: newCategory.estimatedAmount,
@@ -141,14 +199,18 @@ export default function BudgetTracker() {
         paid: 0,
       }, {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000,
       });
       
-      if (response.data.success) {
+      if (response.data.success || response.data.data) {
         setCategories([...categories, response.data.data]);
         setShowAddModal(false);
         setNewCategory({ name: '', estimatedAmount: 0 });
+        alert(`✅ Added "${newCategory.name}" successfully!`);
+      } else {
+        throw new Error(response.data.error || 'Failed to add category');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add category:', error);
       // Fallback: create local category to avoid blocking the user
       const cat = {
@@ -163,11 +225,13 @@ export default function BudgetTracker() {
       localStorage.setItem('budget', JSON.stringify(next));
       setShowAddModal(false);
       setNewCategory({ name: '', estimatedAmount: 0 });
-      // notify user that item saved locally
-      alert('Added category locally (offline or error saving to server). It will sync when possible.');
+      // notify user that item saved locally with reason
+      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+      alert(`✅ Added "${newCategory.name}" locally. It will sync to your account when the connection is restored. (Error: ${errorMsg})`);
     } finally {
       setLoading(false);
     }
+  };
   };
 
   const deleteCategory = async (id: string) => {
@@ -386,6 +450,17 @@ export default function BudgetTracker() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">Budget Tracker</h1>
           <p className="text-gray-100 mt-1 drop-shadow-md">Monitor your wedding expenses</p>
+          {autoSaveStatus !== 'idle' && (
+            <div className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${
+              autoSaveStatus === 'saving' ? 'bg-blue-100 text-blue-700' :
+              autoSaveStatus === 'saved' ? 'bg-green-100 text-green-700' :
+              'bg-red-100 text-red-700'
+            }`}>
+              {autoSaveStatus === 'saving' ? '💾 Saving...' :
+               autoSaveStatus === 'saved' ? '✅ Saved' :
+               '⚠️ Save failed'}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <input ref={fileRef} type="file" accept="application/json" onChange={handleUpload} className="hidden" />

@@ -49,7 +49,62 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const [editableResponse, setEditableResponse] = useState<CeremonyResponse | null>(null);
 
-  // Call AI API (Groq or HuggingFace)
+  // Parse and execute budget commands (e.g., "add 200000 to budget for venue")
+  const executeBudgetCommand = (prompt: string): boolean => {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Match patterns like "add 200000 to venue" or "set catering to 5000"
+    const addMatch = lowerPrompt.match(/add\s+(\d+(?:,\d{3})*(?:\.\d{2})?)\s+(?:to\s+)?(?:budget\s+)?(?:for\s+)?(\w+)/i);
+    const setMatch = lowerPrompt.match(/set\s+(\w+)\s+(?:to|budget)\s+(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    
+    let categoryName = '';
+    let amount = 0;
+    
+    if (addMatch) {
+      amount = parseFloat(addMatch[1].replace(/,/g, ''));
+      categoryName = addMatch[2];
+    } else if (setMatch) {
+      categoryName = setMatch[1];
+      amount = parseFloat(setMatch[2].replace(/,/g, ''));
+    } else {
+      return false; // Not a budget command
+    }
+    
+    // Get current budget and add/update category
+    try {
+      const cached = localStorage.getItem('budget');
+      const budget = cached ? JSON.parse(cached) : [];
+      const categoryIndex = budget.findIndex((cat: any) => cat.name.toLowerCase() === categoryName.toLowerCase());
+      
+      if (categoryIndex >= 0) {
+        // Update existing category
+        budget[categoryIndex].estimatedAmount = amount;
+      } else {
+        // Create new category
+        budget.push({
+          id: `local-${Date.now()}`,
+          name: categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
+          estimatedAmount: amount,
+          actualAmount: 0,
+          paid: 0,
+        });
+      }
+      
+      // Save to localStorage
+      localStorage.setItem('budget', JSON.stringify(budget));
+      
+      // Dispatch event to notify BudgetTracker component
+      const event = new CustomEvent('budgetChanged', {
+        detail: { categories: budget }
+      });
+      window.dispatchEvent(event);
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to execute budget command:', error);
+      return false;
+    }
+  };
   const callAIAPI = async (prompt: string): Promise<{ reply: string; structured?: any }> => {
     try {
       const response = await fetch(AI_CHAT_ENDPOINT, {
@@ -91,35 +146,48 @@ export default function AIAssistant() {
     setEditableResponse(null);
 
     try {
-      const aiResult = await callAIAPI(prompt);
-      const responseText = aiResult.reply || '';
-      let responseType = 'text';
-
-      // If server provided structured payload, prefer that for ceremony editing
-      if (aiResult.structured && aiResult.structured.ceremony && Array.isArray(aiResult.structured.ceremony)) {
-        responseType = 'ceremony';
-        setEditableResponse(aiResult.structured as CeremonyResponse);
+      // Check if this is a budget command
+      const isBudgetCommand = executeBudgetCommand(prompt);
+      
+      if (isBudgetCommand) {
+        // For budget commands, add a confirmation message
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '✅ Budget updated! I\'ve added/updated the amount in your budget. The changes have been saved automatically.',
+          type: 'text'
+        }]);
       } else {
-        // Try to parse plain text as JSON (legacy behavior)
-        try {
-          const parsed = JSON.parse(responseText);
-          if (parsed.ceremony && Array.isArray(parsed.ceremony)) {
-            responseType = 'ceremony';
-            setEditableResponse(parsed);
+        // Otherwise, call AI for regular responses
+        const aiResult = await callAIAPI(prompt);
+        const responseText = aiResult.reply || '';
+        let responseType = 'text';
+
+        // If server provided structured payload, prefer that for ceremony editing
+        if (aiResult.structured && aiResult.structured.ceremony && Array.isArray(aiResult.structured.ceremony)) {
+          responseType = 'ceremony';
+          setEditableResponse(aiResult.structured as CeremonyResponse);
+        } else {
+          // Try to parse plain text as JSON (legacy behavior)
+          try {
+            const parsed = JSON.parse(responseText);
+            if (parsed.ceremony && Array.isArray(parsed.ceremony)) {
+              responseType = 'ceremony';
+              setEditableResponse(parsed);
+            }
+          } catch {
+            // not JSON
           }
-        } catch {
-          // not JSON
         }
+
+        // Ensure assistant messages are plain text only
+        const cleaned = String(responseText).replace(/```[\s\S]*?```/g, '').replace(/`+/g, '').trim();
+
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: cleaned,
+          type: responseType
+        }]);
       }
-
-      // Ensure assistant messages are plain text only
-      const cleaned = String(responseText).replace(/```[\s\S]*?```/g, '').replace(/`+/g, '').trim();
-
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: cleaned,
-        type: responseType
-      }]);
     } catch (error) {
       setMessages(prev => [...prev, {
         role: 'assistant',

@@ -26,6 +26,7 @@ import PostWeddingStory from './PostWeddingStory';
 import VivahaSplit from './VivahaSplit';
 import AdminDashboard from './AdminDashboard';
 import VivahaPost from './VivahaPost';
+import WeddingInfoEditor from './WeddingInfoEditor';
 import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -287,6 +288,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
 
   const navigation = [
     { name: 'Overview', path: '/dashboard', icon: LayoutGrid },
+    { name: 'Wedding Info', path: '/dashboard/wedding-info', icon: Heart },
     { name: 'Guest List', path: '/dashboard/guests', icon: Users },
     { name: 'Budget', path: '/dashboard/budget', icon: DollarSign },
     { name: 'Vivaha Split', path: '/dashboard/split', icon: Split },
@@ -574,6 +576,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
                 <Route path="/guests" element={<GuestList />} />
                 <Route path="/budget" element={<BudgetTracker />} />
                 <Route path="/split" element={<VivahaSplit />} />
+                <Route path="/wedding-info" element={<WeddingInfoEditor />} />
                 <Route path="/todos" element={<TodoList />} />
                 <Route path="/ceremony" element={<CeremonyPlanning />} />
                 <Route path="/music" element={<MusicPlanner />} />

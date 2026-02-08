@@ -21,7 +21,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, retryCount: number = 0) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -36,7 +36,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     }, 5000);
 
     try {
-      console.log('Attempting login with:', formData.email);
+      console.log(`Attempting login with: ${formData.email}${retryCount > 0 ? ` (retry ${retryCount})` : ''}`);
       const response = await axios.post(`${API_URL}/api/auth/login`, formData, { timeout: 30000 });
       if (didFallback) {
         // already continued offline, ignore late response
@@ -73,6 +73,19 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       clearTimeout(timer);
       if (didFallback) return;
       console.error('Login error:', err.response?.data || err.message);
+      
+      // Auto-retry once on connection errors (don't retry on auth errors)
+      if (retryCount === 0 && (!err.response || err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout'))) {
+        console.log('⚠️ Connection error, retrying login...');
+        setError('Retrying connection...');
+        setLoading(false);
+        // Wait 1 second before retrying
+        setTimeout(() => {
+          handleSubmit(e, 1);
+        }, 1000);
+        return;
+      }
+      
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Login timed out — the server may be waking up. Try again in a few seconds.');
       } else if (err.response) {
