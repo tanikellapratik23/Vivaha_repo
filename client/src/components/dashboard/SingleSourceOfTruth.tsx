@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Phone, Mail, Hotel, Shirt, Copy, Check, ExternalLink, Edit2, Save, X } from 'lucide-react';
+import { Calendar, MapPin, Users, Phone, Mail, Hotel, Shirt, Copy, Check, ExternalLink, Edit2, Save, X, Heart } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 
@@ -80,20 +80,55 @@ export default function SingleSourceOfTruth() {
     try {
       setSaving(true);
       const token = authStorage.getToken();
-      if (!token) return;
+      
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
 
-      await axios.put(
+      // Prepare the update payload with all editable fields
+      const updatePayload = {
+        weddingDate: editedInfo?.weddingDate || null,
+        weddingTime: editedInfo?.weddingTime || null,
+        weddingCity: editedInfo?.weddingCity || null,
+        weddingState: editedInfo?.weddingState || null,
+        guestCount: editedInfo?.guestCount || null,
+        venue: editedInfo?.venue || null,
+        dressCode: editedInfo?.dressCode || null,
+        contactName: editedInfo?.contactName || null,
+        contactPhone: editedInfo?.contactPhone || null,
+        contactEmail: editedInfo?.contactEmail || null,
+        additionalInfo: editedInfo?.additionalInfo || null,
+        coupleName1: editedInfo?.coupleName1 || null,
+        coupleName2: editedInfo?.coupleName2 || null,
+      };
+
+      const response = await axios.put(
         `${API_URL}/api/onboarding`,
-        editedInfo,
-        { headers: { Authorization: `Bearer ${token}` } }
+        updatePayload,
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
 
-      setWeddingInfo(editedInfo);
-      setIsEditing(false);
-      alert('Wedding information updated successfully!');
-    } catch (error) {
+      if (response.data) {
+        setWeddingInfo(response.data);
+        setEditedInfo(response.data);
+        setIsEditing(false);
+        alert('Wedding information updated successfully! Your shared link will now display the latest details.');
+      }
+    } catch (error: any) {
       console.error('Failed to save wedding info:', error);
-      alert('Failed to save changes. Please try again.');
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please log in again.');
+      } else if (error.response?.status === 400) {
+        alert('Invalid data format. Please check your entries.');
+      } else {
+        alert('Failed to save changes. Please try again.');
+      }
     } finally {
       setSaving(false);
     }
@@ -187,6 +222,37 @@ export default function SingleSourceOfTruth() {
         </div>
 
         <div className="p-8 space-y-6">
+          {/* Couple Names */}
+          <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border-2 border-pink-200">
+            <Heart className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900 text-lg mb-2">Who's Getting Married?</div>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={editedInfo?.coupleName1 || ''}
+                    onChange={(e) => updateField('coupleName1', e.target.value)}
+                    placeholder="First Person's Name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={editedInfo?.coupleName2 || ''}
+                    onChange={(e) => updateField('coupleName2', e.target.value)}
+                    placeholder="Second Person's Name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+              ) : (
+                <div className="text-gray-700 mt-1 text-lg font-semibold">
+                  {displayInfo?.coupleName1}
+                  {displayInfo?.coupleName2 && <span> & {displayInfo?.coupleName2}</span>}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Date & Time */}
           {displayInfo?.weddingDate && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
@@ -359,6 +425,31 @@ export default function SingleSourceOfTruth() {
                       <Mail className="w-4 h-4 inline mr-1" />
                       {displayInfo.contactEmail}
                     </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+            <Mail className="w-6 h-6 text-indigo-600 flex-shrink-0 mt-1" />
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900 text-lg mb-2">Special Notes</div>
+              {isEditing ? (
+                <textarea
+                  value={editedInfo?.additionalInfo || ''}
+                  onChange={(e) => updateField('additionalInfo', e.target.value)}
+                  placeholder="Add any extra details for your guests - registry links, hotel recommendations, dietary preferences, traditions to honor, special requests, etc."
+                  rows={5}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                />
+              ) : (
+                <>
+                  {displayInfo?.additionalInfo ? (
+                    <div className="text-gray-700 mt-1 whitespace-pre-wrap">{displayInfo.additionalInfo}</div>
+                  ) : (
+                    <div className="text-gray-500 italic mt-1">No additional notes added yet</div>
                   )}
                 </>
               )}
