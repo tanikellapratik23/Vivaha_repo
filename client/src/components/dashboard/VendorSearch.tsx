@@ -102,47 +102,75 @@ export default function VendorSearch() {
       const isFavorite = (Array.isArray(favorites) ? favorites : []).includes(vendorId);
       
       if (isFavorite) {
-        // Remove from favorites
+        // Remove from favorites - update UI first
         const existingVendor = (Array.isArray(favoriteVendors) ? favoriteVendors : []).find(v => v.id === vendorId);
-        if (existingVendor?._id) {
-          await axios.delete(`${API_URL}/api/vendors/${existingVendor._id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        }
         setFavorites((Array.isArray(favorites) ? favorites : []).filter(id => id !== vendorId));
         setFavoriteVendors((Array.isArray(favoriteVendors) ? favoriteVendors : []).filter(v => v.id !== vendorId));
+        
+        // Try to remove from server
+        if (existingVendor?._id && token) {
+          try {
+            await axios.delete(`${API_URL}/api/vendors/${existingVendor._id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          } catch (serverError) {
+            console.warn('Server delete failed, using local update:', serverError);
+          }
+        }
+        
+        // Update local storage
+        try {
+          const currentMyVendors = JSON.parse(localStorage.getItem('myVendors') || '[]');
+          const updatedVendors = currentMyVendors.filter((v: Vendor) => v.id !== vendorId);
+          localStorage.setItem('myVendors', JSON.stringify(updatedVendors));
+        } catch (e) {
+          console.error('Failed to update localStorage:', e);
+        }
       } else {
-        // Add to favorites
+        // Add to favorites - update UI first
         const vendorToSave = {
           ...vendor,
           status: 'researching',
           isFavorite: true,
         };
         
-        const response = await axios.post(`${API_URL}/api/vendors`, vendorToSave, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Optimistic update
+        setFavorites([...(Array.isArray(favorites) ? favorites : []), vendorId]);
+        setFavoriteVendors([...(Array.isArray(favoriteVendors) ? favoriteVendors : []), vendorToSave]);
         
-        if (response.data.success) {
-          const savedVendor = response.data.data;
-          setFavorites([...favorites, vendorId]);
-          setFavoriteVendors([...favoriteVendors, savedVendor]);
-          
-          // Also save to local storage for immediate sync with My Vendors page
+        // Update local storage immediately
+        try {
+          const currentMyVendors = JSON.parse(localStorage.getItem('myVendors') || '[]');
+          const vendorObj = {
+            ...vendorToSave,
+            id: vendorId,
+          };
+          const updatedVendors = [...currentMyVendors, vendorObj];
+          localStorage.setItem('myVendors', JSON.stringify(updatedVendors));
+        } catch (e) {
+          console.error('Failed to sync with localStorage:', e);
+        }
+        
+        // Try to save to server (non-blocking)
+        if (token) {
           try {
-            const currentMyVendors = JSON.parse(localStorage.getItem('myVendors') || '[]');
-            const vendorObj = {
-              _id: savedVendor._id,
-              ...vendorToSave,
-              id: savedVendor._id || vendorId,
-            };
-            const updatedVendors = [...currentMyVendors, vendorObj];
-            localStorage.setItem('myVendors', JSON.stringify(updatedVendors));
+            const response = await axios.post(`${API_URL}/api/vendors`, vendorToSave, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 5000,
+            });
             
-            // Dispatch event so My Vendors page updates immediately
-            window.dispatchEvent(new CustomEvent('vendorFavorited', { detail: { vendor: savedVendor } }));
-          } catch (e) {
-            console.error('Failed to sync with localStorage:', e);
+            if (response.data.success) {
+              const savedVendor = response.data.data;
+              // Update with server data if available
+              if (savedVendor._id) {
+                setFavoriteVendors(prev => prev.map(v => v.id === vendorId ? { ...savedVendor, id: savedVendor._id } : v));
+              }
+              // Dispatch event so My Vendors page updates
+              window.dispatchEvent(new CustomEvent('vendorFavorited', { detail: { vendor: savedVendor } }));
+            }
+          } catch (serverError) {
+            console.warn('Server save failed, using local update:', serverError);
+            // Vendor is already saved locally, so this is OK
           }
         }
       }
