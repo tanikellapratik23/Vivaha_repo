@@ -176,52 +176,53 @@ export default function Overview() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary-500 via-pink-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white border border-primary-400/30">
-        <div className="flex items-center space-x-4">
-          <Heart className="w-10 h-10 drop-shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight mb-2 text-white drop-shadow-lg">
-              Welcome back{userName ? `, ${userName}` : ''}!
-            </h1>
-            {!isLoading && userSettings?.weddingCity && (
-              <div className="flex items-center gap-2 text-white/90 text-xs drop-shadow-md mb-2">
-                <MapPin className="w-3 h-3" />
-                <span className="font-medium">{userSettings.weddingCity}, {userSettings.weddingState || userSettings.weddingCountry}</span>
+      {/* Welcome Banner - Redesigned */}
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-8 border border-gray-200/50">
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-primary-600 bg-clip-text text-transparent mb-2">
+            Welcome back{userName ? `, ${userName}` : ''}!
+          </h1>
+        </div>
+
+        {!isLoading && userSettings?.weddingCity && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-1">
+              <MapPin className="w-5 h-5 text-primary-500" />
+              <span>{userSettings.weddingCity}, {userSettings.weddingState || userSettings.weddingCountry}</span>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && userSettings?.weddingDate && (
+          <div className="text-gray-600 text-md font-medium">
+            📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+        )}
+
+        {!isLoading && stats.daysUntilWedding > 0 && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="text-gray-600 font-medium mb-1">Your Wedding Day</div>
+            <div className="flex items-baseline gap-3">
+              <div className="text-5xl md:text-6xl font-black bg-gradient-to-r from-pink-500 to-primary-500 bg-clip-text text-transparent">
+                {stats.daysUntilWedding}
               </div>
-            )}
-            {!isLoading && userSettings?.weddingDate && (
-              <p className="text-white/90 text-xs drop-shadow-md">
-                📅 {new Date(userSettings.weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              <div className="text-xl font-semibold text-gray-700">
+                {stats.daysUntilWedding === 1 ? 'day' : 'days'} to go 💕
+              </div>
+            </div>
+            {userSettings?.weddingTime && (
+              <p className="text-gray-500 text-sm mt-2">
+                {stats.hoursUntilWedding} hours, {stats.minutesUntilWedding} minutes
               </p>
             )}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Days Until Wedding */}
-      {!isLoading && stats.daysUntilWedding > 0 && (
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-8 border border-gray-200/50 text-center">
-          <Calendar className="w-12 h-12 mx-auto mb-3 text-pink-500" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Your Wedding Day</h2>
-          <div className="text-6xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-primary-500 bg-clip-text text-transparent mb-2">
-            {stats.daysUntilWedding}
-          </div>
-          <p className="text-xl font-semibold text-gray-700">
-            {stats.daysUntilWedding === 1 ? 'day' : 'days'} to go 💕
-          </p>
-          {userSettings?.weddingTime && (
-            <p className="text-gray-500 text-sm mt-3">
-              {stats.hoursUntilWedding} hours, {stats.minutesUntilWedding} minutes
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Quick Actions - Moved up and always shown */}
+      {/* Quick Actions */}
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
-        <h2 className="text-xl font-bold tracking-tight text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: 'Add Guest', icon: Users, color: 'bg-gradient-to-br from-blue-500 to-blue-600', action: () => navigate('/dashboard/guests') },
             { label: 'Add Expense', icon: DollarSign, color: 'bg-gradient-to-br from-green-500 to-green-600', action: () => navigate('/dashboard/budget') },
@@ -233,10 +234,10 @@ export default function Overview() {
               <button
                 key={index}
                 onClick={action.action}
-                className={`${action.color} hover:scale-105 text-white p-6 rounded-xl transition-all shadow-lg hover:shadow-xl cursor-pointer`}
+                className={`${action.color} hover:scale-105 text-white p-4 md:p-5 rounded-xl transition-all shadow-lg hover:shadow-xl cursor-pointer font-semibold text-sm md:text-base`}
               >
-                <Icon className="w-8 h-8 mx-auto mb-2" />
-                <span className="block text-sm font-bold">{action.label}</span>
+                <Icon className="w-6 h-6 mx-auto mb-2" />
+                <span className="block">{action.label}</span>
               </button>
             );
           })}
@@ -246,7 +247,7 @@ export default function Overview() {
       {/* AI Budget Optimization - ONLY SHOWN WHEN SUGGESTIONS EXIST */}
       {aiSuggestions.length > 0 && (
         <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-2xl shadow-lg p-6 border border-purple-200/50 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-bold tracking-tight text-gray-900 flex items-center">
               <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
               AI Budget Optimization
@@ -255,7 +256,7 @@ export default function Overview() {
           <div className="space-y-3">
             {aiSuggestions.map((suggestion, index) => (
               <div key={index} className="flex items-start gap-3 bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
-                <span className="text-2xl">{suggestion.split(' ')[0]}</span>
+                <span className="text-2xl flex-shrink-0">{suggestion.split(' ')[0]}</span>
                 <p className="text-gray-700 text-sm flex-1 font-medium leading-relaxed">{suggestion.substring(suggestion.indexOf(' ') + 1)}</p>
               </div>
             ))}
