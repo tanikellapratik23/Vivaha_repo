@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+// Log API key status on startup
+console.log('🔍 Resend Configuration:');
+console.log(`   API Key Set: ${RESEND_API_KEY ? '✅ YES' : '❌ NO'}`);
+console.log(`   Key Length: ${RESEND_API_KEY ? RESEND_API_KEY.length : 0}`);
+console.log(`   Key Starts: ${RESEND_API_KEY ? RESEND_API_KEY.substring(0, 8) + '...' : 'N/A'}`);
+
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 // Constants for email configuration
@@ -25,17 +32,20 @@ export async function sendEmail({
 }) {
   // Validate API key
   if (!RESEND_API_KEY) {
-    console.error('❌ RESEND_API_KEY not configured in environment');
-    throw new Error('Email service not configured');
+    console.error('❌ RESEND_API_KEY environment variable is NOT set!');
+    console.error('   Please add RESEND_API_KEY to Render environment variables');
+    throw new Error('Email service not configured - missing RESEND_API_KEY');
   }
 
   if (!resend) {
-    console.error('❌ Resend instance not initialized');
-    throw new Error('Email service error');
+    console.error('❌ Resend instance failed to initialize with provided API key');
+    throw new Error('Email service initialization failed');
   }
 
   try {
-    console.log(`📧 Sending email to ${to}`);
+    console.log(`📧 [EMAIL] Attempting to send email to: ${to}`);
+    console.log(`📧 [EMAIL] Subject: ${subject}`);
+    console.log(`📧 [EMAIL] From: ${EMAIL_FROM}`);
     
     const result = await resend.emails.send({
       from: EMAIL_FROM,
@@ -44,15 +54,22 @@ export async function sendEmail({
       html,
     });
 
+    console.log(`📧 [EMAIL] Resend Response:`, JSON.stringify(result, null, 2));
+
     if (result.error) {
-      console.error(`❌ Email service error: ${result.error.message}`);
-      throw result.error;
+      console.error(`❌ [EMAIL ERROR] Resend API returned error:`, result.error);
+      throw new Error(`Email service error: ${JSON.stringify(result.error)}`);
     }
 
-    console.log(`✅ Email sent successfully`);
+    console.log(`✅ [EMAIL SUCCESS] Email sent successfully to ${to}`);
     return result;
-  } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error);
+  } catch (error: any) {
+    console.error(`❌ [EMAIL FAILED] Error sending email to ${to}:`, error);
+    console.error(`❌ [EMAIL FAILED] Error details:`, {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+    });
     throw error;
   }
 }
@@ -68,6 +85,7 @@ export async function sendPasswordResetEmail(
   userName: string,
   resetUrl: string
 ) {
+  console.log(`🔐 [RESET] Initiating password reset email for: ${email}`);
   const html = generateResetPasswordEmailHTML(userName, resetUrl);
   
   return sendEmail({

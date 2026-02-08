@@ -281,20 +281,28 @@ router.post('/login', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
+    console.log(`\n🔐 [FORGOT-PASSWORD] Request received for email: ${email}`);
 
     // Validate email input
     if (!email) {
+      console.warn(`⚠️ [FORGOT-PASSWORD] Empty email received`);
       return res.status(400).json({ error: 'Email is required' });
     }
 
     // Find user by email
+    console.log(`🔍 [FORGOT-PASSWORD] Searching for user: ${email}`);
     const user = await User.findOne({ email });
+    
     if (!user) {
+      console.warn(`⚠️ [FORGOT-PASSWORD] No user found for: ${email}`);
       // Don't reveal if email exists (security best practice)
       return res.json({ message: 'If email exists, a reset link has been sent' });
     }
 
+    console.log(`✅ [FORGOT-PASSWORD] User found: ${user.name} (${user.email})`);
+
     // Generate secure reset token (valid for 1 hour)
+    console.log(`🔐 [FORGOT-PASSWORD] Generating reset token...`);
     const resetToken = jwt.sign(
       { userId: user._id, type: 'password-reset' },
       process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
@@ -305,24 +313,28 @@ router.post('/forgot-password', async (req, res) => {
     user.resetToken = resetToken;
     user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
+    console.log(`💾 [FORGOT-PASSWORD] Reset token saved to database`);
 
     // Build reset URL
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    console.log(`🔗 [FORGOT-PASSWORD] Reset URL: ${resetUrl}`);
 
     // Send password reset email using Resend
     try {
+      console.log(`📨 [FORGOT-PASSWORD] Calling sendPasswordResetEmail()...`);
       await sendPasswordResetEmail(user.email, user.name, resetUrl);
-      console.log(`✅ Password reset email sent to ${user.email}`);
+      console.log(`✅ [FORGOT-PASSWORD] Email sent successfully to ${user.email}`);
     } catch (emailError) {
-      console.error(`❌ Failed to send reset email to ${user.email}:`, emailError);
+      console.error(`❌ [FORGOT-PASSWORD] Email sending failed:`, emailError);
       // Still return success to frontend to avoid user enumeration
       return res.json({ message: 'If email exists, a reset link has been sent' });
     }
 
     // Return success message (don't reveal if email was found)
+    console.log(`✅ [FORGOT-PASSWORD] Request completed successfully\n`);
     res.json({ message: 'If email exists, a reset link has been sent' });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error(`❌ [FORGOT-PASSWORD] Unhandled error:`, error);
     res.status(500).json({ error: 'Failed to process password reset request' });
   }
 });
