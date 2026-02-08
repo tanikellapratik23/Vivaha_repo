@@ -38,7 +38,7 @@ router.post('/chat', async (req, res) => {
       return res.status(response.status).json({ error: 'AI service error' });
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     // Extract model message content safely
     const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
 
@@ -126,7 +126,7 @@ Generate 4 actionable suggestions:`;
       return res.status(response.status).json({ error: 'AI service error' });
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     const content = data.choices[0]?.message?.content || '';
     
     // Parse suggestions from response
