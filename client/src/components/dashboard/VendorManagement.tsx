@@ -258,15 +258,15 @@ export default function VendorManagement() {
                 </div>
               )}
               {vendor.website && (
-                <div className="flex items-center text-sm text-gray-600">
-                  <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                <div className="flex items-center">
                   <a
                     href={`https://${vendor.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-primary-600"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition"
                   >
-                    {vendor.website}
+                    <Globe className="w-4 h-4" />
+                    Website
                   </a>
                 </div>
               )}
