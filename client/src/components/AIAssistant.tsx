@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MessageCircle, X, Sparkles, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageCircle, X, Sparkles, Send, Plus, Trash2 } from 'lucide-react';
 
 interface CeremonyStep {
   time: string;
@@ -10,6 +10,36 @@ interface CeremonyResponse {
   ceremony: CeremonyStep[];
   notes: string[];
 }
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  type?: string;
+}
+
+interface ChatConversation {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+// Page navigation mappings
+const PAGE_NAVIGATION: { [key: string]: string } = {
+  'bachelor': '/dashboard/bachelor',
+  'bachelorette': '/dashboard/bachelorette',
+  'guests': '/dashboard/guests',
+  'guest': '/dashboard/guests',
+  'seating': '/dashboard/seating',
+  'budget': '/dashboard/budget',
+  'overview': '/dashboard/overview',
+  'timeline': '/dashboard/timeline',
+  'vendors': '/dashboard/vendors',
+  'wedding info': '/dashboard/wedding-info',
+  'ceremony': '/dashboard/ceremony',
+  'rsvp': '/dashboard/rsvp',
+};
 
 // Use server-side AI proxy endpoints to avoid embedding secrets in the client
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -26,44 +56,135 @@ Always be respectful of both traditions, consider dietary restrictions, and prov
 // Example prompts for quick access
 const EXAMPLE_PROMPTS = [
   {
-    label: '� Add Guest',
+    label: 'Add Guest',
     prompt: 'add pratik as a guest no plus one',
     type: 'guest'
   },
   {
-    label: '💰 Budget Command',
+    label: 'Budget Command',
     prompt: 'add 200000 to budget for venue',
     type: 'budget'
   },
   {
-    label: '�🕉️✝️ Hindu-Christian Ceremony',
-    prompt: 'Generate a 3-hour Hindu-Christian ceremony schedule with key rituals from both traditions. Include timing for each ritual.',
+    label: 'Navigate',
+    prompt: 'take me to the guests page',
+    type: 'navigate'
+  },
+  {
+    label: 'Ceremony',
+    prompt: 'Generate a 3-hour Hindu-Christian ceremony schedule',
     type: 'ceremony'
   },
-  {
-    label: '❓ FAQ: Alcohol at Ceremony',
-    prompt: 'Can we serve alcohol at a dual Hindu-Muslim ceremony? What are the cultural considerations?',
-    type: 'faq'
-  },
-  {
-    label: '💌 Wedding Invite Copy',
-    prompt: 'Write a culturally sensitive wedding invitation for Priya (Hindu) and Michael (Christian), wedding date March 15, 2026 in San Francisco.',
-    type: 'email'
-  }
 ];
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; type?: string }>>([]);
+  const [chatHistory, setChatHistory] = useState<ChatConversation[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [editableResponse, setEditableResponse] = useState<CeremonyResponse | null>(null);
+  const [showSidebar, setShowSidebar] = useState(true);
 
-  // Parse and execute budget commands (e.g., "add 200000 to budget for venue")
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('aiChatHistory');
+      if (saved) {
+        const history = JSON.parse(saved);
+        setChatHistory(history);
+        if (history.length > 0 && !currentChatId) {
+          setCurrentChatId(history[0].id);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load chat history:', e);
+    }
+  }, []);
+
+  // Start a new chat
+  const startNewChat = () => {
+    const newChat: ChatConversation = {
+      id: `chat-${Date.now()}`,
+      title: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    const updated = [newChat, ...chatHistory];
+    setChatHistory(updated);
+    setCurrentChatId(newChat.id);
+    setEditableResponse(null);
+    localStorage.setItem('aiChatHistory', JSON.stringify(updated));
+  };
+
+  // Delete a chat
+  const deleteChat = (id: string) => {
+    const updated = chatHistory.filter(chat => chat.id !== id);
+    setChatHistory(updated);
+    if (currentChatId === id && updated.length > 0) {
+      setCurrentChatId(updated[0].id);
+      setEditableResponse(null);
+    }
+    localStorage.setItem('aiChatHistory', JSON.stringify(updated));
+  };
+
+  // Switch to a chat
+  const switchChat = (id: string) => {
+    setCurrentChatId(id);
+    setEditableResponse(null);
+  };
+
+  // Get current chat
+  const currentChat = chatHistory.find(c => c.id === currentChatId);
+  const messages = currentChat?.messages || [];
+
+  // Update current chat messages
+  const updateCurrentChat = (newMessages: ChatMessage[]) => {
+    const updated = chatHistory.map(chat =>
+      chat.id === currentChatId
+        ? {
+            ...chat,
+            messages: newMessages,
+            updatedAt: Date.now(),
+            // Auto-generate title from first user message if it's still "New Chat"
+            title: chat.title === 'New Chat' && newMessages.length > 0
+              ? newMessages[0].content.substring(0, 40) + (newMessages[0].content.length > 40 ? '...' : '')
+              : chat.title,
+          }
+        : chat
+    );
+    setChatHistory(updated);
+    localStorage.setItem('aiChatHistory', JSON.stringify(updated));
+  };
+
+  // Parse and execute navigation commands
+  const executeNavigationCommand = (prompt: string): { executed: boolean; page?: string; message?: string } => {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Match patterns like "take me to X", "go to X", "open X", "navigate to X"
+    const navMatch = lowerPrompt.match(/(?:take|go|navigate|send|bring|open)\s+(?:me\s+)?to\s+(?:the\s+)?([a-z\s]+?)(?:\s+page)?(?:\s+tab)?$/);
+    
+    if (!navMatch) return { executed: false };
+    
+    const requestedPage = navMatch[1].trim();
+    const page = PAGE_NAVIGATION[requestedPage];
+    
+    if (page) {
+      return {
+        executed: true,
+        page,
+        message: `Navigating to ${requestedPage}...`
+      };
+    }
+    
+    return { executed: false };
+  };
+
+  // Parse and execute budget commands
   const executeBudgetCommand = (prompt: string): { executed: boolean; message?: string } => {
     const lowerPrompt = prompt.toLowerCase();
     
-    // Match patterns like "add 200000 to venue" or "set catering to 5000"
     const addMatch = lowerPrompt.match(/add\s+(\d+(?:,\d{3})*(?:\.\d{2})?)\s+(?:to\s+)?(?:budget\s+)?(?:for\s+)?(\w+)/i);
     const setMatch = lowerPrompt.match(/set\s+(\w+)\s+(?:to|budget)\s+(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
     
@@ -77,20 +198,17 @@ export default function AIAssistant() {
       categoryName = setMatch[1];
       amount = parseFloat(setMatch[2].replace(/,/g, ''));
     } else {
-      return { executed: false }; // Not a budget command
+      return { executed: false };
     }
     
-    // Get current budget and add/update category
     try {
       const cached = localStorage.getItem('budget');
       const budget = cached ? JSON.parse(cached) : [];
       const categoryIndex = budget.findIndex((cat: any) => cat.name.toLowerCase() === categoryName.toLowerCase());
       
       if (categoryIndex >= 0) {
-        // Update existing category
         budget[categoryIndex].estimatedAmount = amount;
       } else {
-        // Create new category
         budget.push({
           id: `local-${Date.now()}`,
           name: categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
@@ -100,10 +218,8 @@ export default function AIAssistant() {
         });
       }
       
-      // Save to localStorage
       localStorage.setItem('budget', JSON.stringify(budget));
       
-      // Dispatch event to notify BudgetTracker component
       const event = new CustomEvent('budgetChanged', {
         detail: { categories: budget }
       });
@@ -111,7 +227,7 @@ export default function AIAssistant() {
       
       return { 
         executed: true, 
-        message: `✅ Budget updated! I've added/updated ${categoryName} to ₹${amount.toLocaleString()}.` 
+        message: `Budget updated! Added ${categoryName} to ₹${amount.toLocaleString()}.` 
       };
     } catch (error) {
       console.error('Failed to execute budget command:', error);
@@ -119,14 +235,10 @@ export default function AIAssistant() {
     }
   };
 
-  // Parse and execute guest commands (e.g., "add pratik as a guest no plus one")
+  // Parse and execute guest commands
   const executeGuestCommand = (prompt: string): { executed: boolean; message?: string; navigateTo?: string } => {
     const lowerPrompt = prompt.toLowerCase();
     
-    // Match patterns like:
-    // "add pratik as a guest" / "add pratik as guest"
-    // "add pratik as a guest no plus one" / "add pratik as guest with no plus one"
-    // "add pratik and smita as guests"
     const guestMatch = lowerPrompt.match(/add\s+([\w\s]+?)\s+(?:as\s+)?(?:a\s+)?guest(?:s)?(?:\s+(no\s+)?plus\s+one)?/i);
     
     if (!guestMatch) return { executed: false };
@@ -158,7 +270,6 @@ export default function AIAssistant() {
       const updatedGuests = [...guests, ...newGuests];
       localStorage.setItem('guests', JSON.stringify(updatedGuests));
       
-      // Dispatch event to notify GuestList component
       const event = new CustomEvent('guestsChanged', {
         detail: { guests: updatedGuests }
       });
@@ -169,7 +280,7 @@ export default function AIAssistant() {
       
       return {
         executed: true,
-        message: `✅ Added ${guestText}! ${newGuests.map(g => g.name).join(', ')} (${plusOneText}). Taking you to the guest list...`,
+        message: `Added ${guestText}! ${newGuests.map(g => g.name).join(', ')} (${plusOneText}). Taking you to the guest list...`,
         navigateTo: '/dashboard/guests'
       };
     } catch (error) {
@@ -178,10 +289,6 @@ export default function AIAssistant() {
     }
   };
 
-  // Navigate to dashboard pages
-  const navigateToPage = (path: string) => {
-    window.location.hash = `#${path}`;
-  };
   const callAIAPI = async (prompt: string): Promise<{ reply: string; structured?: any }> => {
     try {
       const response = await fetch(AI_CHAT_ENDPOINT, {
@@ -197,9 +304,7 @@ export default function AIAssistant() {
       }
 
       const data = await response.json();
-      // Prefer a normalized { reply, structured } shape from the server
       if (data?.reply) return { reply: data.reply, structured: data.structured };
-      // Backwards compatibility: handle direct OpenAI/Groq-like responses
       if (data?.choices && data.choices[0]?.message?.content) {
         return { reply: data.choices[0].message.content };
       }
@@ -216,54 +321,70 @@ export default function AIAssistant() {
   const handleSend = async () => {
     if (!userInput.trim() || loading) return;
 
+    // Create new chat if none exists
+    if (!currentChatId) {
+      startNewChat();
+      return;
+    }
+
     const prompt = userInput.trim();
     setUserInput('');
-    setMessages(prev => [...prev, { role: 'user', content: prompt }]);
+    const newMessages = [...messages, { role: 'user' as const, content: prompt }];
+    updateCurrentChat(newMessages);
     setLoading(true);
     setEditableResponse(null);
 
     try {
-      // Check if this is a budget command
-      const budgetResult = executeBudgetCommand(prompt);
-      
-      if (budgetResult.executed) {
-        // For budget commands, add a confirmation message
-        setMessages(prev => [...prev, {
+      // Check for navigation command
+      const navResult = executeNavigationCommand(prompt);
+      if (navResult.executed && navResult.page) {
+        updateCurrentChat([...newMessages, {
           role: 'assistant',
-          content: budgetResult.message || '✅ Budget updated! Changes saved automatically.',
+          content: 'Navigating to ' + navResult.page + '...',
+          type: 'text'
+        }]);
+        setTimeout(() => {
+          window.location.hash = `#${navResult.page}`;
+          setIsOpen(false);
+        }, 500);
+        return;
+      }
+
+      // Check budget command
+      const budgetResult = executeBudgetCommand(prompt);
+      if (budgetResult.executed) {
+        updateCurrentChat([...newMessages, {
+          role: 'assistant',
+          content: budgetResult.message || 'Budget updated!',
           type: 'text'
         }]);
       } else {
-        // Check if this is a guest command
+        // Check guest command
         const guestResult = executeGuestCommand(prompt);
         
         if (guestResult.executed) {
-          // For guest commands, add a confirmation message and navigate
-          setMessages(prev => [...prev, {
+          updateCurrentChat([...newMessages, {
             role: 'assistant',
-            content: guestResult.message || '✅ Guest added successfully!',
+            content: guestResult.message || 'Guest added!',
             type: 'text'
           }]);
           
-          // Navigate to guest list page after a brief delay
           if (guestResult.navigateTo) {
             setTimeout(() => {
-              navigateToPage(guestResult.navigateTo!);
-              setIsOpen(false); // Close the chatbot
+              window.location.hash = `#${guestResult.navigateTo}`;
+              setIsOpen(false);
             }, 1000);
           }
         } else {
-          // Otherwise, call AI for regular responses
+          // Otherwise, call AI
           const aiResult = await callAIAPI(prompt);
           const responseText = aiResult.reply || '';
           let responseType = 'text';
 
-          // If server provided structured payload, prefer that for ceremony editing
           if (aiResult.structured && aiResult.structured.ceremony && Array.isArray(aiResult.structured.ceremony)) {
             responseType = 'ceremony';
             setEditableResponse(aiResult.structured as CeremonyResponse);
           } else {
-            // Try to parse plain text as JSON (legacy behavior)
             try {
               const parsed = JSON.parse(responseText);
               if (parsed.ceremony && Array.isArray(parsed.ceremony)) {
@@ -275,10 +396,9 @@ export default function AIAssistant() {
             }
           }
 
-          // Ensure assistant messages are plain text only
           const cleaned = String(responseText).replace(/```[\s\S]*?```/g, '').replace(/`+/g, '').trim();
 
-          setMessages(prev => [...prev, { 
+          updateCurrentChat([...newMessages, { 
             role: 'assistant', 
             content: cleaned,
             type: responseType
@@ -286,9 +406,9 @@ export default function AIAssistant() {
         }
       }
     } catch (error) {
-      setMessages(prev => [...prev, {
+      updateCurrentChat([...newMessages, {
         role: 'assistant',
-        content: '❌ Sorry, I encountered an error. Please try again or rephrase your question.',
+        content: 'Sorry, I encountered an error. Please try again.',
         type: 'error'
       }]);
     } finally {
@@ -296,12 +416,10 @@ export default function AIAssistant() {
     }
   };
 
-  // Handle example prompt click
   const handleExampleClick = (prompt: string) => {
     setUserInput(prompt);
   };
 
-  // Update editable ceremony
   const updateCeremonyStep = (index: number, field: 'time' | 'ritual', value: string) => {
     if (!editableResponse) return;
     
@@ -325,145 +443,175 @@ export default function AIAssistant() {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-white" />
-            <div>
-              <h2 className="text-xl font-bold text-white">VivahaPlan AI</h2>
-              <p className="text-white/90 text-sm">Your Interfaith Wedding Assistant</p>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex overflow-hidden">
+        
+        {/* Sidebar - Chat History */}
+        {showSidebar && (
+          <div className="w-64 bg-gray-900 text-white flex flex-col border-r border-gray-800">
+            <div className="p-4 border-b border-gray-800">
+              <button
+                onClick={startNewChat}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                <span>New Chat</span>
+              </button>
             </div>
-          </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-          >
-            <X className="h-6 w-6 text-white" />
-          </button>
-        </div>
-
-        {/* Example Prompts */}
-        {messages.length === 0 && (
-          <div className="p-6 bg-gradient-to-br from-pink-50 to-purple-50 border-b">
-            <p className="text-gray-700 font-medium mb-3">Try these example prompts:</p>
-            <div className="grid grid-cols-1 gap-2">
-              {EXAMPLE_PROMPTS.map((example, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleExampleClick(example.prompt)}
-                  className="text-left p-3 bg-white rounded-lg border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all text-sm"
+            
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {chatHistory.map(chat => (
+                <div
+                  key={chat.id}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                    currentChatId === chat.id
+                      ? 'bg-gray-700'
+                      : 'hover:bg-gray-800 bg-gray-800/50'
+                  }`}
                 >
-                  <span className="font-semibold text-purple-700">{example.label}</span>
-                </button>
+                  <button
+                    onClick={() => switchChat(chat.id)}
+                    className="w-full text-left text-sm truncate"
+                  >
+                    {chat.title}
+                  </button>
+                  <button
+                    onClick={() => deleteChat(chat.id)}
+                    className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-12">
-              <Sparkles className="h-12 w-12 mx-auto mb-4 text-purple-400" />
-              <p className="text-lg font-medium">Ask me anything about your interfaith wedding!</p>
-              <p className="text-sm mt-2">I can help with ceremony planning, FAQs, and invitations.</p>
-            </div>
-          ) : (
-            messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
-                      : msg.type === 'error'
-                      ? 'bg-red-50 text-red-800 border border-red-200'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {msg.role === 'assistant' && msg.type === 'ceremony' && editableResponse ? (
-                    <div className="space-y-3">
-                      <p className="font-semibold text-purple-700 mb-2">✨ Ceremony Schedule (Editable)</p>
-                      {editableResponse.ceremony.map((step, stepIdx) => (
-                        <div key={stepIdx} className="bg-white rounded-lg p-3 border border-purple-200">
-                          <div className="flex gap-2 mb-2">
-                            <input
-                              type="text"
-                              value={step.time}
-                              onChange={(e) => updateCeremonyStep(stepIdx, 'time', e.target.value)}
-                              className="w-24 px-2 py-1 border rounded text-sm font-mono"
-                              placeholder="00:00"
-                            />
-                            <input
-                              type="text"
-                              value={step.ritual}
-                              onChange={(e) => updateCeremonyStep(stepIdx, 'ritual', e.target.value)}
-                              className="flex-1 px-2 py-1 border rounded text-sm"
-                              placeholder="Ritual name"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      {editableResponse.notes && editableResponse.notes.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-purple-200">
-                          <p className="font-semibold text-purple-700 mb-2">📝 Notes:</p>
-                          <ul className="list-disc list-inside space-y-1 text-sm">
-                            {editableResponse.notes.map((note, noteIdx) => (
-                              <li key={noteIdx}>{note}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-          
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-                <span className="text-gray-600 text-sm">Thinking...</span>
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-white" />
+              <div>
+                <h2 className="text-xl font-bold text-white">VivahaPlan AI</h2>
+                <p className="text-white/90 text-sm">Wedding Planning Assistant</p>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Input Area */}
-        <div className="border-t bg-gray-50 p-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask about ceremony planning, traditions, invitations..."
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
-              disabled={loading}
-            />
             <button
-              onClick={handleSend}
-              disabled={loading || !userInput.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              onClick={() => setIsOpen(false)}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
-              <Send className="h-5 w-5" />
-              Send
+              <X className="h-6 w-6 text-white" />
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            AI responses are advisory. Always verify important details.
-          </p>
+
+          {/* Example Prompts */}
+          {messages.length === 0 && (
+            <div className="p-6 bg-gradient-to-br from-pink-50 to-purple-50 border-b">
+              <p className="text-gray-700 font-medium mb-3">Quick actions:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {EXAMPLE_PROMPTS.map((example, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleExampleClick(example.prompt)}
+                    className="text-left p-3 bg-white rounded-lg border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all text-sm"
+                  >
+                    <span className="font-semibold text-purple-700">{example.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-500 py-12">
+                <Sparkles className="h-12 w-12 mx-auto mb-4 text-purple-400" />
+                <p className="text-lg font-medium">Ask me anything about your wedding!</p>
+              </div>
+            ) : (
+              messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+                        : msg.type === 'error'
+                        ? 'bg-red-50 text-red-800 border border-red-200'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {msg.role === 'assistant' && msg.type === 'ceremony' && editableResponse ? (
+                      <div className="space-y-3">
+                        <p className="font-semibold text-purple-700 mb-2">Ceremony Schedule (Editable)</p>
+                        {editableResponse.ceremony.map((step, stepIdx) => (
+                          <div key={stepIdx} className="bg-white rounded-lg p-3 border border-purple-200">
+                            <div className="flex gap-2 mb-2">
+                              <input
+                                type="text"
+                                value={step.time}
+                                onChange={(e) => updateCeremonyStep(stepIdx, 'time', e.target.value)}
+                                className="w-24 px-2 py-1 border rounded text-sm font-mono"
+                                placeholder="00:00"
+                              />
+                              <input
+                                type="text"
+                                value={step.ritual}
+                                onChange={(e) => updateCeremonyStep(stepIdx, 'ritual', e.target.value)}
+                                className="flex-1 px-2 py-1 border rounded text-sm"
+                                placeholder="Ritual name"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+            
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <span className="text-gray-600 text-sm">Thinking...</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t bg-gray-50 p-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Ask about ceremonies, budget, guests, navigation..."
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-400 focus:outline-none"
+                disabled={loading}
+              />
+              <button
+                onClick={handleSend}
+                disabled={loading || !userInput.trim()}
+                className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
