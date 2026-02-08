@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { User, MapPin, Heart, Calendar, DollarSign, Users as UsersIcon, Save, Church, Globe, Share2 } from 'lucide-react';
+import { User, MapPin, Heart, Calendar, DollarSign, Users as UsersIcon, Save, Church, Globe } from 'lucide-react';
 import axios from 'axios';
 import type { OnboardingData } from '../onboarding/Onboarding';
-import SharingSettings from './SharingSettings';
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -442,19 +441,6 @@ export default function Settings() {
             />
           </div>
         </div>
-      </div>
-      {/* Sharing Settings */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="bg-blue-100 text-blue-600 p-3 rounded-lg">
-            <Share2 className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Share Dashboard</h2>
-            <p className="text-sm text-gray-600">Give family and friends access to view or edit</p>
-          </div>
-        </div>
-        <SharingSettings />
       </div>
 
       {/* Save Button (Bottom) */}
