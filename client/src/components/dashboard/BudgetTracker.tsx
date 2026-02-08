@@ -232,7 +232,6 @@ export default function BudgetTracker() {
       setLoading(false);
     }
   };
-  };
 
   const deleteCategory = async (id: string) => {
     if (!confirm('Delete this category?')) return;
