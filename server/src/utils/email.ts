@@ -11,7 +11,9 @@ console.log(`   Key Starts: ${RESEND_API_KEY ? RESEND_API_KEY.substring(0, 8) + 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 // Constants for email configuration
-const EMAIL_FROM = 'Vivaha <noreply@vivahaplan.com>';
+// Note: For custom domain (noreply@vivahaplan.com) to work, it must be verified in Resend dashboard
+// Falls back to onboarding@resend.dev if domain not verified
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Vivaha <noreply@vivahaplan.com>';
 const FALLBACK_FROM = 'Vivaha <onboarding@resend.dev>'; // Fallback for testing
 
 /**
@@ -58,6 +60,24 @@ export async function sendEmail({
 
     if (result.error) {
       console.error(`❌ [EMAIL ERROR] Resend API returned error:`, result.error);
+      
+      // If domain verification issue, try fallback sender
+      if (result.error.message?.includes('domain') || result.error.message?.includes('not found')) {
+        console.warn(`⚠️  [EMAIL] Domain issue detected. Trying fallback sender: ${FALLBACK_FROM}`);
+        const fallbackResult = await resend.emails.send({
+          from: FALLBACK_FROM,
+          to,
+          subject,
+          html,
+        });
+        console.log(`📧 [EMAIL] Fallback Resend Response:`, JSON.stringify(fallbackResult, null, 2));
+        
+        if (!fallbackResult.error) {
+          console.log(`✅ [EMAIL SUCCESS] Email sent using fallback sender to ${to}`);
+          return fallbackResult;
+        }
+      }
+      
       throw new Error(`Email service error: ${JSON.stringify(result.error)}`);
     }
 
