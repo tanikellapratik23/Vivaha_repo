@@ -3,6 +3,7 @@ import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, S
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
+import { userDataStorage } from '../../utils/userDataStorage';
 import { getThemeClasses } from '../../utils/themeColors';
 import { syncUserData } from '../../utils/dataSync';
 import axios from 'axios';
@@ -193,25 +194,20 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
   };
 
   const confirmLogout = () => {
-    // Clear all stored data using authStorage helper
+    // Clear all user-specific data
+    userDataStorage.clearUserData();
+    
+    // Clear authentication
     authStorage.clearAll();
     sessionStorage.clear();
-    // Also clear other app data from localStorage
-    localStorage.removeItem('guests');
-    localStorage.removeItem('todos');
-    localStorage.removeItem('budget');
-    localStorage.removeItem('favoriteVendors');
-    localStorage.removeItem('ceremonies');
-    localStorage.removeItem('playlists');
-    localStorage.removeItem('seatingCharts');
-    localStorage.removeItem('wantsBachelorParty');
-    localStorage.removeItem('onboarding');
-    localStorage.removeItem('ceremony');
-    localStorage.removeItem('isNewUser');
-    // Update authentication state first
+    
+    // Update authentication state
     if (setIsAuthenticated) {
       setIsAuthenticated(false);
     }
+    
+    console.log('✅ Logged out - all user data cleared');
+    
     // Navigate directly to landing without reload
     navigate('/', { replace: true });
   };

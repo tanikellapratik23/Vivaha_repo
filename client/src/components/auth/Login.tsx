@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { importBackupFile } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
+import { userDataStorage } from '../../utils/userDataStorage';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -46,8 +47,11 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       authStorage.setToken(response.data.token);
       authStorage.setUser(response.data.user);
       
-      // Always mark onboarding as complete for authenticated users
-      sessionStorage.setItem('onboardingCompleted', 'true');
+      // Clear any stale data from previous user sessions
+      userDataStorage.clearUserData();
+      
+      // Migrate old non-prefixed data to new user-specific format
+      userDataStorage.migrateOldData();
       
       setIsAuthenticated(true);
 
@@ -56,11 +60,21 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         // Check if admin - go directly to dashboard
         if (response.data.user.isAdmin) {
           console.log('✅ Admin user detected, going to dashboard');
+          sessionStorage.setItem('onboardingCompleted', 'true');
           navigate('/dashboard');
         } else {
-          // For ALL returning users (anyone who successfully logs in), show welcome back
-          console.log('✅ Returning user, showing welcome back');
-          navigate('/welcome-back');
+          // Check if user has completed onboarding
+          const hasCompletedOnboarding = response.data.user.onboardingCompleted === true;
+          
+          if (hasCompletedOnboarding) {
+            console.log('✅ Returning user, showing welcome back');
+            sessionStorage.setItem('onboardingCompleted', 'true');
+            navigate('/welcome-back');
+          } else {
+            console.log('✅ First-time user, starting onboarding');
+            sessionStorage.setItem('onboardingCompleted', 'false');
+            navigate('/onboarding');
+          }
         }
       }, 100);
     } catch (err: any) {

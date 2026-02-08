@@ -6,15 +6,23 @@ export default function WelcomeBack() {
   const navigate = useNavigate();
   const [fadeIn, setFadeIn] = useState(false);
   const [firstName, setFirstName] = useState('');
+  const [message, setMessage] = useState('Welcome Back');
 
   useEffect(() => {
-    // Get user's first name from auth storage
+    // Get user's first name and onboarding status
     try {
       const user = authStorage.getUser();
       if (user) {
         const name = user.name || '';
         const first = name.split(' ')[0]; // Get first name
         setFirstName(first);
+        
+        // Check if first-time user (onboarding not completed)
+        if (user.onboardingCompleted === false) {
+          setMessage('Welcome');
+        } else {
+          setMessage('Welcome Back');
+        }
       }
     } catch (e) {
       console.error('Failed to get user name:', e);
@@ -42,7 +50,7 @@ export default function WelcomeBack() {
           <span className="text-6xl">💕</span>
         </div>
         <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4">
-          Welcome Back{firstName ? `, ${firstName}` : ''}!
+          {message}{firstName ? `, ${firstName}` : ''}!
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
           Let's continue planning your perfect Vivaha...
