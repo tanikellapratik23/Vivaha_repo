@@ -85,7 +85,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
   const [shareLinkType, setShareLinkType] = useState<'anyone' | 'email'>('anyone');
   const [showSaveExitModal, setShowSaveExitModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);  const [preferredColorTheme, setPreferredColorTheme] = useState('');  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const [linkCopied, setLinkCopied] = useState(false);  
+  const [preferredColorTheme, setPreferredColorTheme] = useState('');
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Check if user is admin from token
@@ -184,6 +187,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
         setIsReligious(response.data.isReligious || false);
         setWantsBachelorParty(response.data.wantsBachelorParty || false);
         setPreferredColorTheme(response.data.preferredColorTheme || '');
+        setUserRole(response.data.role || null);
         localStorage.setItem('wantsBachelorParty', response.data.wantsBachelorParty ? 'true' : 'false');
         localStorage.setItem('preferredColorTheme', response.data.preferredColorTheme || '');
       }
@@ -375,16 +379,18 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button
-                onClick={() => {
-                  setShowSaveExitModal(true);
-                  setPendingNavigation('/workspaces');
-                }}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
-              >
-                <FolderOpen className="w-4 h-4" />
-                Workspace Library
-              </button>
+              {userRole === 'planner' && (
+                <button
+                  onClick={() => {
+                    setShowSaveExitModal(true);
+                    setPendingNavigation('/workspaces');
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  Workspace Library
+                </button>
+              )}
               <button
                 onClick={() => setShowShareModal(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
