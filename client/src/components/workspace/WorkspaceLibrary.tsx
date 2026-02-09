@@ -50,7 +50,6 @@ export default function WorkspaceLibrary() {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/workspaces`, {
         headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
       });
       setWorkspaces(response.data.workspaces || []);
     } catch (error) {
@@ -65,7 +64,6 @@ export default function WorkspaceLibrary() {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       await axios.patch(`${API_URL}/api/workspaces/${workspaceId}/archive`, {}, {
         headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
       });
       setWorkspaces(workspaces.filter(w => w._id !== workspaceId));
       setMenuOpen(null);
@@ -83,7 +81,6 @@ export default function WorkspaceLibrary() {
         { newName },
         { 
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
         }
       );
       setWorkspaces([response.data.workspace, ...workspaces]);
@@ -99,7 +96,6 @@ export default function WorkspaceLibrary() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         await axios.delete(`${API_URL}/api/workspaces/${workspaceId}`, {
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
         });
         setWorkspaces(workspaces.filter(w => w._id !== workspaceId));
         setMenuOpen(null);
@@ -127,7 +123,6 @@ export default function WorkspaceLibrary() {
         { newName: renameValue.trim() },
         {
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
         }
       );
 
@@ -185,7 +180,6 @@ export default function WorkspaceLibrary() {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          withCredentials: true,
           timeout: 15000,
         }
       );
