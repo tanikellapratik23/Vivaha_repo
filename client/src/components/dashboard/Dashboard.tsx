@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical, MessageSquare, Share2 } from 'lucide-react';
+import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical, MessageSquare, Share2, FolderOpen } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
@@ -11,6 +11,8 @@ import Tutorial from '../Tutorial';
 import SingleSourceOfTruth from './SingleSourceOfTruth';
 import HotelBlock from './HotelBlock';
 import AIAssistant from '../AIAssistant';
+import PlannerDashboard from './PlannerDashboard';
+import WorkspaceLibrary from '../workspace/WorkspaceLibrary';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 import Overview from './Overview';
@@ -49,12 +51,19 @@ function AutoSaveToggle() {
 
 interface DashboardProps {
   isAdmin?: boolean;
+  workspaceId?: string;
+  isPlanner?: boolean;
   setIsAuthenticated?: (value: boolean) => void;
 }
 
-export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthenticated }: DashboardProps) {
+export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, isPlanner = false, setIsAuthenticated }: DashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Route planners to their workspace dashboard
+  if (isPlanner || location.pathname.includes('/planner')) {
+    return <PlannerDashboard setIsAuthenticated={setIsAuthenticated || (() => {})} />;
+  }
   const [isReligious, setIsReligious] = useState(false);
   const [isAdmin, setIsAdmin] = useState(propIsAdmin);
   const [wantsBachelorParty, setWantsBachelorParty] = useState(() => {
@@ -365,6 +374,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
             </div>
             <div className="flex items-center space-x-3">
               <button
+                onClick={() => navigate('/dashboard/workspaces')}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <FolderOpen className="w-4 h-4" />
+                Workspace Library
+              </button>
+              <button
                 onClick={() => setShowShareModal(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
               >
@@ -610,6 +626,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, setIsAuthentic
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Overview />} />
+                <Route path="/workspaces" element={<WorkspaceLibrary />} />
                 <Route path="/single-source" element={<SingleSourceOfTruth />} />
                 <Route path="/hotel-block" element={<HotelBlock />} />
                 <Route path="/guests" element={<GuestList />} />

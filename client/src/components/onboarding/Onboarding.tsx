@@ -10,6 +10,12 @@ import CeremonyDetails from './steps/CeremonyDetails';
 import Goals from './steps/Goals';
 import BachelorParty from './steps/BachelorParty';
 import Summary from './steps/Summary';
+import PlannerLocation from './steps/PlannerLocation';
+import PlannerWeddingTypes from './steps/PlannerWeddingTypes';
+import PlannerServices from './steps/PlannerServices';
+import PlannerCapacity from './steps/PlannerCapacity';
+import PlannerTeam from './steps/PlannerTeam';
+import PlannerCommunication from './steps/PlannerCommunication';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -49,6 +55,35 @@ export interface OnboardingData {
   goals: string;
   preferredColorTheme?: string;
   wantsBachelorParty?: boolean;
+  plannerData?: {
+    baseCity?: string;
+    baseState?: string;
+    baseCountry?: string;
+    serviceRegions?: string[];
+    customRegion?: string;
+    destinationWeddings?: boolean;
+    weddingStyles?: string[];
+    ceremonyTypes?: string[];
+    interfaithSpecializations?: string[];
+    multipleCeremoniesFrequency?: string;
+    interfaithSensitivityLevel?: string;
+    weddingsPerYear?: string;
+    unavailableMonths?: string[];
+    workDays?: string;
+    teamType?: string;
+    teamMembers?: Array<{
+      email: string;
+      status: 'pending' | 'accepted';
+    }>;
+    communicationPreferences?: {
+      preferredMethod?: string;
+      reminderFrequency?: string;
+      responseTime?: string;
+      canScheduleMeetings?: boolean;
+    };
+    services?: string[];
+    customPackages?: boolean;
+  };
 }
 
 export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProps) {
@@ -62,7 +97,10 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
     wantsBachelorParty: false,
   });
 
-  const totalSteps = 9;
+  // Calculate total steps based on role
+  // Couples: Welcome, Role, Date, Location, Preferences, CeremonyDetails, Goals, BachelorParty, Summary
+  // Planners: Welcome, Role, Location, WeddingTypes, Services, Capacity, Team, Communication, Summary
+  const totalSteps = data.role === 'planner' ? 9 : 9;
 
   const updateData = (newData: Partial<OnboardingData>) => {
     setData({ ...data, ...newData });
@@ -130,15 +168,18 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
       localStorage.removeItem('isNewUser'); // Clear new user flag now that onboarding is done
       setHasCompletedOnboarding(true);
       
+      // Route planners to their workspace home instead of regular dashboard
+      const route = data.role === 'planner' ? '/dashboard/planner' : '/dashboard';
+      
       // Add delay to ensure state is updated before navigation
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(route);
       }, 100);
 
       // fallback: if SPA navigation doesn't land on the dashboard (basename mismatch), force full reload
       setTimeout(() => {
         const base = import.meta.env.BASE_URL || '/';
-        const expected = base.replace(/\/$/, '') + '/dashboard';
+        const expected = base.replace(/\/$/, '') + route;
         if (!window.location.pathname.includes('/dashboard')) {
           window.location.href = expected;
         }
@@ -206,20 +247,39 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
           {step === 1 && <Welcome onNext={nextStep} />}
           {step === 2 && <RoleSelection data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 3 && <WeddingDate data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 4 && <Location data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 5 && <Preferences data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 6 && <CeremonyDetails data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 7 && <Goals data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
-          {step === 8 && (
-            <BachelorParty 
-              wantsBachelorParty={data.wantsBachelorParty || false} 
-              onChange={(value) => updateData({ wantsBachelorParty: value })}
-              onNext={nextStep}
-              onBack={prevStep}
-            />
+          
+          {/* Couple flow steps */}
+          {data.role === 'couple' && (
+            <>
+              {step === 3 && <WeddingDate data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 4 && <Location data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 5 && <Preferences data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 6 && <CeremonyDetails data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 7 && <Goals data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 8 && (
+                <BachelorParty 
+                  wantsBachelorParty={data.wantsBachelorParty || false} 
+                  onChange={(value) => updateData({ wantsBachelorParty: value })}
+                  onNext={nextStep}
+                  onBack={prevStep}
+                />
+              )}
+              {step === 9 && <Summary data={data} onBack={prevStep} onComplete={handleComplete} />}
+            </>
           )}
-          {step === 9 && <Summary data={data} onBack={prevStep} onComplete={handleComplete} />}
+
+          {/* Planner flow steps */}
+          {data.role === 'planner' && (
+            <>
+              {step === 3 && <PlannerLocation data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 4 && <PlannerWeddingTypes data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 5 && <PlannerServices data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 6 && <PlannerCapacity data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 7 && <PlannerTeam data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 8 && <PlannerCommunication data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />}
+              {step === 9 && <Summary data={data} onBack={prevStep} onComplete={handleComplete} />}
+            </>
+          )}
         </div>
       </div>
     </div>

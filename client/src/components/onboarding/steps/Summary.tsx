@@ -49,21 +49,56 @@ export default function Summary({ data, onBack, onComplete }: SummaryProps) {
             <p className="mt-1 text-lg font-medium text-gray-900">{getRoleLabel(data.role)}</p>
           </div>
 
-          {data.weddingCity && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Location</h3>
-              <p className="mt-1 text-lg font-medium text-gray-900">
-                {data.weddingCity}
-                {data.weddingState && `, ${data.weddingState}`}
-                {data.weddingCountry && ` - ${data.weddingCountry}`}
-              </p>
-            </div>
+          {/* Couple Summary */}
+          {data.role === 'couple' && (
+            <>
+              {data.weddingCity && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Location</h3>
+                  <p className="mt-1 text-lg font-medium text-gray-900">
+                    {data.weddingCity}
+                    {data.weddingState && `, ${data.weddingState}`}
+                    {data.weddingCountry && ` - ${data.weddingCountry}`}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Wedding Style</h3>
+                <p className="mt-1 text-lg font-medium text-gray-900">{data.weddingStyle}</p>
+              </div>
+            </>
           )}
 
-          <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Wedding Style</h3>
-            <p className="mt-1 text-lg font-medium text-gray-900">{data.weddingStyle}</p>
-          </div>
+          {/* Planner Summary */}
+          {data.role === 'planner' && (
+            <>
+              {data.plannerData?.baseCity && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Base Location</h3>
+                  <p className="mt-1 text-lg font-medium text-gray-900">
+                    {data.plannerData.baseCity}
+                    {data.plannerData.baseState && `, ${data.plannerData.baseState}`}
+                    {data.plannerData.baseCountry && ` - ${data.plannerData.baseCountry}`}
+                  </p>
+                </div>
+              )}
+
+              {data.plannerData?.weddingsPerYear && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Annual Capacity</h3>
+                  <p className="mt-1 text-lg font-medium text-gray-900">{data.plannerData.weddingsPerYear} weddings</p>
+                </div>
+              )}
+
+              {data.plannerData?.teamType && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Team Structure</h3>
+                  <p className="mt-1 text-lg font-medium text-gray-900">{data.plannerData.teamType}</p>
+                </div>
+              )}
+            </>
+          )}
 
           {data.ceremonyType && (
             <div>
@@ -110,6 +145,66 @@ export default function Summary({ data, onBack, onComplete }: SummaryProps) {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Planner-specific summary */}
+        {data.role === 'planner' && (
+          <>
+            {data.plannerData?.serviceRegions && data.plannerData.serviceRegions.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Service Regions</h3>
+                <div className="flex flex-wrap gap-2">
+                  {data.plannerData.serviceRegions.map((region) => (
+                    <span
+                      key={region}
+                      className="px-3 py-1 bg-white rounded-full text-sm font-medium text-primary-700 border border-primary-200"
+                    >
+                      {region}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {data.plannerData?.weddingStyles && data.plannerData.weddingStyles.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Wedding Styles</h3>
+                <div className="flex flex-wrap gap-2">
+                  {data.plannerData.weddingStyles.map((style) => (
+                    <span
+                      key={style}
+                      className="px-3 py-1 bg-white rounded-full text-sm font-medium text-primary-700 border border-primary-200"
+                    >
+                      {style}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {data.plannerData?.services && data.plannerData.services.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Services Offered</h3>
+                <div className="flex flex-wrap gap-2">
+                  {data.plannerData.services.map((service) => (
+                    <span
+                      key={service}
+                      className="px-3 py-1 bg-white rounded-full text-sm font-medium text-primary-700 border border-primary-200"
+                    >
+                      {service}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {data.plannerData?.communicationPreferences?.preferredMethod && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Communication Method</h3>
+                <p className="mt-1 text-gray-700">{data.plannerData.communicationPreferences.preferredMethod}</p>
+              </div>
+            )}
+          </>
         )}
 
         {data.ceremonyDetails?.officiantType && (
@@ -160,11 +255,17 @@ export default function Summary({ data, onBack, onComplete }: SummaryProps) {
       <div className="bg-primary-600 text-white rounded-xl p-6 space-y-3">
         <div className="flex items-center space-x-2">
           <Sparkles className="w-6 h-6" />
-          <h3 className="text-xl font-bold">Your Personalized Dashboard Awaits!</h3>
+          <h3 className="text-xl font-bold">
+            {data.role === 'planner' 
+              ? 'Your Planner Dashboard Awaits!' 
+              : 'Your Personalized Dashboard Awaits!'}
+          </h3>
         </div>
         <p className="text-primary-100">
-          Based on your preferences, we've customized your dashboard to focus on what matters most to you.
-          Let's start planning your dream wedding!
+          {data.role === 'planner'
+            ? 'Based on your profile, we\'ve set up your workspace to help you manage weddings efficiently.'
+            : 'Based on your preferences, we\'ve customized your dashboard to focus on what matters most to you.'}
+          Let's get started!
         </p>
       </div>
 

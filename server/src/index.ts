@@ -20,6 +20,7 @@ import postsRoutes from './routes/posts';
 import weddingPageRoutes from './routes/weddingPage';
 import aiRoutes from './routes/ai';
 import userDataRoutes from './routes/userdata';
+import workspacesRoutes from './routes/workspaces';
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/navigation', navigationRoutes);
 app.use('/api/wedding-page', weddingPageRoutes);
 app.use('/api/posts', postsRoutes);
+app.use('/api/workspaces', workspacesRoutes);
 app.use('/api', emailRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/user', userDataRoutes);
