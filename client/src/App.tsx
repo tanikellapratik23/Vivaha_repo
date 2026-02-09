@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { authStorage } from './utils/auth';
 import Onboarding from './components/onboarding/Onboarding';
 import Dashboard from './components/dashboard/Dashboard';
+import WorkspaceLibrary from './components/workspace/WorkspaceLibrary';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
@@ -149,6 +150,17 @@ function App() {
             element={
               isAuthenticated ? (
                 <Dashboard isAdmin={isAdmin} setIsAuthenticated={setIsAuthenticated} />
+              ) : (
+                <Navigate to="/login" />
+              )
+            } 
+          />
+
+          <Route 
+            path="/workspaces" 
+            element={
+              isAuthenticated ? (
+                <WorkspaceLibrary />
               ) : (
                 <Navigate to="/login" />
               )

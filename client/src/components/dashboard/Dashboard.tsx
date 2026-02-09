@@ -378,7 +378,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
               <button
                 onClick={() => {
                   setShowSaveExitModal(true);
-                  setPendingNavigation('/dashboard/workspaces');
+                  setPendingNavigation('/workspaces');
                 }}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
               >

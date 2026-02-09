@@ -112,13 +112,24 @@ export default function WorkspaceLibrary() {
     }
 
     setCreating(true);
+    setCreateError('');
+    
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      console.log('Token available:', !!token);
+      console.log('API URL:', API_URL);
+      
       if (!token) {
-        setCreateError('Authentication failed. Please log in again.');
+        setCreateError('Not authenticated. Please log in again.');
         setCreating(false);
         return;
       }
+
+      console.log('Creating workspace:', {
+        name: formData.name,
+        weddingDate: formData.weddingDate,
+        weddingType: formData.weddingType,
+      });
 
       const response = await axios.post(
         `${API_URL}/api/workspaces`,
@@ -134,12 +145,14 @@ export default function WorkspaceLibrary() {
             'Content-Type': 'application/json',
           },
           withCredentials: true,
+          timeout: 10000,
         }
       );
 
+      console.log('✅ Workspace created:', response.data);
       const workspace = response.data.workspace || response.data;
-      if (!workspace) {
-        throw new Error('No workspace in response');
+      if (!workspace || !workspace._id) {
+        throw new Error('No workspace ID in response');
       }
 
       setWorkspaces([workspace, ...workspaces]);
@@ -147,8 +160,24 @@ export default function WorkspaceLibrary() {
       setFormData({ name: '', weddingDate: '', weddingType: 'secular', notes: '' });
       setCreateError('');
     } catch (error: any) {
-      console.error('Error creating workspace:', error);
-      setCreateError(error?.response?.data?.error || error?.message || 'Failed to create workspace');
+      console.error('❌ Error creating workspace:', {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        code: error?.code,
+      });
+      
+      if (error.code === 'ECONNABORTED') {
+        setCreateError('Request timeout. Please check your connection and try again.');
+      } else if (error?.response?.status === 401) {
+        setCreateError('Authentication failed. Please log in again.');
+      } else if (error?.response?.status === 400) {
+        setCreateError(error?.response?.data?.error || 'Invalid input. Please check your entries.');
+      } else if (!error?.response) {
+        setCreateError('Network error. Please check your connection and try again.');
+      } else {
+        setCreateError(error?.response?.data?.error || error?.message || 'Failed to create workspace');
+      }
     } finally {
       setCreating(false);
     }
@@ -213,7 +242,6 @@ export default function WorkspaceLibrary() {
                 onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg hover:shadow-xl"
               >
-                <Plus className="w-5 h-5" />
                 Back to Dashboard
               </button>
             </div>
@@ -261,7 +289,6 @@ export default function WorkspaceLibrary() {
               onClick={() => navigate('/dashboard')}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-6 py-3 rounded-xl font-semibold transition"
             >
-              <Plus className="w-5 h-5" />
               Back to Dashboard
             </button>
           </div>

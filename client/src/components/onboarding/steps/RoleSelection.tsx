@@ -10,7 +10,7 @@ interface RoleSelectionProps {
 
 export default function RoleSelection({ data, updateData, onNext, onBack }: RoleSelectionProps) {
   const roles = [
-    { id: 'self', label: "I'm getting married", icon: Heart, color: 'bg-pink-100 text-pink-600' },
+    { id: 'couple', label: "I'm getting married", icon: Heart, color: 'bg-pink-100 text-pink-600' },
     { id: 'parent', label: 'Parent/Guardian', icon: Users, color: 'bg-blue-100 text-blue-600' },
     { id: 'friend', label: 'Friend', icon: Heart, color: 'bg-purple-100 text-purple-600' },
     { id: 'planner', label: 'Wedding Planner', icon: Briefcase, color: 'bg-green-100 text-green-600' },
