@@ -56,7 +56,7 @@ export default function CreateWeddingModal({ isOpen, onClose, onSuccess }: Creat
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) {
         console.error('No auth token found');
         setErrors({ submit: 'Authentication failed. Please log in again.' });
@@ -76,6 +76,7 @@ export default function CreateWeddingModal({ isOpen, onClose, onSuccess }: Creat
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
           withCredentials: true,
         }
@@ -104,7 +105,7 @@ export default function CreateWeddingModal({ isOpen, onClose, onSuccess }: Creat
         data: error?.response?.data,
         url: `${API_URL}/api/workspaces`,
       });
-      setErrors({ submit: error?.response?.data?.error || 'Failed to create wedding workspace' });
+      setErrors({ submit: error?.response?.data?.error || error?.message || 'Failed to create wedding workspace' });
     } finally {
       setLoading(false);
     }

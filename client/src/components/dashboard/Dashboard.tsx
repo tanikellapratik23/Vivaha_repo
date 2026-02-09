@@ -83,6 +83,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
   const [shareAccess, setShareAccess] = useState<'view' | 'edit'>('view');
   const [shareEmail, setShareEmail] = useState('');
   const [shareLinkType, setShareLinkType] = useState<'anyone' | 'email'>('anyone');
+  const [showSaveExitModal, setShowSaveExitModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);  const [preferredColorTheme, setPreferredColorTheme] = useState('');  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -374,7 +376,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
             </div>
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => navigate('/dashboard/workspaces')}
+                onClick={() => {
+                  setShowSaveExitModal(true);
+                  setPendingNavigation('/dashboard/workspaces');
+                }}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
               >
                 <FolderOpen className="w-4 h-4" />
@@ -777,6 +782,38 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
       {/* Tutorial Modal */}
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+
+      {/* Save & Exit Confirmation Modal */}
+      {showSaveExitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Save & Exit?</h2>
+            <p className="text-gray-600 mb-6">Do you want to save and exit this workspace before switching?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSaveExitModal(false);
+                  setPendingNavigation(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowSaveExitModal(false);
+                  if (pendingNavigation) {
+                    navigate(pendingNavigation);
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-lg transition"
+              >
+                Exit & Switch
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
