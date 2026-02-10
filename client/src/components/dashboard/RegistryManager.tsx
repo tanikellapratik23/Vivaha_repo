@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Globe, Heart, DollarSign, TrendingUp, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Heart, Copy, Check } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -10,18 +10,19 @@ interface Registry {
   name: string;
   url: string;
   type: 'zola' | 'amazon' | 'target' | 'bed-bath-beyond' | 'other';
-  itemsCount?: number;
-  guests?: string[];
+  notes?: string;
 }
 
 export default function RegistryManager() {
   const [registries, setRegistries] = useState<Registry[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [newRegistry, setNewRegistry] = useState<Partial<Registry>>({
     name: '',
     url: '',
     type: 'zola',
+    notes: '',
   });
 
   useEffect(() => {
@@ -108,117 +109,164 @@ export default function RegistryManager() {
   };
 
   const typeColors = {
-    zola: 'bg-blue-100 text-blue-700',
-    amazon: 'bg-orange-100 text-orange-700',
-    target: 'bg-red-100 text-red-700',
-    'bed-bath-beyond': 'bg-green-100 text-green-700',
-    other: 'bg-gray-100 text-gray-700',
+    zola: { badge: 'bg-blue-100 text-blue-700', bg: 'bg-blue-50' },
+    amazon: { badge: 'bg-orange-100 text-orange-700', bg: 'bg-orange-50' },
+    target: { badge: 'bg-red-100 text-red-700', bg: 'bg-red-50' },
+    'bed-bath-beyond': { badge: 'bg-green-100 text-green-700', bg: 'bg-green-50' },
+    other: { badge: 'bg-gray-100 text-gray-700', bg: 'bg-gray-50' },
+  };
+
+  const typeIcons = {
+    zola: '💍',
+    amazon: '📦',
+    target: '🎯',
+    'bed-bath-beyond': '🛁',
+    other: '🎁',
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">Registry Manager</h1>
-          <p className="text-gray-100 mt-1 drop-shadow-md">Centralize all your gift registries in one place</p>
+      <div>
+        <h1 className="text-3xl font-bold text-white drop-shadow-md">Wedding Registries</h1>
+        <p className="text-gray-100 mt-1 drop-shadow-md">Centralize all your gift registries in one place</p>
+      </div>
+
+      {/* Search & Add Bar */}
+      <div className="flex items-center justify-between bg-white rounded-xl shadow-sm p-4">
+        <div className="flex-1">
+          <p className="text-gray-700 font-medium">
+            <span className="text-lg font-bold text-primary-600">{registries.length}</span> registry{registries.length !== 1 ? 'ies' : ''}
+          </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg"
+          className="flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition font-medium"
         >
           <Plus className="w-5 h-5" />
-          <span>Add Registry</span>
+          Add Registry
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
-          <p className="text-sm text-gray-500 font-medium">Total Registries</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{registries.length}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-green-500">
-          <p className="text-sm text-gray-500 font-medium">Guest Access</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
-            {registries.length > 0 ? '✓ Ready' : 'Add registry'}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
-          <p className="text-sm text-gray-500 font-medium">Registry Types</p>
-          <p className="text-sm text-gray-600 mt-2">
-            {Array.from(new Set(registries.map(r => r.type))).join(', ') || 'None added'}
-          </p>
-        </div>
-      </div>
-
-      {/* Registries Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {registries.map(registry => (
-          <div key={registry._id || registry.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900">{registry.name}</h3>
-                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${typeColors[registry.type as keyof typeof typeColors]}`}>
-                  {registry.type.replace('-', ' ').toUpperCase()}
-                </span>
-              </div>
-              <Globe className="w-5 h-5 text-gray-400" />
-            </div>
-
-            <p className="text-sm text-gray-600 mb-4 truncate">{registry.url}</p>
-
-            <div className="space-y-2 mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Registry Type</span>
-                <span className="font-medium text-gray-900">{registry.type}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-4 border-t">
-              <a
-                href={registry.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View Registry
-              </a>
+      {/* Registries Grid - Vendor Style */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {registries.map(registry => {
+          const colors = typeColors[registry.type as keyof typeof typeColors];
+          const icon = typeIcons[registry.type as keyof typeof typeIcons];
+          const id = registry._id || registry.id || `reg-${Date.now()}`;
+          
+          return (
+            <div key={id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden relative">
+              {/* Delete Button */}
               <button
-                onClick={() => deleteRegistry(registry._id || registry.id!)}
-                className="flex-1 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium text-sm transition"
+                onClick={() => deleteRegistry(id)}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full transition bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md"
+                title="Remove registry"
               >
-                <Trash2 className="w-4 h-4 inline mr-1" />
-                Delete
+                <Trash2 className="w-5 h-5" />
               </button>
-            </div>
-          </div>
-        ))}
 
+              <div className="p-6">
+                {/* Title & Type */}
+                <div className="flex items-start justify-between mb-4 pr-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{icon}</span>
+                      <h3 className="text-xl font-bold text-gray-900">{registry.name}</h3>
+                    </div>
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${colors.badge}`}>
+                      {registry.type.replace('-', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Notes if any */}
+                {registry.notes && (
+                  <p className="text-sm text-gray-600 mb-4 italic">"{registry.notes}"</p>
+                )}
+
+                {/* URL Display */}
+                <div className={`mb-4 p-3 rounded-lg ${colors.bg}`}>
+                  <p className="text-xs font-semibold text-gray-700 mb-1">Registry Link</p>
+                  <p className="text-xs text-gray-600 truncate font-mono">{registry.url}</p>
+                </div>
+
+                {/* Share Instructions */}
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-700 mb-1">Share with guests</p>
+                  <p className="text-xs text-blue-600">Include this link in your wedding invitations and website</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-4 border-t">
+                  <a
+                    href={registry.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 px-4 py-2.5 bg-primary-500 text-white hover:bg-primary-600 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Registry
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(registry.url);
+                      setCopiedId(id);
+                      setTimeout(() => setCopiedId(null), 2000);
+                    }}
+                    className={`px-4 py-2.5 rounded-lg font-medium text-sm transition ${
+                      copiedId === id
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    title="Copy registry link"
+                  >
+                    {copiedId === id ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Empty State */}
         {registries.length === 0 && (
-          <div className="col-span-full text-center py-12 bg-white rounded-xl">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg font-medium">No registries added yet</p>
-            <p className="text-gray-400 text-sm mt-2">
-              Add your wedding registries from your favorite retailers to share with guests
+          <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm">
+            <div className="text-5xl mb-4">🎁</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No registries yet</h3>
+            <p className="text-gray-600 mb-6">
+              Add your wedding registries from your favorite stores to share with guests
             </p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition font-medium inline-flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Add Your First Registry
+            </button>
           </div>
         )}
       </div>
 
-      {/* Share Instructions */}
+      {/* Helpful Tips */}
       {registries.length > 0 && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-          <h3 className="font-bold text-lg text-gray-900 mb-3">📱 Share with Guests</h3>
-          <div className="space-y-2 text-sm text-gray-700">
-            <p>• Copy your registry links and add them to your wedding website</p>
-            <p>• Include in your email invitations or wedding announcements</p>
-            <p>• Share directly in your wedding day communication hub</p>
-            <p className="mt-3 p-2 bg-white rounded font-medium text-primary-600">
-              ✨ Tip: Multiple registries help guests find gifts in their favorite stores!
-            </p>
-          </div>
+        <div className="bg-gradient-to-br from-primary-50 to-purple-50 rounded-xl p-6 border border-primary-200">
+          <h4 className="font-bold text-gray-900 mb-3">💡 Tips for Sharing Registries</h4>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>✓ Include all registries in your wedding website</li>
+            <li>✓ Add registry links to your email invitations</li>
+            <li>✓ Share on your wedding registry landing page</li>
+            <li>✓ Multiple registries make it easier for guests to find gifts they can afford</li>
+          </ul>
         </div>
       )}
 
