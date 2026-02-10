@@ -21,6 +21,7 @@ import weddingPageRoutes from './routes/weddingPage';
 import aiRoutes from './routes/ai';
 import userDataRoutes from './routes/userdata';
 import workspacesRoutes from './routes/workspaces';
+import registriesRoutes from './routes/registries';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use('/api/workspaces', workspacesRoutes);
 app.use('/api', emailRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/user', userDataRoutes);
+app.use('/api/registries', registriesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

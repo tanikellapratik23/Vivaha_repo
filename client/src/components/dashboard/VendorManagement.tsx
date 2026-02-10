@@ -255,7 +255,8 @@ export default function VendorManagement() {
 
       {/* Grid View */}
       {viewMode === 'grid' && (
-        {filteredVendors.map((vendor) => (
+        <>
+          {filteredVendors.map((vendor) => (
           <div key={vendor.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition relative">
             {/* Favorite Badge */}
             <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 bg-red-50 rounded-full">
@@ -369,7 +370,8 @@ export default function VendorManagement() {
             </div>
           </div>
         ))}
-      </div>
+        </>
+      )}
 
       {filteredVendors.length === 0 && (
         <div className="text-center py-12 bg-white rounded-xl">
@@ -381,7 +383,6 @@ export default function VendorManagement() {
             Browse vendors in the Vendor Search page and click the heart icon to add them here
           </p>
         </div>
-      )}
       )}
 
       {/* List View */}

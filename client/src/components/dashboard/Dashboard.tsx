@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical, MessageSquare, Share2, FolderOpen } from 'lucide-react';
+import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, Search, Settings as SettingsIcon, Church, Music, PartyPopper, Sparkles, BookOpen, MoreHorizontal, Split, Hotel, FileText, Edit3, Save, X, Eye, EyeOff, GripVertical, MessageSquare, Share2, FolderOpen, Gift } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
@@ -32,6 +32,7 @@ import VivahaSplit from './VivahaSplit';
 import AdminDashboard from './AdminDashboard';
 import VivahaPost from './VivahaPost';
 import WeddingInfoEditor from './WeddingInfoEditor';
+import RegistryManager from './RegistryManager';
 import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -352,6 +353,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     { name: 'Hotel Block', path: '/dashboard/hotel-block', icon: Hotel },
     { name: 'Vendor Search', path: '/dashboard/vendor-search', icon: Search },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
+    { name: 'Registries', path: '/dashboard/registries', icon: Gift },
     { name: 'VivahaPost', path: '/dashboard/community', icon: MessageSquare },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
     { name: 'Settings', path: '/dashboard/settings', icon: SettingsIcon },
@@ -649,6 +651,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 <Route path="/music" element={<MusicPlanner />} />
                 <Route path="/vendor-search" element={<VendorSearch />} />
                 <Route path="/vendors" element={<VendorManagement />} />
+                <Route path="/registries" element={<RegistryManager />} />
                 <Route path="/seating" element={<SeatingPlanner />} />
                 <Route path="/community" element={<VivahaPost />} />
                 <Route path="/outfits" element={<OutfitPlanner />} />
