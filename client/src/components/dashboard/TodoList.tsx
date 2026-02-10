@@ -200,10 +200,10 @@ export default function TodoList() {
     const template = TASK_TEMPLATES[templateKey as keyof typeof TASK_TEMPLATES];
     if (!template) return;
 
-    const newTodos = template.map((task) => ({
+    const newTodos: Todo[] = template.map((task) => ({
       id: Math.random().toString(36).substr(2, 9),
       title: task.title,
-      priority: task.priority,
+      priority: task.priority as 'low' | 'medium' | 'high',
       category: task.category,
       reminderDays: task.reminderDays,
       completed: false,
@@ -596,7 +596,7 @@ export default function TodoList() {
                           </div>
                         </div>
                         <button
-                          onClick={() => toggleTodo(todo._id || todo.id)}
+                          onClick={() => toggleTodo(todo._id || todo.id || '')}
                           className={`flex-shrink-0 w-5 h-5 rounded border-2 transition ${
                             todo.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-primary-500'
                           }`}
@@ -735,23 +735,33 @@ export default function TodoList() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(TASK_TEMPLATES).map(([key, template]) => (
-                <button
-                  key={key}
-                  onClick={() => {
-                    applyTemplate(key as keyof typeof TASK_TEMPLATES);
-                    setShowTemplateModal(false);
-                  }}
-                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Clock className="w-5 h-5 text-primary-500" />
-                    <h4 className="font-bold text-gray-900">{template.name}</h4>
-                  </div>
-                  <p className="text-sm text-gray-600">{template.description}</p>
-                  <p className="text-xs text-gray-500 mt-2">{template.tasks.length} tasks</p>
-                </button>
-              ))}
+              {Object.entries(TASK_TEMPLATES).map(([key, tasks]) => {
+                const templateNames: {[key: string]: {name: string; description: string}} = {
+                  '12-months-before': { name: '12 Months Before', description: 'Major planning phase' },
+                  '6-months-before': { name: '6 Months Before', description: 'Booking phase' },
+                  '3-months-before': { name: '3 Months Before', description: 'Finalization phase' },
+                  '1-month-before': { name: '1 Month Before', description: 'Details phase' },
+                  '1-week-before': { name: '1 Week Before', description: 'Final preparations' },
+                };
+                const info = templateNames[key as keyof typeof templateNames] || { name: key, description: '' };
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      applyTemplate(key);
+                      setShowTemplateModal(false);
+                    }}
+                    className="p-4 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <Clock className="w-5 h-5 text-primary-500" />
+                      <h4 className="font-bold text-gray-900">{info.name}</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">{info.description}</p>
+                    <p className="text-xs text-gray-500 mt-2">{tasks.length} tasks</p>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mt-6 pt-6 border-t">

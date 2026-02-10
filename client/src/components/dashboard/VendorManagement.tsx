@@ -257,7 +257,7 @@ export default function VendorManagement() {
       {viewMode === 'grid' && (
         <>
           {filteredVendors.map((vendor) => (
-          <div key={vendor.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition relative">
+            <div key={vendor.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition relative">
             {/* Favorite Badge */}
             <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 bg-red-50 rounded-full">
               <Heart className="w-3 h-3 text-red-500 fill-red-500" />
@@ -368,8 +368,8 @@ export default function VendorManagement() {
                 Remove
               </button>
             </div>
-          </div>
-        ))}
+            </div>
+          ))}
         </>
       )}
 
