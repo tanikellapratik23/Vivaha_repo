@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { userDataStorage } from '../../utils/userDataStorage';
-import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2, Save } from 'lucide-react';
+import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2, Save, BarChart3, Users, TrendingUp, Grid, List as ListIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -24,6 +25,7 @@ export default function GuestList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'analytics'>('list');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newGuest, setNewGuest] = useState<Partial<Guest>>({
@@ -382,7 +384,30 @@ export default function GuestList() {
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">Guest List</h1>
           <p className="text-gray-100 mt-1 drop-shadow-md">Manage your wedding guests and RSVPs</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          {/* View Mode Buttons */}
+          <div className="flex items-center bg-white/20 backdrop-blur rounded-lg p-1 gap-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-2 rounded transition ${viewMode === 'list' ? 'bg-white text-pink-600' : 'text-white hover:bg-white/10'}`}
+            >
+              <ListIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 rounded transition ${viewMode === 'grid' ? 'bg-white text-pink-600' : 'text-white hover:bg-white/10'}`}
+            >
+              <Grid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('analytics')}
+              className={`px-3 py-2 rounded transition ${viewMode === 'analytics' ? 'bg-white text-pink-600' : 'text-white hover:bg-white/10'}`}
+            >
+              <BarChart3 className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex gap-3">
           <input
             type="file"
             ref={fileInputRef}
@@ -418,6 +443,7 @@ export default function GuestList() {
             <Plus className="w-5 h-5" />
             <span>Add Guest</span>
           </button>
+          </div>
         </div>
       </div>
 
@@ -470,7 +496,8 @@ export default function GuestList() {
         </div>
       </div>
 
-      {/* Guest List */}
+      {/* Guest List - List View */}
+      {viewMode === 'list' && (
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
@@ -581,6 +608,176 @@ export default function GuestList() {
           </tbody>
         </table>
       </div>
+      )}
+
+      {/* Guest List - Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredGuests.map((guest) => (
+            <div key={guest.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900">{guest.name}</h3>
+                  {guest.group && <p className="text-xs text-gray-600 mt-1">Group: {guest.group}</p>}
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRsvpStatusColor(guest.rsvpStatus)}`}>
+                  {guest.rsvpStatus.charAt(0).toUpperCase() + guest.rsvpStatus.slice(1)}
+                </span>
+              </div>
+              <div className="space-y-2 mb-4">
+                {guest.email && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Mail className="w-4 h-4" />
+                    <a href={`mailto:${guest.email}`} className="hover:text-primary-600 truncate">
+                      {guest.email}
+                    </a>
+                  </div>
+                )}
+                {guest.phone && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <a href={`tel:${guest.phone}`} className="hover:text-primary-600">
+                      {guest.phone}
+                    </a>
+                  </div>
+                )}
+              </div>
+              {guest.mealPreference && (
+                <p className="text-xs text-gray-600 mb-3">Meal: {guest.mealPreference}</p>
+              )}
+              {guest.plusOne && (
+                <p className="text-xs text-blue-600 font-medium mb-3">+ 1 Guest</p>
+              )}
+              <div className="flex gap-2 pt-3 border-t">
+                <button className="flex-1 px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition">
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteGuest(guest.id)}
+                  className="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {filteredGuests.length === 0 && (
+            <div className="col-span-full text-center py-12">
+              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No guests found</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Analytics View */}
+      {viewMode === 'analytics' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* RSVP Distribution */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-500" />
+              RSVP Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Accepted', value: stats.accepted, fill: '#10b981' },
+                    { name: 'Pending', value: stats.pending, fill: '#f59e0b' },
+                    { name: 'Declined', value: stats.declined, fill: '#ef4444' },
+                  ].filter(d => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name} (${value})`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {[{ fill: '#10b981' }, { fill: '#f59e0b' }, { fill: '#ef4444' }].map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Response Rate Metrics */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary-500" />
+              Response Rate
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Acceptance Rate</span>
+                  <span className="text-sm font-bold text-primary-500">{stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
+                    style={{ width: `${stats.total > 0 ? (stats.accepted / stats.total) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 pt-4 border-t">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+                  <p className="text-xs text-gray-600 mt-1">Accepted</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                  <p className="text-xs text-gray-600 mt-1">Pending</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-red-600">{stats.declined}</p>
+                  <p className="text-xs text-gray-600 mt-1">Declined</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Group Summary */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Group Summary</h3>
+            <div className="space-y-2">
+              {(() => {
+                const groups = new Map<string, number>();
+                guests.forEach(g => {
+                  const grp = g.group || 'Ungrouped';
+                  groups.set(grp, (groups.get(grp) || 0) + 1);
+                });
+                return Array.from(groups.entries()).map(([group, count]) => (
+                  <div key={group} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">{group}</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-bold">
+                      {count}
+                    </span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+
+          {/* Plus Ones Summary */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Plus Ones Summary</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">With Plus Ones</span>
+                <span className="font-bold text-gray-900">{guests.filter(g => g.plusOne).length}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Without Plus Ones</span>
+                <span className="font-bold text-gray-900">{guests.filter(g => !g.plusOne).length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Guest Modal */}
       {showAddModal && (

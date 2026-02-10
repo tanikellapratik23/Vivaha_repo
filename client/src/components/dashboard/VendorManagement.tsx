@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Phone, Mail, Globe, CheckCircle, Heart, Star, Trash2 } from 'lucide-react';
+import { Plus, Phone, Mail, Globe, CheckCircle, Heart, Star, Trash2, TrendingUp, BarChart3, Calendar, DollarSign, Grid, List as ListIcon } from 'lucide-react';
 import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -25,6 +26,9 @@ interface Vendor {
 export default function VendorManagement() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'analytics'>('grid');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
   useEffect(() => {
     loadFavoriteVendors();
@@ -106,25 +110,6 @@ export default function VendorManagement() {
     }
   };
 
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-
-  const vendorsArray = Array.isArray(vendors) ? vendors : [];
-  const categories = [...new Set(vendorsArray.map((v) => v.category))];
-
-  const filteredVendors = vendorsArray.filter((vendor) => {
-    const matchesCategory = filterCategory === 'all' || vendor.category === filterCategory;
-    const matchesStatus = filterStatus === 'all' || vendor.status === filterStatus;
-    return matchesCategory && matchesStatus;
-  });
-
-  const stats = {
-    total: vendorsArray.length,
-    booked: vendorsArray.filter((v) => v.status === 'booked').length,
-    researching: vendorsArray.filter((v) => v.status === 'researching').length,
-    contacted: vendorsArray.filter((v) => v.status === 'contacted').length,
-  };
-
   const getStatusColor = (status: string) => {
     const colors = {
       researching: 'bg-gray-100 text-gray-700',
@@ -143,22 +128,80 @@ export default function VendorManagement() {
     );
   }
 
+  const vendorsArray = Array.isArray(vendors) ? vendors : [];
+  const categories = [...new Set(vendorsArray.map((v) => v.category))];
+
+  const filteredVendors = vendorsArray.filter((vendor) => {
+    const matchesCategory = filterCategory === 'all' || vendor.category === filterCategory;
+    const matchesStatus = filterStatus === 'all' || vendor.status === filterStatus;
+    return matchesCategory && matchesStatus;
+  });
+
+  const stats = {
+    total: vendorsArray.length,
+    booked: vendorsArray.filter((v) => v.status === 'booked').length,
+    researching: vendorsArray.filter((v) => v.status === 'researching').length,
+    contacted: vendorsArray.filter((v) => v.status === 'contacted').length,
+    totalBudget: vendorsArray.reduce((sum, v) => sum + (v.estimatedCost || 0), 0),
+    totalSpent: vendorsArray.reduce((sum, v) => sum + (v.actualCost || 0), 0),
+    totalPaid: vendorsArray.reduce((sum, v) => sum + (v.depositPaid || 0), 0),
+  };
+
+  // Category breakdown for charts
+  const categoryData = categories.map(cat => {
+    const catVendors = vendorsArray.filter(v => v.category === cat);
+    return {
+      name: cat,
+      count: catVendors.length,
+      budget: catVendors.reduce((sum, v) => sum + (v.estimatedCost || 0), 0),
+      spent: catVendors.reduce((sum, v) => sum + (v.actualCost || 0), 0),
+    };
+  });
+
+  // Status distribution for pie chart
+  const statusData = [
+    { name: 'Researching', value: stats.researching, fill: '#9CA3AF' },
+    { name: 'Contacted', value: stats.contacted, fill: '#3B82F6' },
+    { name: 'Booked', value: stats.booked, fill: '#10B981' },
+    { name: 'Paid', value: vendorsArray.filter(v => v.status === 'paid').length, fill: '#8B5CF6' },
+  ].filter(s => s.value > 0);
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white drop-shadow-md">Vendor Management</h1>
-          <p className="text-gray-100 mt-1 drop-shadow-md">Manage your wedding vendors and contracts</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">Vendor Management</h1>
+          <p className="text-gray-100 mt-1 drop-shadow-md">Track vendors, contracts, and payments</p>
         </div>
-        <button className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg">
-          <Plus className="w-5 h-5" />
-          <span>Add Vendor</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-4 py-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-white text-pink-600' : 'bg-white/20 text-white'}`}
+          >
+            <Grid className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-4 py-2 rounded-lg transition ${viewMode === 'list' ? 'bg-white text-pink-600' : 'bg-white/20 text-white'}`}
+          >
+            <ListIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('analytics')}
+            className={`px-4 py-2 rounded-lg transition ${viewMode === 'analytics' ? 'bg-white text-pink-600' : 'bg-white/20 text-white'}`}
+          >
+            <BarChart3 className="w-5 h-5" />
+          </button>
+          <button className="flex items-center space-x-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl transition shadow-lg ml-4">
+            <Plus className="w-5 h-5" />
+            <span>Add Vendor</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
           <p className="text-sm text-gray-500 font-medium">Total Vendors</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
@@ -168,17 +211,17 @@ export default function VendorManagement() {
           <p className="text-2xl font-bold text-gray-900 mt-1">{stats.booked}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
-          <p className="text-sm text-gray-500 font-medium">Contacted</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.contacted}</p>
+          <p className="text-sm text-gray-500 font-medium">Total Budget</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">${(stats.totalBudget / 1000).toFixed(1)}k</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-gray-500">
-          <p className="text-sm text-gray-500 font-medium">Researching</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.researching}</p>
+        <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-orange-500">
+          <p className="text-sm text-gray-500 font-medium">Total Spent</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">${(stats.totalSpent / 1000).toFixed(1)}k</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-4">
+      <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-4 items-center">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600 font-medium">Category:</span>
           <select
@@ -210,8 +253,8 @@ export default function VendorManagement() {
         </div>
       </div>
 
-      {/* Vendor Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Grid View */}
+      {viewMode === 'grid' && (
         {filteredVendors.map((vendor) => (
           <div key={vendor.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition relative">
             {/* Favorite Badge */}
@@ -331,10 +374,164 @@ export default function VendorManagement() {
       {filteredVendors.length === 0 && (
         <div className="text-center py-12 bg-white rounded-xl">
           <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg font-medium">No favorited vendors yet</p>
+          <p className="text-gray-500 text-lg font-medium">
+            {filterStatus !== 'all' || filterCategory !== 'all' ? 'No vendors match your filters' : 'No favorited vendors yet'}
+          </p>
           <p className="text-gray-400 text-sm mt-2">
             Browse vendors in the Vendor Search page and click the heart icon to add them here
           </p>
+        </div>
+      )}
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Vendor</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Est. Cost</th>
+                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actual</th>
+                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Paid</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Rating</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filteredVendors.map((vendor) => (
+                  <tr key={vendor.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <p className="font-semibold text-gray-900">{vendor.name}</p>
+                        <p className="text-sm text-gray-600">{vendor.contactPerson || 'N/A'}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{vendor.category}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(vendor.status)}`}>
+                        {vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                      {vendor.estimatedCost ? `$${vendor.estimatedCost.toLocaleString()}` : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                      {vendor.actualCost ? `$${vendor.actualCost.toLocaleString()}` : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-green-600">
+                      {vendor.depositPaid ? `$${vendor.depositPaid.toLocaleString()}` : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {vendor.rating && (
+                        <div className="flex items-center justify-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-medium">{vendor.rating}</span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics View */}
+      {viewMode === 'analytics' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Budget vs Actual by Category */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-500" />
+              Budget vs Actual
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="budget" fill="#ec4899" name="Budget" />
+                <Bar dataKey="spent" fill="#8b5cf6" name="Spent" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Status Distribution */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-500" />
+              Vendor Status Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name} (${value})`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Category Breakdown */}
+          <div className="bg-white rounded-xl shadow-sm p-6 lg:col-span-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-500" />
+              Vendors by Category
+            </h3>
+            <div className="space-y-3">
+              {categoryData.map((cat) => (
+                <div key={cat.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">{cat.name}</span>
+                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-bold text-sm">
+                    {cat.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Status Summary */}
+          <div className="bg-white rounded-xl shadow-sm p-6 lg:col-span-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary-500" />
+              Payment Summary
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Total Budget</span>
+                <span className="font-bold text-gray-900">${stats.totalBudget.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Total Spent</span>
+                <span className="font-bold text-gray-900">${stats.totalSpent.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Total Paid</span>
+                <span className="font-bold text-green-600">${stats.totalPaid.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Remaining</span>
+                <span className="font-bold text-orange-600">${(stats.totalBudget - stats.totalSpent).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
