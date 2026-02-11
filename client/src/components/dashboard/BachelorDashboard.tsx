@@ -7,6 +7,7 @@ import {
   Download, Hotel, Utensils, Activity, AlertTriangle, Info, ChevronRight, ChevronDown
 } from 'lucide-react';
 import axios from 'axios';
+import { userDataStorage } from '../../utils/userDataStorage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -189,12 +190,11 @@ export default function BachelorDashboard() {
 
   const fetchTripData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       // Load cached data first
-      const cached = localStorage.getItem('bachelorTrip');
+      const cached = userDataStorage.getData('bachelorTrip');
       if (cached) {
-        const data = JSON.parse(cached);
-        loadTripState(data);
+        loadTripState(cached);
       }
       
       // Then fetch from server
@@ -204,7 +204,7 @@ export default function BachelorDashboard() {
       
       if (response.data) {
         loadTripState(response.data);
-        localStorage.setItem('bachelorTrip', JSON.stringify(response.data));
+        userDataStorage.setData('bachelorTrip', response.data);
       }
     } catch (error) {
       console.error('Error fetching trip:', error);
@@ -249,7 +249,7 @@ export default function BachelorDashboard() {
         publicLink
       };
       
-      localStorage.setItem('bachelorTrip', JSON.stringify(tripData));
+      userDataStorage.setData('bachelorTrip', tripData);
       
       await axios.post(`${API_URL}/api/bachelor-trip`, tripData, {
         headers: { Authorization: `Bearer ${token}` }

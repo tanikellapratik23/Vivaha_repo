@@ -52,12 +52,12 @@ export default function AIAssistant() {
     setPosition({ x: window.innerWidth - 420, y: window.innerHeight - 420 });
   }, []);
 
-  // Load position and size from localStorage on mount
+  // Load position and size from user-specific storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('aiAssistantState');
+    const saved = userDataStorage.getData('aiAssistantState');
     if (saved) {
       try {
-        const { position: savedPos, size: savedSize } = JSON.parse(saved);
+        const { position: savedPos, size: savedSize } = saved;
         setPosition(savedPos || { x: window.innerWidth - 420, y: window.innerHeight - 420 });
         setSize(savedSize || { width: 384, height: 384 });
       } catch (e) {
@@ -70,7 +70,7 @@ export default function AIAssistant() {
     // Load user settings for context
     const fetchSettings = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         const response = await axios.get('/api/onboarding', {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -88,7 +88,7 @@ export default function AIAssistant() {
 
   // Save position and size when they change
   useEffect(() => {
-    localStorage.setItem('aiAssistantState', JSON.stringify({ position, size }));
+    userDataStorage.setData('aiAssistantState', { position, size });
   }, [position, size]);
 
   // Handle mouse down on header to start dragging

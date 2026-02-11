@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, ExternalLink, Search, RefreshCw, ShoppingCart, X, Heart } from 'lucide-react';
 import axios from 'axios';
 import { formatCurrency } from '../../utils/formatting';
+import { userDataStorage } from '../../utils/userDataStorage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -93,11 +94,11 @@ export default function RegistryManager() {
 
   const fetchRegistries = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       if (!token) {
-        const cached = localStorage.getItem('registries');
+        const cached = userDataStorage.getData('registries');
         if (cached) {
-          const regs = JSON.parse(cached);
+          const regs = Array.isArray(cached) ? cached : [];
           setRegistries(regs);
           if (regs.length > 0 && !selectedRegistryType) {
             setSelectedRegistryType(regs[0].type);
@@ -119,12 +120,12 @@ export default function RegistryManager() {
       if (regs.length > 0 && !selectedRegistryType) {
         setSelectedRegistryType(regs[0].type);
       }
-      localStorage.setItem('registries', JSON.stringify(regs));
+      userDataStorage.setData('registries', regs);
     } catch (error) {
       console.error('Failed to fetch registries:', error);
-      const cached = localStorage.getItem('registries');
+      const cached = userDataStorage.getData('registries');
       if (cached) {
-        const regs = JSON.parse(cached);
+        const regs = Array.isArray(cached) ? cached : [];
         setRegistries(regs);
         if (regs.length > 0 && !selectedRegistryType) {
           setSelectedRegistryType(regs[0].type);
