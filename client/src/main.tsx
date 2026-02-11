@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import { ErrorBoundary } from './ErrorBoundary.tsx'
 import './index.css'
 import axios from 'axios'
 
@@ -8,8 +9,24 @@ import axios from 'axios'
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
 axios.defaults.timeout = 30000; // 30s default client-side timeout (allow backend cold-starts)
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Global error handler for debugging
+window.addEventListener('error', (e) => {
+  console.error('Global error:', e.error);
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled rejection:', e.reason);
+});
+
+const root = document.getElementById('root');
+if (!root) {
+  throw new Error('Root element not found');
+}
+
+ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 )
