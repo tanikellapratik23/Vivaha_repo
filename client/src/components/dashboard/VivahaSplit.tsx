@@ -3,6 +3,7 @@ import { Plus, DollarSign, Users, CheckCircle, XCircle, ArrowRight, ArrowLeft, T
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInvoiceNumber, downloadInvoice, emailInvoice } from '../../utils/invoiceGenerator';
+import { formatCurrency } from '../../utils/formatting';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -484,7 +485,7 @@ export default function VivahaSplit() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-green-700">Total Spent</p>
-              <p className="text-3xl font-bold text-green-900 mt-1">${totalSpent.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-green-900 mt-1">{formatCurrency(totalSpent)}</p>
             </div>
             <DollarSign className="w-12 h-12 text-green-600 opacity-50" />
           </div>
@@ -514,7 +515,7 @@ export default function VivahaSplit() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-purple-700">Settled</p>
-              <p className="text-3xl font-bold text-purple-900 mt-1">${settledAmount.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-purple-900 mt-1">{formatCurrency(settledAmount)}</p>
             </div>
             <CheckCircle className="w-12 h-12 text-purple-600 opacity-50" />
           </div>
@@ -584,7 +585,7 @@ export default function VivahaSplit() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-orange-600">
-                  ${balance.amount.toFixed(2)}
+                  {formatCurrency(balance.amount)}
                 </div>
               </motion.div>
             ))}
@@ -661,7 +662,7 @@ export default function VivahaSplit() {
                             key={split.personId}
                             className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full flex items-center gap-1"
                           >
-                            {getPersonName(split.personId)}: ${split.amount.toFixed(2)}
+                            {getPersonName(split.personId)}: {formatCurrency(split.amount)}
                           </div>
                         ))}
                       </div>
@@ -669,7 +670,7 @@ export default function VivahaSplit() {
                     
                     <div className="flex flex-col items-end gap-2">
                       <div className="text-2xl font-bold text-green-600">
-                        ${expense.totalAmount.toFixed(2)}
+                        {formatCurrency(expense.totalAmount)}
                       </div>
                       
                       <div className="flex gap-2">

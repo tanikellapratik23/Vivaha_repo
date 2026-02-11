@@ -38,7 +38,7 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [position, setPosition] = useState<Position>({ x: window.innerWidth - 420, y: window.innerHeight - 420 });
   const [size, setSize] = useState<Size>({ width: 384, height: 384 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -53,7 +53,7 @@ export default function AIAssistant() {
     if (saved) {
       try {
         const { position: savedPos, size: savedSize } = JSON.parse(saved);
-        setPosition(savedPos || { x: 0, y: 0 });
+        setPosition(savedPos || { x: window.innerWidth - 420, y: window.innerHeight - 420 });
         setSize(savedSize || { width: 384, height: 384 });
       } catch (e) {
         // Use defaults on parse error
