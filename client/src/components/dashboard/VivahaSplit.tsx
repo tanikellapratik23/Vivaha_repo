@@ -4,6 +4,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInvoiceNumber, downloadInvoice, emailInvoice } from '../../utils/invoiceGenerator';
 import { formatCurrency } from '../../utils/formatting';
+import { userDataStorage } from '../../utils/userDataStorage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -80,15 +81,15 @@ export default function VivahaSplit() {
     
     const synced = syncBudgetToExpenses(budgetCategories, expenses);
     setExpenses(synced);
-    localStorage.setItem('vivahaSplitExpenses', JSON.stringify(synced));
+    userDataStorage.setData('vivahaSplitExpenses', synced);
   };
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       
-      // Load budget from localStorage first (instant display)
-      const cachedBudget = localStorage.getItem('budget');
+      // Load budget from user-specific storage (instant display)
+      const cachedBudget = userDataStorage.getData('budget');
       let budgetData: any[] = [];
       if (cachedBudget) {
         try {
@@ -107,14 +108,15 @@ export default function VivahaSplit() {
         if (budgetRes.data.success && budgetRes.data.data) {
           budgetData = budgetRes.data.data;
           setBudgetCategories(budgetData);
+          userDataStorage.setData('budget', budgetData);
         }
       } catch (error) {
         console.log('Using cached budget data');
       }
 
-      // Load people and expenses from localStorage
-      const savedPeople = localStorage.getItem('vivahaSplitPeople');
-      const savedExpenses = localStorage.getItem('vivahaSplitExpenses');
+      // Load people and expenses from user-specific storage
+      const savedPeople = userDataStorage.getData('vivahaSplitPeople');
+      const savedExpenses = userDataStorage.getData('vivahaSplitExpenses');
       
       if (savedPeople) setPeople(JSON.parse(savedPeople));
       
@@ -127,7 +129,7 @@ export default function VivahaSplit() {
       const budgetExpenses = syncBudgetToExpenses(budgetData, existingExpenses);
       if (budgetExpenses.length > existingExpenses.length) {
         setExpenses(budgetExpenses);
-        localStorage.setItem('vivahaSplitExpenses', JSON.stringify(budgetExpenses));
+        userDataStorage.setData('vivahaSplitExpenses', budgetExpenses);
       } else {
         setExpenses(existingExpenses);
       }
@@ -173,12 +175,12 @@ export default function VivahaSplit() {
 
   const savePeople = (updatedPeople: Person[]) => {
     setPeople(updatedPeople);
-    localStorage.setItem('vivahaSplitPeople', JSON.stringify(updatedPeople));
+    userDataStorage.setData('vivahaSplitPeople', updatedPeople);
   };
 
   const saveExpenses = (updatedExpenses: Expense[]) => {
     setExpenses(updatedExpenses);
-    localStorage.setItem('vivahaSplitExpenses', JSON.stringify(updatedExpenses));
+    userDataStorage.setData('vivahaSplitExpenses', updatedExpenses);
   };
 
   const addPerson = () => {
@@ -337,7 +339,7 @@ export default function VivahaSplit() {
       return exp;
     });
     setExpenses(updatedExpenses);
-    localStorage.setItem('vivahaSplitExpenses', JSON.stringify(updatedExpenses));
+    userDataStorage.setData('vivahaSplitExpenses', updatedExpenses);
   };
 
   const openInvoiceModal = (expense: Expense) => {
