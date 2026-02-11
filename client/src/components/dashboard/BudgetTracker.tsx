@@ -6,6 +6,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
+import { formatCurrency, formatNumberWithCommas } from '../../utils/formatting';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -500,7 +501,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Total Budget</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">${totalBudget.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(totalBudget)}</p>
             </div>
             <DollarSign className="w-10 h-10 text-blue-500" />
           </div>
@@ -510,7 +511,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Actual Spent</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">${totalActual.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(totalActual)}</p>
             </div>
             <TrendingUp className="w-10 h-10 text-purple-500" />
           </div>
@@ -520,7 +521,7 @@ export default function BudgetTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Total Paid</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">${totalPaid.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(totalPaid)}</p>
             </div>
             <DollarSign className="w-10 h-10 text-green-500" />
           </div>
@@ -533,7 +534,7 @@ export default function BudgetTracker() {
                 {remaining >= 0 ? 'Remaining' : 'Over Budget'}
               </p>
               <p className={`text-3xl font-bold mt-2 ${remaining >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
-                ${Math.abs(remaining).toLocaleString()}
+                {formatCurrency(Math.abs(remaining))}
               </p>
             </div>
             {remaining >= 0 ? (
@@ -557,7 +558,7 @@ export default function BudgetTracker() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4">
               <p className="text-sm text-gray-600 mb-1">Average Total</p>
-              <p className="text-2xl font-bold text-gray-900">${cityData.averageCost.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(cityData.averageCost)}</p>
             </div>
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4">
               <p className="text-sm text-gray-600 mb-1">Typical Guests</p>
@@ -566,20 +567,20 @@ export default function BudgetTracker() {
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4">
               <p className="text-sm text-gray-600 mb-1">Venue Range</p>
               <p className="text-lg font-bold text-gray-900">
-                ${cityData.venueRange[0].toLocaleString()} - ${cityData.venueRange[1].toLocaleString()}
+                {formatCurrency(cityData.venueRange[0])} - {formatCurrency(cityData.venueRange[1])}
               </p>
             </div>
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4">
               <p className="text-sm text-gray-600 mb-1">Catering/Person</p>
               <p className="text-lg font-bold text-gray-900">
-                ${cityData.cateringPerPerson[0]} - ${cityData.cateringPerPerson[1]}
+                {formatCurrency(cityData.cateringPerPerson[0])} - {formatCurrency(cityData.cateringPerPerson[1])}
               </p>
             </div>
           </div>
           <div className="mt-4 flex items-start gap-2 bg-blue-100 rounded-lg p-3">
             <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-blue-800">
-              Your total budget of ${totalBudget.toLocaleString()} is{' '}
+              Your total budget of {formatCurrency(totalBudget)} is{' '}
               {totalBudget < cityData.averageCost ? (
                 <span className="font-semibold">{Math.round((1 - totalBudget / cityData.averageCost) * 100)}% below</span>
               ) : (
@@ -698,7 +699,7 @@ export default function BudgetTracker() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    ${category.estimatedAmount.toLocaleString()}
+                    {formatCurrency(category.estimatedAmount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
@@ -717,7 +718,7 @@ export default function BudgetTracker() {
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    ${remaining.toLocaleString()}
+                    {formatCurrency(remaining)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">

@@ -361,8 +361,9 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
   ];
 
   const moreFeatures = [
-    { name: 'Outfit Planner', path: '/dashboard/outfits', icon: Sparkles },
-    { name: 'Story Builder', path: '/dashboard/story', icon: BookOpen },
+    // { name: 'Outfit Planner', path: '/dashboard/outfits', icon: Sparkles },
+    // { name: 'Story Builder', path: '/dashboard/story', icon: BookOpen },
+    // Hidden for now - code retained for future use
   ];
 
   return (
@@ -588,7 +589,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                   });
                 })()}
               
-              {/* More Features Dropdown */}
+              {/* More Features Dropdown - Only show if there are features */}
+              {moreFeatures.length > 0 && (
               <div className="relative mt-2">
                 <button
                   ref={moreButtonRef}
@@ -631,6 +633,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                   </>
                 )}
               </div>
+              )}
             </nav>
           </aside>
 

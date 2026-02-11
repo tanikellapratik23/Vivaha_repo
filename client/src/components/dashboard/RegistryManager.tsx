@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, ExternalLink, Search, RefreshCw, ShoppingCart, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, ExternalLink, Search, RefreshCw, ShoppingCart, X, Heart } from 'lucide-react';
 import axios from 'axios';
+import { formatCurrency } from '../../utils/formatting';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -21,6 +22,7 @@ interface RegistryItem {
   url: string;
   registryType: string;
   category?: string;
+  isLiked?: boolean;
 }
 
 // Mock registry items - in production, these would come from registry APIs
@@ -62,6 +64,7 @@ export default function RegistryManager() {
   const [displayedItems, setDisplayedItems] = useState<RegistryItem[]>([]);
   const [itemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
+  const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [newRegistry, setNewRegistry] = useState<Partial<Registry>>({
     name: '',
     url: '',

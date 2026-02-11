@@ -1,5 +1,3 @@
-// Invoice generation utilities for Vivaha Split
-
 interface InvoiceData {
   invoiceNumber: string;
   date: string;

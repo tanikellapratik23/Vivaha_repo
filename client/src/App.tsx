@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authStorage } from './utils/auth';
 import Onboarding from './components/onboarding/Onboarding';
@@ -16,13 +16,27 @@ import SharedDashboard from './components/dashboard/SharedDashboard';
 import SharedWeddingInfo from './components/SharedWeddingInfo';
 import AIAssistant from './components/AIAssistant';
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
+
+  // Listen for AI navigation commands
+  useEffect(() => {
+    const handleAINavigate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.path) {
+        navigate(customEvent.detail.path);
+      }
+    };
+
+    window.addEventListener('aiNavigate', handleAINavigate);
+    return () => window.removeEventListener('aiNavigate', handleAINavigate);
+  }, [navigate]);
 
   useEffect(() => {
     // Check authentication status and fetch user role
@@ -228,6 +242,12 @@ function App() {
         </Routes>
         )}
       </div>
+    );
+  }
+
+  return (
+    <Router basename={BASENAME}>
+      <AppContent />
     </Router>
   );
 }

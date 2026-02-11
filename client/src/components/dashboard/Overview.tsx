@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, DollarSign, CheckSquare, Heart, MapPin, Briefcase, Sparkles } from 'lucide-react';
+import { Calendar, Users, DollarSign, CheckSquare, Heart, MapPin, Briefcase, Sparkles, RotateCw } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 import { getBudgetOptimizationSuggestions, getCityAverageCost } from '../../utils/cityData';
 import { generateAIBudgetSuggestions } from '../../utils/aiBudgetHelper';
+import { formatNumberWithCommas, formatCurrency } from '../../utils/formatting';
 
 export default function Overview() {
   const navigate = useNavigate();
@@ -252,6 +253,14 @@ export default function Overview() {
               <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
               AI Budget Optimization
             </h2>
+            <button
+              onClick={() => generateSuggestions(userSettings)}
+              disabled={loadingSuggestions}
+              className="p-2 hover:bg-purple-200 rounded-lg transition disabled:opacity-50"
+              title="Refresh suggestions"
+            >
+              <RotateCw className={`w-5 h-5 text-purple-600 ${loadingSuggestions ? 'animate-spin' : ''}`} />
+            </button>
           </div>
           <div className="space-y-3">
             {aiSuggestions.map((suggestion, index) => (
@@ -264,10 +273,10 @@ export default function Overview() {
           {userSettings?.weddingCity && (
             <div className="mt-4 pt-4 border-t border-purple-200">
               <p className="text-sm text-gray-700 font-medium">
-                <strong>City Average:</strong> ${getCityAverageCost(userSettings.weddingCity).toLocaleString()} 
+                <strong>City Average:</strong> {formatCurrency(getCityAverageCost(userSettings.weddingCity))} 
                 {userSettings.estimatedBudget && (
                   <span className={userSettings.estimatedBudget < getCityAverageCost(userSettings.weddingCity) ? 'text-orange-600' : 'text-green-600'}>
-                    {' '}(Your budget: ${userSettings.estimatedBudget.toLocaleString()})
+                    {' '}(Your budget: {formatCurrency(userSettings.estimatedBudget)})
                   </span>
                 )}
               </p>

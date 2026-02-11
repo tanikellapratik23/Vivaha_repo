@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Loader, ChevronDown } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Loader, ChevronDown, GripHorizontal } from 'lucide-react';
 import axios from 'axios';
 import { userDataStorage } from '../utils/userDataStorage';
 
@@ -8,6 +8,16 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Size {
+  width: number;
+  height: number;
 }
 
 // Use server-side AI proxy endpoints to avoid embedding secrets in the client
@@ -28,7 +38,28 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [size, setSize] = useState<Size>({ width: 384, height: 384 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Load position and size from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('aiAssistantState');
+    if (saved) {
+      try {
+        const { position: savedPos, size: savedSize } = JSON.parse(saved);
+        setPosition(savedPos || { x: 0, y: 0 });
+        setSize(savedSize || { width: 384, height: 384 });
+      } catch (e) {
+        // Use defaults on parse error
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Load user settings for context
@@ -49,6 +80,86 @@ export default function AIAssistant() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Save position and size when they change
+  useEffect(() => {
+    localStorage.setItem('aiAssistantState', JSON.stringify({ position, size }));
+  }, [position, size]);
+
+  // Handle mouse down on header to start dragging
+  const handleHeaderMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!widgetRef.current) return;
+    const rect = widgetRef.current.getBoundingClientRect();
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - rect.left + position.x,
+      y: e.clientY - rect.top + position.y,
+    });
+  };
+
+  // Handle mouse move for dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  // Handle resize
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!widgetRef.current) return;
+    const rect = widgetRef.current.getBoundingClientRect();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height,
+    });
+  };
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+
+      setSize({
+        width: Math.max(300, resizeStart.width + deltaX),
+        height: Math.max(300, resizeStart.height + deltaY),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, resizeStart]);
 
   const systemPrompt = `You are Vivaha AI Assistant, a friendly expert wedding planning AI. You help couples with decisions about weddings.
 
@@ -86,10 +197,35 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
         }
       );
 
+      let reply = response.data.reply || 'I encountered an issue. Please try again.';
+
+      // Check for navigation commands
+      const navigationPatterns = [
+        { keywords: ['budget', 'expenses'], path: '/dashboard/budget' },
+        { keywords: ['guest', 'guests'], path: '/dashboard/guests' },
+        { keywords: ['vendor', 'vendors'], path: '/dashboard/vendors' },
+        { keywords: ['todo', 'task', 'tasks'], path: '/dashboard/todos' },
+        { keywords: ['overview', 'dashboard', 'home'], path: '/dashboard/overview' },
+        { keywords: ['split', 'vivaha split', 'expense split'], path: '/dashboard/vivaha-split' },
+        { keywords: ['registry'], path: '/dashboard/registry' },
+        { keywords: ['seating'], path: '/dashboard/seating' },
+      ];
+
+      for (const pattern of navigationPatterns) {
+        if (pattern.keywords.some(kw => input.toLowerCase().includes(kw))) {
+          reply = `Navigating to ${pattern.keywords[0]} page... ✅ Done`;
+          // Emit navigation event
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('aiNavigate', { detail: { path: pattern.path } }));
+          }, 500);
+          break;
+        }
+      }
+
       const assistantMessage: Message = {
         id: `msg-${Date.now()}-ai`,
         type: 'assistant',
-        content: response.data.reply || 'I encountered an issue. Please try again.',
+        content: reply,
         timestamp: new Date(),
       };
 
@@ -131,10 +267,23 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
 
       {/* Chat Widget */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-96 border border-gray-200">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary-500 to-purple-600 text-white p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div
+          ref={widgetRef}
+          className="fixed z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200"
+          style={{
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            width: `${size.width}px`,
+            height: `${size.height}px`,
+          }}
+        >
+          {/* Header - Draggable */}
+          <div
+            onMouseDown={handleHeaderMouseDown}
+            className="bg-gradient-to-r from-primary-500 to-purple-600 text-white p-4 flex items-center justify-between cursor-move hover:from-primary-600 hover:to-purple-700 transition-all"
+          >
+            <div className="flex items-center gap-2 pointer-events-none">
+              <GripHorizontal className="w-4 h-4" />
               <Sparkles className="w-5 h-5" />
               <div>
                 <h3 className="font-bold text-sm">Vivaha AI</h3>
@@ -225,6 +374,13 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
               </button>
             </div>
           </div>
+
+          {/* Resize Handle */}
+          <div
+            onMouseDown={handleResizeStart}
+            className="absolute bottom-0 right-0 w-6 h-6 bg-gradient-to-tl from-primary-500 to-transparent cursor-nwse-resize rounded-tl-lg opacity-50 hover:opacity-100 transition-opacity"
+            title="Drag to resize"
+          />
         </div>
       )}
     </>

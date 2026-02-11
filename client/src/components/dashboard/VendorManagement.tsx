@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Phone, Mail, Globe, CheckCircle, Heart, Star, Trash2, TrendingUp, BarChart3, Calendar, DollarSign, Grid, List as ListIcon } from 'lucide-react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { formatCurrency, formatNumberWithCommas } from '../../utils/formatting';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -212,11 +213,11 @@ export default function VendorManagement() {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
           <p className="text-sm text-gray-500 font-medium">Total Budget</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">${(stats.totalBudget / 1000).toFixed(1)}k</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalBudget)}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-orange-500">
           <p className="text-sm text-gray-500 font-medium">Total Spent</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">${(stats.totalSpent / 1000).toFixed(1)}k</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalSpent)}</p>
         </div>
       </div>
 
