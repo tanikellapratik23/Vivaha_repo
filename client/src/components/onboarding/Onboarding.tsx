@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useOnboarding } from '../../hooks/useOnboarding';
 import Welcome from './steps/Welcome';
 import RoleSelection from './steps/RoleSelection';
 import WeddingDate from './steps/WeddingDate';
@@ -88,6 +89,7 @@ export interface OnboardingData {
 
 export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProps) {
   const navigate = useNavigate();
+  const { saveOnboarding } = useOnboarding();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
     role: '',
@@ -147,16 +149,15 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
         console.error('Failed to persist onboarding locally', e);
       }
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       // Save to server with proper timeout
       try {
         console.log('Saving onboarding to backend:', `${API_URL}/api/onboarding`);
         console.log('Token:', token ? `${token.slice(0, 20)}...` : 'NO TOKEN');
-        const result = await axios.post(`${API_URL}/api/onboarding`, data, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 10000,
-        });
-        console.log('✅ Onboarding saved to backend:', result.data);
+        
+        // Use the centralized saveOnboarding hook
+        await saveOnboarding(data);
+        console.log('✅ Onboarding saved to backend');
       } catch (err: any) {
         console.error('❌ Server onboarding save failed:', {
           message: err?.message,

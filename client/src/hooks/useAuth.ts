@@ -11,7 +11,8 @@ export const useAuth = () => {
       setIsLoggingIn(true);
       setError(null);
       try {
-        await login(email, password);
+        const result = await login(email, password);
+        return result;
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Login failed';
         setError(errorMsg);

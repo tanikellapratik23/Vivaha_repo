@@ -5,6 +5,7 @@ import { userDataStorage } from '../../utils/userDataStorage';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -14,6 +15,7 @@ interface LoginProps {
 
 export default function Login({ setIsAuthenticated }: LoginProps) {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,16 +38,16 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
 
     try {
       console.log(`Attempting login with: ${formData.email}${retryCount > 0 ? ` (retry ${retryCount})` : ''}`);
-      const response = await axios.post(`${API_URL}/api/auth/login`, formData, { timeout: 30000 });
+      const response = await login(formData.email, formData.password);
       if (didFallback) {
         // already timed out, ignore late response
         clearTimeout(timer);
         return;
       }
       clearTimeout(timer);
-      console.log('Login successful:', response.data);
-      authStorage.setToken(response.data.token);
-      authStorage.setUser(response.data.user);
+      console.log('Login successful:', response);
+      authStorage.setToken(response.token);
+      authStorage.setUser(response.user);
       
       // Clear any stale data from previous user sessions
       userDataStorage.clearUserData();
@@ -58,13 +60,13 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       // Small delay to ensure state is updated before navigation
       setTimeout(() => {
         // Check if admin - go directly to dashboard
-        if (response.data.user.isAdmin) {
+        if (response.user.isAdmin) {
           console.log('✅ Admin user detected, going to dashboard');
           sessionStorage.setItem('onboardingCompleted', 'true');
           navigate('/dashboard');
         } else {
           // Check if user has completed onboarding
-          const hasCompletedOnboarding = response.data.user.onboardingCompleted === true;
+          const hasCompletedOnboarding = response.user.onboardingCompleted === true;
           
           if (hasCompletedOnboarding) {
             console.log('✅ Returning user, showing welcome back');

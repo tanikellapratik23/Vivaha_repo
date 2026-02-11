@@ -6,6 +6,7 @@ import { authStorage } from '../../utils/auth';
 import { userDataStorage } from '../../utils/userDataStorage';
 import { getThemeClasses } from '../../utils/themeColors';
 import { syncUserData } from '../../utils/dataSync';
+import { useApp } from '../../context/AppContext';
 import axios from 'axios';
 import Tutorial from '../Tutorial';
 import SingleSourceOfTruth from './SingleSourceOfTruth';
@@ -60,15 +61,16 @@ interface DashboardProps {
 export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, isPlanner = false, setIsAuthenticated }: DashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { onboardingData } = useApp();
   
   // Route planners to their workspace dashboard
   if (isPlanner || location.pathname.includes('/planner')) {
     return <PlannerDashboard setIsAuthenticated={setIsAuthenticated || (() => {})} />;
   }
-  const [isReligious, setIsReligious] = useState(false);
+  const [isReligious, setIsReligious] = useState(onboardingData?.isReligious || false);
   const [isAdmin, setIsAdmin] = useState(propIsAdmin);
   const [wantsBachelorParty, setWantsBachelorParty] = useState(() => {
-    return localStorage.getItem('wantsBachelorParty') === 'true';
+    return onboardingData?.wantsBachelorParty || localStorage.getItem('wantsBachelorParty') === 'true';
   });
   const [emailSent, setEmailSent] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
