@@ -231,7 +231,8 @@ router.post('/login', async (req, res) => {
     }
 
     // Step 2: Check regular users
-    const user = await User.findOne({ email: { $regex: `^${email}$`, $options: 'i' } });
+    // Use direct email lookup (case-insensitive via schema lowercase setting)
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       console.log('User not found:', normalizedEmail);
       return res.status(401).json({ error: 'Invalid credentials' });

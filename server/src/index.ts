@@ -58,13 +58,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vivaha API is running' });
 });
 
-// MongoDB connection
+// MongoDB connection with optimized settings
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wedwise';
 
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGODB_URI, {
+    maxPoolSize: 10,
+    minPoolSize: 5,
+    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 5000,
+  })
   .then(() => {
-    console.log('✅ Connected to MongoDB');
+    console.log('✅ Connected to MongoDB with optimized connection pooling');
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });

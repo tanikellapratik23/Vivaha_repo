@@ -26,13 +26,13 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    // Wait up to 8 seconds for the API to respond
+    // Wait up to 5 seconds for the API to respond (reduced from 8s for better UX)
     let didFallback = false;
     const timer = window.setTimeout(() => {
       didFallback = true;
-      setError('Server did not respond. Please try again.');
+      setError('Server is taking longer than expected. Please check your connection and try again.');
       setLoading(false);
-    }, 8000);
+    }, 5000);
 
     try {
       console.log(`Attempting login with: ${formData.email}${retryCount > 0 ? ` (retry ${retryCount})` : ''}`);
@@ -95,7 +95,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       }
       
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
-        setError('Connection timeout. The server may be starting up. Please try again.');
+        setError('Connection timeout. The server may be slow or offline. Please try again.');
       } else if (err.response?.status === 401 || err.response?.status === 403) {
         setError('Invalid email or password. Please try again.');
       } else if (err.response?.status === 404) {

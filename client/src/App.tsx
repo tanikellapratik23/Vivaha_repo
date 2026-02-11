@@ -160,90 +160,94 @@ function AppContent() {
           </div>
         ) : (
           <Routes>
-          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          
-          {/* Shared Wedding Info - No Auth Required */}
-          <Route path="/wedding/:token" element={<SharedWeddingInfo />} />
-          
-          {/* Shared Dashboard - No Auth Required */}
-          <Route path="/shared/:token" element={<SharedDashboard />} />
-          
-          <Route 
-            path="/welcome-back" 
-            element={
-              isAuthenticated ? (
-                <WelcomeBack />
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-          
-          <Route 
-            path="/onboarding" 
-            element={
-              isAuthenticated ? (
-                isAdmin ? (
-                  <Navigate to="/dashboard" replace />
+            <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            {/* Shared Wedding Info - No Auth Required */}
+            <Route path="/wedding/:token" element={<SharedWeddingInfo />} />
+            
+            {/* Shared Dashboard - No Auth Required */}
+            <Route path="/shared/:token" element={<SharedDashboard />} />
+            
+            <Route 
+              path="/welcome-back" 
+              element={
+                isAuthenticated ? (
+                  <WelcomeBack />
                 ) : (
-                  <Onboarding setHasCompletedOnboarding={setHasCompletedOnboarding} />
+                  <Navigate to="/login" />
                 )
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-          
-          <Route 
-            path="/dashboard/*" 
-            element={
-              isAuthenticated ? (
-                <Dashboard isAdmin={isAdmin} setIsAuthenticated={setIsAuthenticated} />
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-
-          <Route 
-            path="/workspaces" 
-            element={
-              isAuthenticated ? (
-                <WorkspaceLibrary />
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-          
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                isAdmin || hasCompletedOnboarding ? (
-                  userRole === 'planner' ? (
-                    <Navigate to="/workspaces" />
+              } 
+            />
+            
+            <Route 
+              path="/onboarding" 
+              element={
+                isAuthenticated ? (
+                  isAdmin ? (
+                    <Navigate to="/dashboard" replace />
                   ) : (
-                    <Navigate to="/dashboard" />
+                    <Onboarding setHasCompletedOnboarding={setHasCompletedOnboarding} />
                   )
                 ) : (
-                  <Navigate to="/onboarding" />
+                  <Navigate to="/login" />
                 )
-              ) : (
-                <Landing />
-              )
-            }
-          />
-          <Route path="/demo" element={<DemoPage />} />
-          <Route path="/what-is-vivaha" element={<WhatIsVivaha />} />
-        </Routes>
+              } 
+            />
+            
+            <Route 
+              path="/dashboard/*" 
+              element={
+                isAuthenticated ? (
+                  <Dashboard isAdmin={isAdmin} setIsAuthenticated={setIsAuthenticated} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              } 
+            />
+
+            <Route 
+              path="/workspaces" 
+              element={
+                isAuthenticated ? (
+                  <WorkspaceLibrary />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              } 
+            />
+            
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  isAdmin || hasCompletedOnboarding ? (
+                    userRole === 'planner' ? (
+                      <Navigate to="/workspaces" />
+                    ) : (
+                      <Navigate to="/dashboard" />
+                    )
+                  ) : (
+                    <Navigate to="/onboarding" />
+                  )
+                ) : (
+                  <Landing />
+                )
+              }
+            />
+            <Route path="/demo" element={<DemoPage />} />
+            <Route path="/what-is-vivaha" element={<WhatIsVivaha />} />
+          </Routes>
         )}
       </div>
-    );
-  }
+    </Router>
+  );
+}
+
+export default function App() {
+  const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
 
   return (
     <Router basename={BASENAME}>
@@ -251,5 +255,3 @@ function AppContent() {
     </Router>
   );
 }
-
-export default App;

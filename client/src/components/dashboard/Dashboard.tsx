@@ -360,7 +360,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     ...(wantsBachelorParty ? [{ name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper }] : []),
   ];
 
-  const moreFeatures = [
+  const moreFeatures: typeof navigation = [
     // { name: 'Outfit Planner', path: '/dashboard/outfits', icon: Sparkles },
     // { name: 'Story Builder', path: '/dashboard/story', icon: BookOpen },
     // Hidden for now - code retained for future use
