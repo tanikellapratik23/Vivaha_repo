@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, DollarSign, CheckSquare, Heart, MapPin, Briefcase, Sparkles, RotateCw } from 'lucide-react';
+import { Calendar, Users, DollarSign, CheckSquare, Heart, MapPin, Briefcase, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 import { userDataStorage } from '../../utils/userDataStorage';
@@ -254,14 +254,6 @@ export default function Overview() {
               <Sparkles className="w-6 h-6 mr-2 text-purple-600" />
               AI Budget Optimization
             </h2>
-            <button
-              onClick={() => generateSuggestions(userSettings)}
-              disabled={loadingSuggestions}
-              className="p-2 hover:bg-purple-200 rounded-lg transition disabled:opacity-50"
-              title="Refresh suggestions"
-            >
-              <RotateCw className={`w-5 h-5 text-purple-600 ${loadingSuggestions ? 'animate-spin' : ''}`} />
-            </button>
           </div>
           <div className="space-y-3">
             {aiSuggestions.map((suggestion, index) => (
