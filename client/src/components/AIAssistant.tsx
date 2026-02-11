@@ -194,36 +194,71 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${API_URL}/api/ai/chat`,
-        {
-          message: input,
-          systemPrompt,
+      // Budget modification detection
+      const budgetAddPattern = /add\s+(\d{1,9})\s+(?:to\s+the\s+budget|to\s+([\w\s]+)\s+budget)/i;
+      const budgetSetPattern = /set\s+([\w\s]+)?\s*budget\s*(?:to|=)\s*(\d{1,9})/i;
+      let reply = '';
+      let updated = false;
+      let newBudget = null;
+      let budgetType = null;
+
+      if (budgetAddPattern.test(input)) {
+        const match = input.match(budgetAddPattern);
+        if (match) {
+          const amount = parseInt(match[1], 10);
+          budgetType = match[2] ? match[2].trim() : 'general';
+          // Update budget in userDataStorage
+          let budgets = userDataStorage.getData('budgets') || {};
+          budgets[budgetType] = (budgets[budgetType] || 0) + amount;
+          userDataStorage.setData('budgets', budgets);
+          reply = `Added $${amount.toLocaleString()} to ${budgetType} budget. New total: $${budgets[budgetType].toLocaleString()}`;
+          updated = true;
         }
-      );
+      } else if (budgetSetPattern.test(input)) {
+        const match = input.match(budgetSetPattern);
+        if (match) {
+          budgetType = match[1] ? match[1].trim() : 'general';
+          newBudget = parseInt(match[2], 10);
+          let budgets = userDataStorage.getData('budgets') || {};
+          budgets[budgetType] = newBudget;
+          userDataStorage.setData('budgets', budgets);
+          reply = `Set ${budgetType} budget to $${newBudget.toLocaleString()}.`;
+          updated = true;
+        }
+      }
 
-      let reply = response.data.reply || 'I encountered an issue. Please try again.';
+      if (!updated) {
+        // ...existing navigation and AI logic...
+        const response = await axios.post(
+          `${API_URL}/api/ai/chat`,
+          {
+            message: input,
+            systemPrompt,
+          }
+        );
 
-      // Check for navigation commands
-      const navigationPatterns = [
-        { keywords: ['budget', 'expenses'], path: '/dashboard/budget' },
-        { keywords: ['guest', 'guests'], path: '/dashboard/guests' },
-        { keywords: ['vendor', 'vendors'], path: '/dashboard/vendors' },
-        { keywords: ['todo', 'task', 'tasks'], path: '/dashboard/todos' },
-        { keywords: ['overview', 'dashboard', 'home'], path: '/dashboard/overview' },
-        { keywords: ['split', 'vivaha split', 'expense split'], path: '/dashboard/vivaha-split' },
-        { keywords: ['registry'], path: '/dashboard/registry' },
-        { keywords: ['seating'], path: '/dashboard/seating' },
-      ];
+        reply = response.data.reply || 'I encountered an issue. Please try again.';
 
-      for (const pattern of navigationPatterns) {
-        if (pattern.keywords.some(kw => input.toLowerCase().includes(kw))) {
-          reply = `Navigating to ${pattern.keywords[0]} page... ✅ Done`;
-          // Emit navigation event
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('aiNavigate', { detail: { path: pattern.path } }));
-          }, 500);
-          break;
+        // Navigation command detection
+        const navigationPatterns = [
+          { keywords: ['budget', 'expenses'], path: '/dashboard/budget' },
+          { keywords: ['guest', 'guests'], path: '/dashboard/guests' },
+          { keywords: ['vendor', 'vendors'], path: '/dashboard/vendors' },
+          { keywords: ['todo', 'task', 'tasks'], path: '/dashboard/todos' },
+          { keywords: ['overview', 'dashboard', 'home'], path: '/dashboard/overview' },
+          { keywords: ['split', 'vivaha split', 'expense split'], path: '/dashboard/vivaha-split' },
+          { keywords: ['registry'], path: '/dashboard/registry' },
+          { keywords: ['seating'], path: '/dashboard/seating' },
+        ];
+
+        for (const pattern of navigationPatterns) {
+          if (pattern.keywords.some(kw => input.toLowerCase().includes(kw))) {
+            reply = `Navigating to ${pattern.keywords[0]} page... ✅ Done`;
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('aiNavigate', { detail: { path: pattern.path } }));
+            }, 500);
+            break;
+          }
         }
       }
 

@@ -345,7 +345,6 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const navigation = [
     { name: 'Overview', path: '/dashboard', icon: LayoutGrid },
-    { name: 'Wedding Info', path: '/dashboard/wedding-info', icon: Heart },
     { name: 'Guest List', path: '/dashboard/guests', icon: Users },
     { name: 'Budget', path: '/dashboard/budget', icon: DollarSign },
     { name: 'Vivaha Split', path: '/dashboard/split', icon: Split },

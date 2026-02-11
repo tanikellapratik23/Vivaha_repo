@@ -351,8 +351,13 @@ export default function RegistryManager() {
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition"
                     onError={(e) => {
-                      // Fallback if image fails to load
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=' + encodeURIComponent(item.name);
+                      const img = e.target as HTMLImageElement;
+                      if (!img.dataset.fallback) {
+                        img.src = 'https://via.placeholder.com/400x300?text=' + encodeURIComponent(item.name);
+                        img.dataset.fallback = 'true';
+                      } else {
+                        img.src = '/assets/default-product.png'; // fallback to local asset if placeholder fails
+                      }
                     }}
                   />
                   <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold text-gray-700">
@@ -373,6 +378,9 @@ export default function RegistryManager() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-auto px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition font-medium flex items-center justify-center gap-2 text-sm"
+                    onClick={() => {
+                      console.log('Registry link clicked:', item.url);
+                    }}
                   >
                     <ShoppingCart className="w-4 h-4" />
                     View Product

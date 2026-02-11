@@ -5,6 +5,31 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function WeddingInfoEditor() {
+    const [shareLink, setShareLink] = useState('');
+    const [linkCopied, setLinkCopied] = useState(false);
+
+    const generateShareLink = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(`${API_URL}/api/sharing/generate`, { accessLevel: 'view' }, { headers: { Authorization: `Bearer ${token}` } });
+        if (response.data.shareToken) {
+          const currentUrl = window.location.origin;
+          setShareLink(`${currentUrl}/shared/${response.data.shareToken}`);
+        }
+      } catch (error) {
+        setShareLink('');
+      }
+    };
+
+    useEffect(() => {
+      generateShareLink();
+    }, []);
+
+    const copyShareLink = () => {
+      navigator.clipboard.writeText(shareLink);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    };
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -76,7 +101,6 @@ export default function WeddingInfoEditor() {
       setErrorMsg('');
 
       const token = localStorage.getItem('token');
-      
       const updateData = {
         weddingPageData: {
           coupleName1: formData.coupleName1,
@@ -103,6 +127,7 @@ export default function WeddingInfoEditor() {
       if (response.data.success) {
         setOriginalData(formData);
         setSaveStatus('saved');
+        await generateShareLink(); // update share link after save
         setTimeout(() => {
           setSaveStatus('idle');
           setIsEditing(false);
@@ -133,11 +158,26 @@ export default function WeddingInfoEditor() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Wedding Invite button */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-lg">Wedding Information</h1>
           <p className="text-gray-100 mt-1 drop-shadow-md">Manage your couple names, venue details, and contact information</p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={copyShareLink}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl transition shadow-lg font-semibold"
+          >
+            <Heart className="w-5 h-5" />
+            Wedding Invite
+          </button>
+          {shareLink && (
+            <span className="text-xs text-gray-200 mt-1 break-all">{shareLink}</span>
+          )}
+          {linkCopied && (
+            <span className="text-xs text-green-400 mt-1">Link copied!</span>
+          )}
         </div>
         {!isEditing && (
           <button
