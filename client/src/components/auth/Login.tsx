@@ -28,13 +28,17 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    // 4 second timeout - gives server time but retries if still slow
+    // 6 second timeout - gives server maximum time before user sees error
     let didFallback = false;
     const timer = window.setTimeout(() => {
       didFallback = true;
-      setError('Server is taking longer than expected. Retrying...');
+      if (retryCount < 4) {
+        setError(`Server slow (attempt ${retryCount + 1}/5). Retrying...`);
+      } else {
+        setError('Server not responding. Please check your internet connection and try again.');
+      }
       setLoading(false);
-    }, 4000);
+    }, 6000);
 
     try {
       console.log(`Attempting login with: ${formData.email}${retryCount > 0 ? ` (retry ${retryCount})` : ''}`);
@@ -84,20 +88,20 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       if (didFallback) return;
       console.error('Login error:', err.response?.data || err.message);
       
-      // Auto-retry up to 3 times on connection errors
-      if (retryCount < 3 && (!err.response || err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout'))) {
-        console.log(`⚠️ Connection error, retrying... (attempt ${retryCount + 1}/3)`);
-        setError('Connection unstable, retrying...');
+      // Auto-retry up to 4 times on connection errors
+      if (retryCount < 4 && (!err.response || err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout'))) {
+        console.log(`⚠️ Connection error, retrying... (attempt ${retryCount + 1}/5)`);
+        setError(`Connection error, retrying... (${retryCount + 1}/5)`);
         setLoading(false);
-        // Wait 600ms before retrying (faster than before)
+        // Wait 500ms before retrying (faster)
         setTimeout(() => {
           handleSubmit(e, retryCount + 1);
-        }, 600);
+        }, 500);
         return;
       }
       
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
-        setError('Connection timeout. The server may be slow or offline. Please try again.');
+        setError('Connection timeout. Server may be offline. Please try again.');
       } else if (err.response?.status === 401 || err.response?.status === 403) {
         setError('Invalid email or password. Please try again.');
       } else if (err.response?.status === 404) {
@@ -105,7 +109,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.message) {
-        setError('Login failed. Please check your connection and try again.');
+        setError('Server not responding. Please check your internet and try again.');
       } else {
         setError('An error occurred. Please try again.');
       }

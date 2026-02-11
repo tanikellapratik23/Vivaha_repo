@@ -124,8 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      // Slightly longer timeout (4s) to give server more time, but still fast enough for UX
-      const response = await api.post('/auth/login', { email, password }, { timeout: 4000 });
+      // 6s timeout - gives server maximum time before timeout
+      const response = await api.post('/auth/login', { email, password }, { timeout: 6000 });
       const { token, user: userData, onboarding } = response.data;
       
       localStorage.setItem('authToken', token);
