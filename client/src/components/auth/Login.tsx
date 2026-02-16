@@ -28,20 +28,19 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    // 6 second timeout - gives server maximum time before user sees error
+    // 3 second timeout for much faster feedback
     let didFallback = false;
     const timer = window.setTimeout(() => {
       didFallback = true;
-      if (retryCount < 4) {
-        setError(`Server slow (attempt ${retryCount + 1}/5). Retrying...`);
+      if (retryCount < 1) {
+        setError('Server slow. Retrying once...');
       } else {
         setError('Server not responding. Please check your internet connection and try again.');
       }
       setLoading(false);
-    }, 6000);
+    }, 3000);
 
     try {
-      console.log(`Attempting login with: ${formData.email}${retryCount > 0 ? ` (retry ${retryCount})` : ''}`);
       const response = await login(formData.email, formData.password);
       if (didFallback) {
         // already timed out, ignore late response
@@ -49,14 +48,9 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
         return;
       }
       clearTimeout(timer);
-      console.log('Login successful:', response);
       authStorage.setToken(response.token);
       authStorage.setUser(response.user);
-      
-      // Clear any stale data from previous user sessions
       userDataStorage.clearUserData();
-      
-      // Migrate old non-prefixed data to new user-specific format
       userDataStorage.migrateOldData();
       
       setIsAuthenticated(true);
@@ -86,20 +80,15 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     } catch (err: any) {
       clearTimeout(timer);
       if (didFallback) return;
-      console.error('Login error:', err.response?.data || err.message);
-      
-      // Auto-retry up to 4 times on connection errors
-      if (retryCount < 4 && (!err.response || err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout'))) {
-        console.log(`⚠️ Connection error, retrying... (attempt ${retryCount + 1}/5)`);
-        setError(`Connection error, retrying... (${retryCount + 1}/5)`);
+      // Only retry once, and only on connection errors
+      if (retryCount < 1 && (!err.response || err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout'))) {
+        setError('Connection error, retrying... (1/2)');
         setLoading(false);
-        // Wait 500ms before retrying (faster)
         setTimeout(() => {
           handleSubmit(e, retryCount + 1);
-        }, 500);
+        }, 300);
         return;
       }
-      
       if (err.code === 'ECONNABORTED' || err.message?.toLowerCase().includes('timeout')) {
         setError('Connection timeout. Server may be offline. Please try again.');
       } else if (err.response?.status === 401 || err.response?.status === 403) {
@@ -239,8 +228,8 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in... (may take 30s on first load)</span>
+                  <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="font-semibold text-primary-500">Signing in...</span>
                 </div>
               ) : 'Sign In'}
             </button>
