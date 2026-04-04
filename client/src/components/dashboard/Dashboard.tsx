@@ -113,8 +113,11 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     // Skip onboarding check for admins
     if (!userIsAdmin && !onboardingCompleted) {
       // Non-admin without onboarding should not be here
-      navigate('/onboarding', { replace: true });
-      return;
+      // Use a 0-timeout to prevent infinite loop from replaceState
+      const timer = setTimeout(() => {
+        navigate('/onboarding', { replace: true });
+      }, 0);
+      return () => clearTimeout(timer);
     }
     
     if (!userIsAdmin) {
@@ -153,7 +156,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [propIsAdmin, navigate]);
+  }, [propIsAdmin]);
 
   const syncAllUserData = async () => {
     try {
