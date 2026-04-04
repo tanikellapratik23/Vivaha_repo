@@ -3,6 +3,8 @@ import { Heart, Users, DollarSign, CheckSquare, Briefcase, LayoutGrid, LogOut, S
 import { useState, useEffect, useRef } from 'react';
 import { downloadBackupFile, importBackupFile, downloadBackupAsDoc } from '../../utils/offlineBackup';
 import { authStorage } from '../../utils/auth';
+import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../services/firebase';
 import { userDataStorage } from '../../utils/userDataStorage';
 import { getThemeClasses } from '../../utils/themeColors';
 import { syncUserData } from '../../utils/dataSync';
@@ -61,6 +63,7 @@ interface DashboardProps {
 export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, isPlanner = false, setIsAuthenticated }: DashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user: firebaseUser } = useAuth();
   const { onboardingData } = useApp();
   
   // Route planners to their workspace dashboard
@@ -94,12 +97,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Check if user is admin from token
-    const token = authStorage.getToken();
+    // Check if user is admin from token or Firebase
+    let userIsAdmin = propIsAdmin || false;
     const onboardingCompleted = sessionStorage.getItem('onboardingCompleted') === 'true';
     setHasCompletedOnboarding(onboardingCompleted);
     
-    let userIsAdmin = propIsAdmin || false;
+    // Check legacy token auth first
+    const token = authStorage.getToken();
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split('.')[1]));
@@ -108,6 +112,12 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
       } catch (e) {
         setIsAdmin(propIsAdmin || false);
       }
+    }
+    
+    // Check Firebase auth if no legacy token
+    if (!token && firebaseUser) {
+      userIsAdmin = propIsAdmin || false;
+      setIsAdmin(userIsAdmin);
     }
     
     // Skip onboarding check for admins
@@ -160,6 +170,14 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const syncAllUserData = async () => {
     try {
+      // Try Firebase auth first
+      if (firebaseUser && auth.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        await syncUserData(token);
+        return;
+      }
+      
+      // Fall back to legacy token auth
       const token = authStorage.getToken();
       if (!token) return;
       await syncUserData(token);
@@ -170,9 +188,18 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const sendWelcomeEmail = async () => {
     try {
-      const token = authStorage.getToken();
       const hasEmailBeenSent = sessionStorage.getItem('welcomeEmailSent');
       if (hasEmailBeenSent || emailSent) return;
+
+      // Try Firebase auth first
+      let token: string | null = null;
+      if (firebaseUser && auth.currentUser) {
+        token = await auth.currentUser.getIdToken();
+      } else {
+        token = authStorage.getToken();
+      }
+      
+      if (!token) return;
 
       await axios.post('/api/send-welcome-email', {}, {
         headers: { Authorization: `Bearer ${token}` },
@@ -187,7 +214,14 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const fetchUserSettings = async () => {
     try {
-      const token = authStorage.getToken();
+      // Try Firebase auth first
+      let token: string | null = null;
+      if (firebaseUser && auth.currentUser) {
+        token = await auth.currentUser.getIdToken();
+      } else {
+        token = authStorage.getToken();
+      }
+      
       if (!token) return;
       
       const response = await axios.get('/api/onboarding', {
@@ -231,6 +265,11 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     if (setIsAuthenticated) {
       setIsAuthenticated(false);
     }
+
+    // Also sign out from Firebase if user is authenticated
+    if (firebaseUser && auth.currentUser) {
+      auth.signOut().catch(err => console.error('Firebase logout error:', err));
+    }
     
     console.log('✅ Logged out - all user data cleared');
     
@@ -244,7 +283,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const loadNavigationPreferences = async () => {
     try {
-      const token = authStorage.getToken();
+      // Try Firebase auth first
+      let token: string | null = null;
+      if (firebaseUser && auth.currentUser) {
+        token = await auth.currentUser.getIdToken();
+      } else {
+        token = authStorage.getToken();
+      }
       if (!token) return;
 
       const response = await axios.get(`${API_URL}/api/navigation/preferences`, {
@@ -262,7 +307,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
   const saveNavigationPreferences = async () => {
     try {
-      const token = authStorage.getToken();
+      // Try Firebase auth first
+      let token: string | null = null;
+      if (firebaseUser && auth.currentUser) {
+        token = await auth.currentUser.getIdToken();
+      } else {
+        token = authStorage.getToken();
+      }
       if (!token) return;
 
       await axios.post(
@@ -492,7 +543,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                           onClick={async () => {
                             setHiddenNavItems([]);
                             try {
-                              const token = authStorage.getToken();
+                              // Try Firebase auth first
+                              let token: string | null = null;
+                              if (firebaseUser && auth.currentUser) {
+                                token = await auth.currentUser.getIdToken();
+                              } else {
+                                token = authStorage.getToken();
+                              }
                               if (!token) return;
                               await axios.post(`${API_URL}/api/navigation/preferences`, {
                                 order: customNavOrder,
