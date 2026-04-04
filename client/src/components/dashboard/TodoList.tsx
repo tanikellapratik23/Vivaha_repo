@@ -122,9 +122,15 @@ export default function TodoList() {
       }
 
       // Get Firebase token
+      const auth = require('../../services/firebase').auth;
       let token: string | null = null;
-      if (user) {
-        token = await user.getIdToken();
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+          token = localStorage.getItem('token');
+        }
       } else {
         token = localStorage.getItem('token');
       }

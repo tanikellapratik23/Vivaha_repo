@@ -99,8 +99,13 @@ export default function GuestList() {
 
       // Get Firebase token
       let token: string | null = null;
-      if (user) {
-        token = await user.getIdToken();
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+          token = localStorage.getItem('token');
+        }
       } else {
         // Fallback to localStorage
         token = localStorage.getItem('token');
@@ -283,8 +288,13 @@ export default function GuestList() {
 
       // Get Firebase token
       let token: string | null = null;
-      if (user) {
-        token = await user.getIdToken();
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+          token = localStorage.getItem('token');
+        }
       } else {
         // Fallback to localStorage
         token = localStorage.getItem('token');
