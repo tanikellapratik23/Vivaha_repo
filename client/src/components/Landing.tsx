@@ -47,44 +47,12 @@ function VendorPreview() {
 
   const detectLocation = async () => {
     try {
-      // Immediately start fetching Photography in San Francisco while detecting location
-      setUserLocation({ city: 'San Francisco', state: 'CA' });
-      await fetchVendors('San Francisco', 'CA');
-
-      try {
-        // Try to get location from browser geolocation (non-blocking)
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              try {
-                const { latitude, longitude } = position.coords;
-                // Use reverse geocoding
-                const response = await axios.get(
-                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-                  { timeout: 3000 }
-                );
-                const city = response.data.address.city || response.data.address.town || 'San Francisco';
-                const state = response.data.address.state || 'CA';
-                setUserLocation({ city, state });
-                await fetchVendors(city, state);
-              } catch (e) {
-                console.error('Geolocation error:', e);
-                // Keep San Francisco
-              }
-            },
-            (err) => {
-              console.error('Geolocation permission denied:', err);
-              // Keep San Francisco
-            },
-            { timeout: 5000 }
-          );
-        }
-      } catch (e) {
-        console.error('Geolocation outer catch:', e);
-      }
+      // Always use San Francisco
+      setUserLocation({ city: 'San Francisco', state: 'California' });
+      await fetchVendors('San Francisco', 'California');
     } catch (e) {
       console.error('detectLocation error:', e);
-      setError('Failed to detect location');
+      setError('Failed to load vendors');
       setLoading(false);
     }
   };
@@ -474,7 +442,6 @@ export default function Landing() {
             >
               <Map className="h-5 w-5" />
             </button>
-            <Link to="/what-is-vivaha" className="px-4 py-2 bg-transparent text-black rounded-md font-medium border-2 border-black hover:bg-black hover:text-white transition">About</Link>
             <Link to="/login" className="px-4 py-2 bg-white text-primary-700 rounded-md font-medium">Log in</Link>
             <Link to="/register" className="px-4 py-2 bg-primary-600 text-white rounded-md font-medium">Sign up</Link>
           </nav>
@@ -489,9 +456,10 @@ export default function Landing() {
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-6 font-normal">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
-              <div className="flex gap-3 mb-4">
+              <div className="flex gap-3 mb-4 flex-wrap">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
                 <DemoLauncher stopHero={() => setShowHero(false)} />
+                <Link to="/what-is-vivaha" className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border">Vivaha</Link>
               </div>
 
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">

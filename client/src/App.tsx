@@ -198,7 +198,7 @@ function AppContent() {
             path="/onboarding" 
             element={
               isAuthenticated ? (
-                isAdmin ? (
+                isAdmin || hasCompletedOnboarding ? (
                   <Navigate to="/dashboard" replace />
                 ) : (
                   <Onboarding setHasCompletedOnboarding={setHasCompletedOnboarding} />
