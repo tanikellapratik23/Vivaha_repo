@@ -459,7 +459,7 @@ export default function Landing() {
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-6 font-normal">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
-              <div className="flex gap-3 mb-4 flex-wrap justify-center">
+              <div className="flex gap-3 mb-4 flex-wrap">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
                 <Link to="/what-is-vivaha" className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border">Vivaha</Link>
               </div>
