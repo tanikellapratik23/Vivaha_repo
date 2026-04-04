@@ -234,11 +234,14 @@ function VendorPreview() {
             {vendors.map((vendor) => (
               <div key={vendor.id} className="bg-gradient-to-b from-white to-white/95 border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition">
                 {/* Vendor Image */}
-                <div className="h-72 bg-gray-200 overflow-hidden relative">
+                <div className="h-72 bg-gray-200 overflow-hidden relative flex items-center justify-center">
                   <img
-                    src={vendor.image}
+                    src={vendor.image || 'https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop'}
                     alt={vendor.name}
                     className="w-full h-full object-cover hover:scale-105 transition"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop';
+                    }}
                   />
                   {/* Fade overlay at bottom of image */}
                   <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-white"></div>
@@ -456,9 +459,8 @@ export default function Landing() {
               </div>
               <p className="text-gray-600 text-lg leading-relaxed mb-6 font-normal">Vivaha helps you manage guests, budget, vendors and ceremony details — all in one beautiful dashboard.</p>
 
-              <div className="flex gap-3 mb-4 flex-wrap">
+              <div className="flex gap-3 mb-4 flex-wrap justify-center">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get started — it's free</Link>
-                <DemoLauncher stopHero={() => setShowHero(false)} />
                 <Link to="/what-is-vivaha" className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border">Vivaha</Link>
               </div>
 
@@ -629,23 +631,6 @@ function useScrollIntoDemo(demoRef: React.RefObject<HTMLDivElement>, playing: bo
     }
     return;
   }, [playing, demoRef]);
-}
-
-function DemoLauncher({ stopHero }: { stopHero?: () => void }) {
-  const navigate = useNavigate();
-  return (
-    <>
-      <button
-        onClick={() => {
-          stopHero?.();
-          navigate('/demo');
-        }}
-        className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border"
-      >
-        View demo
-      </button>
-    </>
-  );
 }
 
 function DemoPlayer({ onClose, inline }: { onClose: () => void; inline?: boolean }) {

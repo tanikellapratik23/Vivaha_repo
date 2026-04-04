@@ -119,9 +119,14 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     
     if (!userIsAdmin) {
       fetchUserSettings();
-      sendWelcomeEmail();
       loadNavigationPreferences();
       syncAllUserData();
+      // Only send welcome email if user just completed onboarding
+      const justCompletedOnboarding = sessionStorage.getItem('justCompletedOnboarding');
+      if (justCompletedOnboarding) {
+        sendWelcomeEmail();
+        sessionStorage.removeItem('justCompletedOnboarding');
+      }
     }
 
     // Set up page unload handler to save all data before leaving

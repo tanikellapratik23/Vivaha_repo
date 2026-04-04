@@ -170,6 +170,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
       // mark completed locally and navigate
       localStorage.setItem('onboardingCompleted', 'true');
       sessionStorage.setItem('onboardingCompleted', 'true'); // Dashboard checks sessionStorage
+      sessionStorage.setItem('justCompletedOnboarding', 'true'); // Flag to send welcome email
       localStorage.removeItem('isNewUser'); // Clear new user flag now that onboarding is done
       setHasCompletedOnboarding(true);
       
@@ -216,6 +217,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
     }
     // mark complete locally (avoid API call when offline)
     localStorage.setItem('onboardingCompleted', 'true');
+    sessionStorage.setItem('justCompletedOnboarding', 'true'); // Flag to send welcome email
     setHasCompletedOnboarding(true);
     navigate('/dashboard');
     // fallback for local flow
