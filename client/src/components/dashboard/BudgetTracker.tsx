@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info, Trash2, Download, Upload, Save } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { userDataStorage } from '../../utils/userDataStorage';
+import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
@@ -25,6 +26,7 @@ export default function BudgetTracker() {
   const [loading, setLoading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { user } = useAuth();
   const [newCategory, setNewCategory] = useState({
     name: '',
     estimatedAmount: 0,
@@ -74,7 +76,14 @@ export default function BudgetTracker() {
           return;
         }
 
-        const token = localStorage.getItem('token');
+        // Get Firebase token
+        let token: string | null = null;
+        if (user) {
+          token = await user.getIdToken();
+        } else {
+          token = localStorage.getItem('token');
+        }
+
         if (!token) {
           setAutoSaveStatus('idle');
           return;
@@ -147,7 +156,14 @@ export default function BudgetTracker() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (user) {
+        token = await user.getIdToken();
+      } else {
+        token = localStorage.getItem('token');
+      }
+
       if (!token) {
         console.warn('⚠️ No token found - using cached budget');
         const cached = userDataStorage.getData('budget');

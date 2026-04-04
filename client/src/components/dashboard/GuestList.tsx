@@ -4,6 +4,8 @@ import { userDataStorage } from '../../utils/userDataStorage';
 import { Plus, Search, Filter, Mail, Phone, Check, X, Upload, Download, Share2, Save, BarChart3, Users, TrendingUp, Grid, List as ListIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../services/firebase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -28,6 +30,7 @@ export default function GuestList() {
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'analytics'>('list');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
   const [newGuest, setNewGuest] = useState<Partial<Guest>>({
     name: '',
     email: '',
@@ -94,7 +97,15 @@ export default function GuestList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (user) {
+        token = await user.getIdToken();
+      } else {
+        // Fallback to localStorage
+        token = localStorage.getItem('token');
+      }
+
       if (!token) {
         console.warn('⚠️ No token found - using cached guests');
         const cached = userDataStorage.getData('guests');
@@ -270,7 +281,20 @@ export default function GuestList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (user) {
+        token = await user.getIdToken();
+      } else {
+        // Fallback to localStorage
+        token = localStorage.getItem('token');
+      }
+
+      if (!token) {
+        alert('Not authenticated. Saving locally.');
+        userDataStorage.setData('guests', guests);
+        return;
+      }
       
       // Save each guest individually
       for (const guest of guests) {

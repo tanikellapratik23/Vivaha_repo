@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { userDataStorage } from '../../utils/userDataStorage';
+import { useAuth } from '../../context/AuthContext';
 import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save, Download, Clock, Zap, Eye, List, BarChart3, X, CheckCircle2 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import axios from 'axios';
@@ -62,6 +63,7 @@ export default function TodoList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'timeline' | 'stats'>('list');
+  const { user } = useAuth();
   const [newTodo, setNewTodo] = useState<Partial<Todo>>({
     title: '',
     description: '',
@@ -119,7 +121,14 @@ export default function TodoList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (user) {
+        token = await user.getIdToken();
+      } else {
+        token = localStorage.getItem('token');
+      }
+
       if (!token) {
         console.warn('⚠️ No token found - using cached todos');
         const cached = userDataStorage.getData('todos');
