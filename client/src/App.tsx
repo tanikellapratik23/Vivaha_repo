@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authStorage } from './utils/auth';
+import { AuthProvider } from './context/AuthContext';
 import Onboarding from './components/onboarding/Onboarding';
 import Dashboard from './components/dashboard/Dashboard';
 import WorkspaceLibrary from './components/workspace/WorkspaceLibrary';
@@ -247,8 +248,10 @@ export default function App() {
   const BASENAME = ((import.meta.env.BASE_URL as string) || '/').replace(/\/$/, '') || '/';
 
   return (
-    <Router basename={BASENAME}>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router basename={BASENAME}>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
