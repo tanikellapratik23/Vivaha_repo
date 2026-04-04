@@ -93,7 +93,10 @@ export default function GuestList() {
       if (offlineMode) {
         console.log('📴 Offline mode - loading guests from cache');
         const cached = userDataStorage.getData('guests');
-        if (cached) setGuests(JSON.parse(cached));
+        if (cached) {
+          const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
+          setGuests(Array.isArray(parsed) ? parsed : []);
+        }
         return;
       }
 
@@ -104,17 +107,16 @@ export default function GuestList() {
           token = await auth.currentUser.getIdToken();
         } catch (error) {
           console.error('Failed to get Firebase token:', error);
-          token = localStorage.getItem('token');
         }
-      } else {
-        // Fallback to localStorage
-        token = localStorage.getItem('token');
       }
 
       if (!token) {
         console.warn('⚠️ No token found - using cached guests');
         const cached = userDataStorage.getData('guests');
-        if (cached) setGuests(JSON.parse(cached));
+        if (cached) {
+          const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
+          setGuests(Array.isArray(parsed) ? parsed : []);
+        }
         return;
       }
 
@@ -149,7 +151,16 @@ export default function GuestList() {
     try {
       setLoading(true);
       const offlineMode = localStorage.getItem('offlineMode') === 'true';
-      const token = localStorage.getItem('token');
+      
+      // Try to get Firebase token first
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
 
       // Online mode - save to server
       if (!offlineMode && token) {

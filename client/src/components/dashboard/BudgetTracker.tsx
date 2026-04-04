@@ -3,6 +3,7 @@ import { Plus, DollarSign, TrendingDown, TrendingUp, MapPin, Sparkles, Info, Tra
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { userDataStorage } from '../../utils/userDataStorage';
 import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../services/firebase';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
@@ -77,17 +78,13 @@ export default function BudgetTracker() {
         }
 
         // Get Firebase token
-        const auth = require('../../services/firebase').auth;
         let token: string | null = null;
         if (auth.currentUser) {
           try {
             token = await auth.currentUser.getIdToken();
           } catch (error) {
             console.error('Failed to get Firebase token:', error);
-            token = localStorage.getItem('token');
           }
-        } else {
-          token = localStorage.getItem('token');
         }
 
         if (!token) {
@@ -158,28 +155,24 @@ export default function BudgetTracker() {
       if (offlineMode) {
         console.log('📴 Offline mode - loading budget from cache');
         const cached = userDataStorage.getData('budget');
-      if (cached && Array.isArray(cached)) setCategories(cached);
+        if (cached && Array.isArray(cached)) setCategories(cached);
         return;
       }
 
       // Get Firebase token
-      const auth = require('../../services/firebase').auth;
       let token: string | null = null;
       if (auth.currentUser) {
         try {
           token = await auth.currentUser.getIdToken();
         } catch (error) {
           console.error('Failed to get Firebase token:', error);
-          token = localStorage.getItem('token');
         }
-      } else {
-        token = localStorage.getItem('token');
       }
 
       if (!token) {
         console.warn('⚠️ No token found - using cached budget');
         const cached = userDataStorage.getData('budget');
-      if (cached && Array.isArray(cached)) setCategories(cached);
+        if (cached && Array.isArray(cached)) setCategories(cached);
         return;
       }
 
@@ -231,7 +224,16 @@ export default function BudgetTracker() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       if (!token) {
         throw new Error('Not authenticated. Please log in.');
       }
@@ -289,7 +291,16 @@ export default function BudgetTracker() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       const category = (Array.isArray(categories) ? categories : []).find(c => c.id === id || c._id === id);
       const categoryId = category?._id || id;
 
@@ -327,7 +338,16 @@ export default function BudgetTracker() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       await axios.put(`${API_URL}/api/budget/${categoryId}`, updatedCategory, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -349,7 +369,16 @@ export default function BudgetTracker() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       if (!token) {
         // If user is not authenticated, save locally and inform
         userDataStorage.setData('budget', categories);

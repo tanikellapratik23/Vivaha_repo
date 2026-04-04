@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { userDataStorage } from '../../utils/userDataStorage';
 import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../services/firebase';
 import { Plus, CheckCircle, Circle, Calendar, AlertCircle, Trash2, Save, Download, Clock, Zap, Eye, List, BarChart3, X, CheckCircle2 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import axios from 'axios';
@@ -98,7 +99,16 @@ export default function TodoList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       await axios.put(`${API_URL}/api/todos/${todoId}`, updated, { headers: { Authorization: `Bearer ${token}` } });
     } catch (error) {
       console.error('Failed to update todo:', error);
@@ -114,25 +124,23 @@ export default function TodoList() {
         console.log('📴 Offline mode - loading todos from cache');
         const cached = userDataStorage.getData('todos');
         if (cached) {
-          const parsed = JSON.parse(cached) as any[];
-          const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
-          setTodos(items);
+          const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
+          if (Array.isArray(parsed)) {
+            const items = parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : undefined }));
+            setTodos(items);
+          }
         }
         return;
       }
 
       // Get Firebase token
-      const auth = require('../../services/firebase').auth;
       let token: string | null = null;
       if (auth.currentUser) {
         try {
           token = await auth.currentUser.getIdToken();
         } catch (error) {
           console.error('Failed to get Firebase token:', error);
-          token = localStorage.getItem('token');
         }
-      } else {
-        token = localStorage.getItem('token');
       }
 
       if (!token) {
@@ -256,7 +264,16 @@ export default function TodoList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       const payload = {
         title: newTodo.title,
         description: newTodo.description || '',
@@ -293,7 +310,17 @@ export default function TodoList() {
 
       const todo = (Array.isArray(todos) ? todos : []).find(t => t._id === id || t.id === id);
       const todoId = todo?._id || id;
-      const token = localStorage.getItem('token');
+      
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       await axios.delete(`${API_URL}/api/todos/${todoId}`, { headers: { Authorization: `Bearer ${token}` } });
       setTodos((Array.isArray(todos) ? todos : []).filter(t => t._id !== id && t.id !== id));
     } catch (error) {
@@ -314,8 +341,16 @@ export default function TodoList() {
         return;
       }
 
-      const token = localStorage.getItem('token');
-      
+      // Get Firebase token
+      let token: string | null = null;
+      if (auth.currentUser) {
+        try {
+          token = await auth.currentUser.getIdToken();
+        } catch (error) {
+          console.error('Failed to get Firebase token:', error);
+        }
+      }
+
       // Save each todo individually
       for (const todo of todos) {
         if (todo._id) {
