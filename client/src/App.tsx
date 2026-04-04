@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authStorage } from './utils/auth';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Onboarding from './components/onboarding/Onboarding';
 import Dashboard from './components/dashboard/Dashboard';
 import WorkspaceLibrary from './components/workspace/WorkspaceLibrary';
@@ -19,6 +19,7 @@ import AIAssistant from './components/AIAssistant';
 
 function AppContent() {
   const navigate = useNavigate();
+  const { user: firebaseUser, loading: firebaseLoading } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -41,6 +42,15 @@ function AppContent() {
   useEffect(() => {
     // Check authentication status and fetch user role
     const fetchUserData = async () => {
+      // Priority 1: Check Firebase auth first
+      if (firebaseUser) {
+        setIsAuthenticated(true);
+        setHasCompletedOnboarding(true); // Firebase users skip onboarding
+        setIsLoading(false);
+        return;
+      }
+      
+      // Priority 2: Check legacy token auth
       const token = authStorage.getToken();
       setIsAuthenticated(!!token);
       
@@ -90,8 +100,11 @@ function AppContent() {
       }
     };
     
-    fetchUserData();
-  }, []);
+    // Only check when Firebase loading is complete
+    if (!firebaseLoading) {
+      fetchUserData();
+    }
+  }, [firebaseUser, firebaseLoading]);
 
   // Listen for storage changes
   useEffect(() => {
@@ -221,7 +234,14 @@ function AppContent() {
           <Route
             path="/"
             element={
-              isAuthenticated ? (
+              firebaseLoading || isLoading ? (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                  </div>
+                </div>
+              ) : isAuthenticated ? (
                 isAdmin || hasCompletedOnboarding ? (
                   userRole === 'planner' ? (
                     <Navigate to="/workspaces" />
