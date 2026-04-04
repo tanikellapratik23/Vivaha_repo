@@ -445,8 +445,8 @@ export default function Landing() {
             >
               <Map className="h-5 w-5" />
             </button>
-            <Link to="/login" className="px-4 py-2 bg-white text-primary-700 rounded-md font-medium">Log in</Link>
-            <Link to="/register" className="px-4 py-2 bg-primary-600 text-white rounded-md font-medium">Sign up</Link>
+            <Link to="/login" className="px-4 py-2 bg-white text-orange-600 rounded-md font-medium">Log in</Link>
+            <Link to="/login?signup=true" className="px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-md font-medium">Sign up</Link>
           </nav>
         </div>
       </header>
