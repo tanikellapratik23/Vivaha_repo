@@ -71,42 +71,42 @@ const Login: React.FC = () => {
 
   if (isForgotPassword) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-orange-100">
           <button
             onClick={() => setIsForgotPassword(false)}
-            className="flex items-center gap-2 text-purple-600 font-semibold mb-6 hover:underline"
+            className="flex items-center gap-2 text-orange-600 font-semibold mb-6 hover:text-orange-700 hover:underline"
           >
             <ArrowLeft size={18} />
             Back to Login
           </button>
 
-          <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">Reset Password</h1>
-          <p className="text-center text-gray-600 mb-8">Enter your email and we'll send you a reset link.</p>
+          <h1 className="text-3xl font-bold text-center text-orange-700 mb-2">Reset Password</h1>
+          <p className="text-center text-gray-600 mb-8 font-medium">Enter your email and we'll send you a reset link.</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
               {success}
             </div>
           )}
 
-          <form onSubmit={handleForgotPassword} className="space-y-4">
+          <form onSubmit={handleForgotPassword} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                <Mail className="absolute left-3 top-3 text-orange-400" size={20} />
                 <input
                   type="email"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-orange-50/30"
                   required
                 />
               </div>
@@ -115,7 +115,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition disabled:opacity-50 text-lg"
             >
               {loading ? (
                 <Loader className="inline animate-spin" size={20} />
@@ -130,45 +130,45 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">Vivaha</h1>
-        <p className="text-center text-gray-600 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-orange-100">
+        <h1 className="text-4xl font-bold text-center text-orange-700 mb-2">✨ Vivaha</h1>
+        <p className="text-center text-gray-600 mb-8 font-medium">
           {isSignUp ? "Create your account" : "Welcome back"}
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+              <Mail className="absolute left-3 top-3 text-orange-400" size={20} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-orange-50/30"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+              <Lock className="absolute left-3 top-3 text-orange-400" size={20} />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-orange-50/30"
                 required
               />
             </div>
@@ -179,7 +179,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsForgotPassword(true)}
-                className="text-sm text-purple-600 font-semibold hover:underline"
+                className="text-sm text-orange-600 font-semibold hover:text-orange-700 hover:underline"
               >
                 Forgot password?
               </button>
@@ -189,7 +189,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition disabled:opacity-50 text-lg"
           >
             {loading ? (
               <Loader className="inline animate-spin" size={20} />
@@ -201,16 +201,16 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="my-4 flex items-center">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-2 text-gray-500 text-sm">or</span>
-          <div className="flex-1 border-t border-gray-300"></div>
+        <div className="my-6 flex items-center gap-3">
+          <div className="flex-1 border-t border-orange-200"></div>
+          <span className="text-gray-500 text-sm font-medium">or</span>
+          <div className="flex-1 border-t border-orange-200"></div>
         </div>
 
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full border-2 border-orange-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-orange-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/google.svg"
@@ -220,11 +220,11 @@ const Login: React.FC = () => {
           Sign in with Google
         </button>
 
-        <p className="text-center text-gray-600 text-sm mt-6">
+        <p className="text-center text-gray-600 text-sm mt-8">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-purple-600 font-semibold hover:underline"
+            className="text-orange-600 font-bold hover:text-orange-700 hover:underline"
           >
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
