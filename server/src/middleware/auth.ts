@@ -8,6 +8,22 @@ export interface AuthRequest extends Request {
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    // Allow localhost development access without token
+    if (process.env.NODE_ENV !== 'production') {
+      const origin = req.get('origin');
+      const host = req.get('host');
+      
+      // Allow localhost/127.0.0.1 in development to skip auth for admin endpoints
+      if ((origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) || 
+          (host && (host.includes('localhost') || host.includes('127.0.0.1')))) {
+        req.userId = 'local-dev-admin';
+        req.isAdmin = true;
+        console.log('✅ Development mode: Allowing localhost access to admin endpoints');
+        next();
+        return;
+      }
+    }
+
     const authHeader = req.header('Authorization');
     const token = authHeader?.replace('Bearer ', '');
 
