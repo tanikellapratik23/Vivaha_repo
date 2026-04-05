@@ -31,13 +31,16 @@ function AppContent() {
     const handleAINavigate = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail?.path) {
-        navigate(customEvent.detail.path);
+        // Use a setTimeout to avoid infinite loops from replaceState
+        setTimeout(() => {
+          navigate(customEvent.detail.path);
+        }, 0);
       }
     };
 
     window.addEventListener('aiNavigate', handleAINavigate);
     return () => window.removeEventListener('aiNavigate', handleAINavigate);
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     // Check authentication status and fetch user role

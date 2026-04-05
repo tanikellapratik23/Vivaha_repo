@@ -115,14 +115,23 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     }
     
     // Check Firebase auth if no legacy token
+    // Firebase users (Google sign-in) should automatically skip onboarding
     if (!token && firebaseUser) {
       userIsAdmin = propIsAdmin || false;
       setIsAdmin(userIsAdmin);
+      // Firebase users are assumed to have completed onboarding flow
+      // (they can complete it from dashboard later if needed)
+      setHasCompletedOnboarding(true);
+      return;
     }
     
-    // Skip onboarding check for admins
+    // Skip onboarding check for admins or those who completed it
+    if (userIsAdmin || onboardingCompleted) {
+      return;
+    }
+    
+    // Non-admin without onboarding should redirect
     if (!userIsAdmin && !onboardingCompleted) {
-      // Non-admin without onboarding should not be here
       // Use a 0-timeout to prevent infinite loop from replaceState
       const timer = setTimeout(() => {
         navigate('/onboarding', { replace: true });
@@ -130,6 +139,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
       return () => clearTimeout(timer);
     }
     
+    // Load user data if not admin
     if (!userIsAdmin) {
       fetchUserSettings();
       loadNavigationPreferences();
@@ -166,7 +176,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [propIsAdmin]);
+  }, [propIsAdmin, firebaseUser]);
 
   const syncAllUserData = async () => {
     try {
@@ -253,7 +263,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     // Clear all user-specific data
     userDataStorage.clearUserData();
     
@@ -268,12 +278,16 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
 
     // Also sign out from Firebase if user is authenticated
     if (firebaseUser && auth.currentUser) {
-      auth.signOut().catch(err => console.error('Firebase logout error:', err));
+      try {
+        await auth.signOut();
+      } catch (err) {
+        console.error('Firebase logout error:', err);
+      }
     }
     
     console.log('✅ Logged out - all user data cleared');
     
-    // Navigate directly to landing without reload
+    // Navigate to landing page with replace to clear history
     navigate('/', { replace: true });
   };
 
