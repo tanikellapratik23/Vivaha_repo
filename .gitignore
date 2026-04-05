@@ -29,6 +29,10 @@ build/
 *~
 .DS_Store
 
+# Local development files (not for production)
+LOCAL_USERS_DASHBOARD.html
+
+
 # Logs
 logs/
 *.log
