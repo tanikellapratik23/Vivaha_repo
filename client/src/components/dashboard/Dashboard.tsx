@@ -115,13 +115,19 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     }
     
     // Check Firebase auth if no legacy token
-    // Firebase users (Google sign-in) should automatically skip onboarding
     if (!token && firebaseUser) {
       userIsAdmin = propIsAdmin || false;
       setIsAdmin(userIsAdmin);
-      // Firebase users are assumed to have completed onboarding flow
-      // (they can complete it from dashboard later if needed)
-      setHasCompletedOnboarding(true);
+      // Check if this is a new Firebase user who needs onboarding
+      const isNewUser = sessionStorage.getItem('isNewUser') === 'true' || 
+                        localStorage.getItem('isNewUser') === 'true';
+      if (isNewUser) {
+        // New user - don't auto-complete, let them go through onboarding
+        setHasCompletedOnboarding(false);
+      } else {
+        // Existing user - completed onboarding already
+        setHasCompletedOnboarding(onboardingCompleted || true);
+      }
       return;
     }
     

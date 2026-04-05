@@ -48,7 +48,22 @@ function AppContent() {
       // Priority 1: Check Firebase auth first
       if (firebaseUser) {
         setIsAuthenticated(true);
-        setHasCompletedOnboarding(true); // Firebase users skip onboarding
+        // Check if user is new (hasn't completed onboarding)
+        const isNewUser = sessionStorage.getItem('isNewUser') === 'true' || 
+                          localStorage.getItem('isNewUser') === 'true';
+        const onboardingCompleted = sessionStorage.getItem('onboardingCompleted') === 'true' ||
+                                    localStorage.getItem('onboardingCompleted') === 'true';
+        
+        // Only mark onboarding as completed if user is NOT new
+        if (!isNewUser && onboardingCompleted) {
+          setHasCompletedOnboarding(true);
+        } else if (!isNewUser && !onboardingCompleted) {
+          // Existing users who haven't marked onboarding as complete are assumed to have done it
+          setHasCompletedOnboarding(true);
+        } else {
+          // New user - let them go through onboarding
+          setHasCompletedOnboarding(false);
+        }
         setIsLoading(false);
         return;
       }
