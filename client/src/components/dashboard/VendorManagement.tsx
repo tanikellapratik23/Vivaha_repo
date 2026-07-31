@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Phone, Mail, Globe, CheckCircle, Heart, Star, Trash2, TrendingUp, BarChart3, Calendar, DollarSign, Grid, List as ListIcon } from 'lucide-react';
+import { Plus, Phone, Mail, Globe, CheckCircle, Heart, Star, Trash2, TrendingUp, BarChart3, Calendar, DollarSign, Grid, List as ListIcon, MapPin, Search } from 'lucide-react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { formatCurrency, formatNumberWithCommas } from '../../utils/formatting';
@@ -32,6 +32,7 @@ export default function VendorManagement() {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'analytics'>('grid');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [vendorLocation, setVendorLocation] = useState('Morrisville, NC');
 
   useEffect(() => {
     loadFavoriteVendors();
@@ -222,6 +223,13 @@ export default function VendorManagement() {
           <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalSpent)}</p>
         </div>
       </div>
+
+      <section className="rounded-2xl bg-gradient-to-r from-primary-600 to-pink-600 p-6 text-white shadow-lg">
+        <p className="text-sm font-bold uppercase tracking-wider text-white/75">Find vendors near you</p>
+        <h2 className="mt-1 text-2xl font-black">Search live local results, then save the ones you love.</h2>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row"><div className="flex flex-1 items-center gap-2 rounded-xl bg-white px-3 text-gray-800"><MapPin className="w-4 h-4 text-primary-600" /><input value={vendorLocation} onChange={e => setVendorLocation(e.target.value)} className="w-full bg-white py-3 text-sm text-gray-900 outline-none" placeholder="City or ZIP" /></div><a href={`https://www.google.com/maps/search/${encodeURIComponent(`wedding vendors near ${vendorLocation}`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-primary-700"><Search className="w-4 h-4" /> Search Google Maps</a></div>
+        <div className="mt-4 flex flex-wrap gap-2">{['Photography','Venue','DJ','Catering','Flowers'].map(category => <a key={category} href={`https://www.google.com/maps/search/${encodeURIComponent(`wedding ${category.toLowerCase()} near ${vendorLocation}`)}`} target="_blank" rel="noreferrer" className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25">{category}</a>)}</div>
+      </section>
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-4 items-center">
