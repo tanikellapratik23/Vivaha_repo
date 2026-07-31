@@ -55,7 +55,7 @@ router.post('/chat', async (req, res) => {
       return res.status(500).json({ error: 'AI service not configured' });
     }
 
-    const content = await generateReply(systemPrompt || 'You are a helpful wedding planning assistant.', message, 800, 0.6);
+    const content = await generateReply(systemPrompt || 'You are a helpful wedding planning assistant. Be concise and conversational.', message, 450, 0.5);
 
     // Preserve Claude's headings, bullets and emphasis so the chat remains
     // readable; only remove accidental code fences.

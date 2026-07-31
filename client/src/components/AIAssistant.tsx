@@ -177,7 +177,7 @@ User's wedding details:
 - Guest count: ${userSettings?.guestCount || 'Not specified'}
 - Top priorities: ${Array.isArray(userSettings?.topPriority) ? userSettings.topPriority.join(', ') : 'Not specified'}
 
-Start with the recommendation, then use short sections or bullets. Use the actual location, budget, guest count and style where relevant. Include concrete cost math when discussing money. State assumptions clearly and ask one useful follow-up question. Keep responses under 250 words.`;
+Start with the recommendation, then use short sections or bullets. Use the actual location, budget, guest count and style where relevant. Include concrete cost math when discussing money. State assumptions clearly and ask one useful follow-up question. Keep responses under 120 words unless the user explicitly asks for a detailed plan. Never dump a full plan before confirming the key preference. For venue or vendor requests, provide Google Maps search links the user can open and say availability/pricing must be verified.`;
 
   const handleSendMessage = async (messageText = input) => {
     if (!messageText.trim()) return;
@@ -289,7 +289,7 @@ Start with the recommendation, then use short sections or bullets. Use the actua
       {isOpen && (
         <div
           ref={widgetRef}
-          className={`${embedded ? 'relative w-full h-[620px]' : 'fixed'} z-40 bg-white text-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
+          className={`${embedded ? 'relative w-full h-[calc(100vh-11rem)] min-h-[680px]' : 'fixed'} z-40 bg-white text-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
           style={embedded ? undefined : { left: `${position.x}px`, top: `${position.y}px`, width: `${size.width}px`, height: `${size.height}px` }}
         >
           {/* Header - Draggable */}
@@ -314,7 +314,7 @@ Start with the recommendation, then use short sections or bullets. Use the actua
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50">
             {messages.length === 0 && showQuickPrompts ? (
               <div className="text-center py-4">
                 <p className="text-sm font-medium text-gray-700 mb-3">Start with a personalized planning move</p>
@@ -341,7 +341,7 @@ Start with the recommendation, then use short sections or bullets. Use the actua
                 className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${
                     msg.type === 'user'
                       ? 'bg-primary-500 text-white rounded-br-none'
                       : 'bg-white text-gray-900 border border-gray-200 rounded-bl-none'
