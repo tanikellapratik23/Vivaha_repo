@@ -1,135 +1,23 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, Heart, MapPin, Sparkles, Users, Wallet } from 'lucide-react';
+
+const moments = [
+  { icon: CalendarDays, title: 'Map every moment', text: 'Turn one celebration or five events into a calm, shareable timeline.' },
+  { icon: Users, title: 'Keep everyone included', text: 'Guests, traditions, notes, and ceremony details in one organized place.' },
+  { icon: Wallet, title: 'Make the numbers feel simple', text: 'See what matters most and get budget guidance that fits your guest count.' },
+  { icon: MapPin, title: 'Plan locally, beautifully', text: 'Discover vendor ideas and keep your wedding details ready to share.' },
+];
 
 export default function WhatIsVivaha() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-      <header className="w-full border-b border-white/20 py-4 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition">
-            <div className="bg-primary-500 text-white p-2 rounded-md">
-              <Heart className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Vivaha</h1>
-              <p className="text-xs text-gray-500">Your Wedding Planner</p>
-            </div>
-          </Link>
-          <Link to="/" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        {/* Hero Section */}
-        <div className="mb-16 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-            Vivaha Planning for Modern & Interfaith Weddings
-          </h1>
-          <p className="text-xl text-gray-600">
-            Everything you need to plan your perfect multicultural celebration
-          </p>
-        </div>
-
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 mb-12 border border-gray-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">What is Vivaha?</h2>
-          
-          <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-            <span className="font-semibold text-primary-700">Vivaha</span> is a modern platform designed for planning multicultural weddings and interfaith ceremonies. Whether you're planning a traditional celebration, an interfaith wedding, or a blend of cultural traditions, Vivaha brings all your wedding planning into one beautiful, organized space.
-          </p>
-
-          <div className="space-y-6 mb-8">
-            <div className="border-l-4 border-primary-500 pl-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Plan Your Wedding Ceremonies</h3>
-              <p className="text-gray-700">
-                Coordinate multiple ceremonies and rituals with ease. From pre-wedding celebrations to main events, manage each ceremony's details, timing, and logistics all in one place.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-primary-500 pl-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Interfaith & Cultural Support</h3>
-              <p className="text-gray-700">
-                Planning an interfaith wedding? Vivaha supports Christian, Muslim, Jewish, Sikh, Buddhist, and other cultural traditions. Mix and match rituals, honor multiple customs, and celebrate your unique love story.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-primary-500 pl-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Guest Lists & Celebrations</h3>
-              <p className="text-gray-700">
-                Manage guest lists across multiple events. Track RSVPs, dietary preferences, and celebration preferences. Ensure every guest feels welcomed and informed.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-primary-500 pl-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Budgets & Vendors</h3>
-              <p className="text-gray-700">
-                Plan your budget across all ceremonies and events. Find trusted vendors specializing in Vivaha planning—photographers, caterers, florists, and more—all filtered for cultural understanding.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-primary-50 rounded-xl p-8 mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Why Choose Vivaha?</h3>
-            <ul className="space-y-3 text-gray-700">
-              <li className="flex items-start gap-3">
-                <span className="text-primary-600 font-bold text-lg">✓</span>
-                <span><strong>Built for Complexity:</strong> Modern multicultural wedding planning involves multiple ceremonies. Vivaha is designed to handle it all.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary-600 font-bold text-lg">✓</span>
-                <span><strong>Interfaith Friendly:</strong> Honor multiple traditions in one wedding without conflict.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary-600 font-bold text-lg">✓</span>
-                <span><strong>Smart Organization:</strong> Automated suggestions based on your wedding type, location, and preferences.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary-600 font-bold text-lg">✓</span>
-                <span><strong>Offline Backup:</strong> Your wedding plans are safe with automatic backup and offline access.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary-600 font-bold text-lg">✓</span>
-                <span><strong>Bachelor Party Planning:</strong> Coordinate your bachelor/bachelorette celebrations seamlessly.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center space-y-6">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Ready to Plan Your Vivaha?</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              Start planning your perfect wedding celebration today
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/register" 
-              className="px-8 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition"
-            >
-              Start Planning Your Vivaha
-            </Link>
-            <Link 
-              to="/login" 
-              className="px-8 py-3 bg-white text-primary-600 border-2 border-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-20 pt-8 border-t border-gray-200 text-center text-gray-600">
-          <p className="mb-2">
-            <strong>Vivaha</strong> — Multicultural wedding planning for interfaith ceremonies and celebrations
-          </p>
-          <p className="text-sm">Plan rituals, manage guests, organize budgets, and coordinate vendors all in one place</p>
-        </div>
-      </main>
-    </div>
-  );
+  const [active, setActive] = useState(0);
+  const ActiveIcon = moments[active].icon;
+  return <div className="min-h-screen overflow-hidden bg-[#fff8fb] text-slate-900">
+    <header className="sticky top-0 z-50 border-b border-rose-100/80 bg-white/80 backdrop-blur"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3"><Link to="/" className="flex items-center gap-2 font-bold"><span className="rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 p-2 text-white"><Heart className="w-5 h-5" /></span>Vivaha</Link><Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-rose-600"><ArrowLeft className="w-4 h-4" /> Back home</Link></div></header>
+    <main>
+      <section className="relative mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-2 md:py-24"><div className="absolute -top-20 left-1/3 h-72 w-72 rounded-full bg-rose-200/50 blur-3xl" /><div className="relative"><p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-rose-600 shadow-sm"><Sparkles className="w-4 h-4" /> Wedding planning that feels personal</p><h1 className="text-5xl font-black leading-[.95] tracking-tight md:text-7xl">Your wedding has more than one story.</h1><p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">Vivaha helps couples plan the details, honor their traditions, and keep everyone moving toward a celebration that actually feels like them.</p><div className="mt-8 flex flex-wrap gap-3"><Link to="/register" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-6 py-3 font-bold text-white shadow-lg shadow-rose-200 hover:-translate-y-0.5"><Heart className="w-4 h-4" /> Start planning</Link><a href="#tour" className="rounded-xl border border-rose-200 bg-white px-6 py-3 font-bold text-rose-700">Take the tour</a></div></div><div className="relative rounded-[2rem] bg-slate-900 p-5 shadow-2xl"><div className="rounded-[1.5rem] bg-gradient-to-br from-rose-50 to-violet-100 p-6"><p className="text-xs font-bold uppercase tracking-widest text-rose-600">Your celebration</p><h2 className="mt-2 text-3xl font-black">A plan that grows with you.</h2><div className="mt-6 grid grid-cols-2 gap-3">{['Ceremony timeline','Guest experience','Budget clarity','Vivaha AI'].map((item, i) => <div key={item} className={`rounded-2xl p-4 ${i === 0 ? 'bg-rose-500 text-white' : 'bg-white/80 text-slate-700'}`}><div className="h-2 w-10 rounded bg-current opacity-30"/><p className="mt-5 text-sm font-bold">{item}</p></div>)}</div><div className="mt-5 rounded-2xl bg-white p-4 shadow-sm"><p className="font-bold">“Help me plan a traditional ceremony and modern reception.”</p><p className="mt-2 text-sm text-slate-500">Vivaha AI turns details into next steps—without losing what matters.</p></div></div></div></section>
+      <section id="tour" className="bg-white py-16"><div className="mx-auto max-w-7xl px-5"><p className="text-center text-sm font-bold uppercase tracking-widest text-rose-500">Tap through the experience</p><h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black">Not another generic wedding checklist.</h2><div className="mt-10 grid gap-3 md:grid-cols-4">{moments.map((moment, index) => { const Icon = moment.icon; return <button key={moment.title} onClick={() => setActive(index)} className={`rounded-2xl p-5 text-left transition ${active === index ? 'bg-slate-900 text-white shadow-xl' : 'bg-rose-50 text-slate-700 hover:bg-rose-100'}`}><Icon className="w-6 h-6" /><p className="mt-8 font-bold">{moment.title}</p></button>})}</div><div className="mt-4 grid gap-8 rounded-3xl bg-gradient-to-r from-rose-50 to-violet-50 p-8 md:grid-cols-[auto_1fr]"><div className="rounded-2xl bg-white p-5 text-rose-600 shadow-sm"><ActiveIcon className="h-10 w-10" /></div><div><h3 className="text-2xl font-black">{moments[active].title}</h3><p className="mt-2 max-w-2xl text-lg text-slate-600">{moments[active].text}</p><p className="mt-5 text-sm font-semibold text-rose-700">Click another card to explore what Vivaha does.</p></div></div></div></section>
+      <section className="mx-auto max-w-4xl px-5 py-20 text-center"><Heart className="mx-auto h-8 w-8 text-rose-500"/><h2 className="mt-4 text-4xl font-black">A wedding plan that makes room for real life.</h2><p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">Explore the journey first. Create your account whenever you are ready to save your plan.</p><Link to="/register" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-4 font-bold text-white">Get Started <ArrowRight className="w-4 h-4" /></Link></section>
+    </main>
+  </div>;
 }
