@@ -210,7 +210,7 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Create a password"
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -235,7 +235,7 @@ export default function Register({ setIsAuthenticated }: RegisterProps) {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Confirm your password"
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"

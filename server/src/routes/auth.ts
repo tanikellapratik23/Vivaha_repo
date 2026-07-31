@@ -133,16 +133,20 @@ const sendWelcomeEmailHelper = async (user: any) => {
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
     console.log('Registration attempt:', { name, email });
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!name?.trim() || !normalizedEmail || !password) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
 
     // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
@@ -152,8 +156,8 @@ router.post('/register', async (req, res) => {
 
     // Create user
     const user = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
     });
 
@@ -184,53 +188,19 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Admin Credentials
-const ADMIN_CREDENTIALS = {
-  emails: ['pratiktanikella', 'pratiktanikella@gmail.com'],
-  password: 'DqAmcCB4/DqAmcCB4/',
-};
-
-// Check if email matches admin
-const isAdminEmail = (email: string) => {
-  const normalizedEmail = email.trim().toLowerCase();
-  return ADMIN_CREDENTIALS.emails.some(adminEmail => 
-    normalizedEmail === adminEmail || normalizedEmail === adminEmail.toLowerCase()
-  );
-};
-
 // Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+
+    if (!normalizedEmail || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
 
     console.log('Login attempt:', normalizedEmail);
 
-    // Step 1: Check if admin credentials
-    if (isAdminEmail(normalizedEmail) && password === ADMIN_CREDENTIALS.password) {
-      console.log('✅ Admin login successful:', normalizedEmail);
-      
-      // Generate admin token
-      const token = jwt.sign(
-        { userId: 'admin', isAdmin: true, email: normalizedEmail },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '30d' }
-      );
-
-      return res.json({
-        success: true,
-        token,
-        user: {
-          id: 'admin',
-          name: 'Admin',
-          email: normalizedEmail,
-          isAdmin: true,
-          onboardingCompleted: true,
-        },
-      });
-    }
-
-    // Step 2: Check regular users
+    // Look up every account, including admins, in the database.
     // Use direct email lookup (case-insensitive via schema lowercase setting, lean for speed)
     const user = await User.findOne({ email: normalizedEmail }).lean();
     if (!user) {
@@ -238,7 +208,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Step 3: Validate password
+    // Validate password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       console.log('Invalid password for:', normalizedEmail);
@@ -247,7 +217,7 @@ router.post('/login', async (req, res) => {
 
     console.log('User login successful:', user._id);
 
-    // Step 4: Generate user token
+    // Generate user token
     const token = jwt.sign(
       { userId: user._id, isAdmin: user.isAdmin || false },
       process.env.JWT_SECRET || 'fallback-secret',

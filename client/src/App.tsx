@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authStorage } from './utils/auth';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import Onboarding from './components/onboarding/Onboarding';
 import Dashboard from './components/dashboard/Dashboard';
 import WorkspaceLibrary from './components/workspace/WorkspaceLibrary';
@@ -19,7 +19,6 @@ import AIAssistant from './components/AIAssistant';
 
 function AppContent() {
   const navigate = useNavigate();
-  const { user: firebaseUser, loading: firebaseLoading } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -45,30 +44,6 @@ function AppContent() {
   useEffect(() => {
     // Check authentication status and fetch user role
     const fetchUserData = async () => {
-      // Priority 1: Check Firebase auth first
-      if (firebaseUser) {
-        setIsAuthenticated(true);
-        // Check if user is new (hasn't completed onboarding)
-        const isNewUser = sessionStorage.getItem('isNewUser') === 'true' || 
-                          localStorage.getItem('isNewUser') === 'true';
-        const onboardingCompleted = sessionStorage.getItem('onboardingCompleted') === 'true' ||
-                                    localStorage.getItem('onboardingCompleted') === 'true';
-        
-        // Only mark onboarding as completed if user is NOT new
-        if (!isNewUser && onboardingCompleted) {
-          setHasCompletedOnboarding(true);
-        } else if (!isNewUser && !onboardingCompleted) {
-          // Existing users who haven't marked onboarding as complete are assumed to have done it
-          setHasCompletedOnboarding(true);
-        } else {
-          // New user - let them go through onboarding
-          setHasCompletedOnboarding(false);
-        }
-        setIsLoading(false);
-        return;
-      }
-      
-      // Priority 2: Check legacy token auth
       const token = authStorage.getToken();
       setIsAuthenticated(!!token);
       
@@ -77,7 +52,8 @@ function AppContent() {
           const decoded = JSON.parse(atob(token.split('.')[1]));
           const isAdminUser = decoded.isAdmin || false;
           setIsAdmin(isAdminUser);
-          setHasCompletedOnboarding(true); // Authenticated users completed onboarding
+          const storedUser = authStorage.getUser();
+          setHasCompletedOnboarding(storedUser?.onboardingCompleted === true);
           
           // Try to get role from localStorage first (faster)
           const cachedRole = localStorage.getItem('userRole');
@@ -110,7 +86,7 @@ function AppContent() {
           const onboardingCompleted = 
             localStorage.getItem('onboardingCompleted') === 'true' || 
             sessionStorage.getItem('onboardingCompleted') === 'true';
-          setHasCompletedOnboarding(onboardingCompleted || true);
+          setHasCompletedOnboarding(onboardingCompleted);
           setIsLoading(false);
         }
       } else {
@@ -118,11 +94,8 @@ function AppContent() {
       }
     };
     
-    // Only check when Firebase loading is complete
-    if (!firebaseLoading) {
-      fetchUserData();
-    }
-  }, [firebaseUser, firebaseLoading]);
+    fetchUserData();
+  }, []);
 
   // Listen for storage changes
   useEffect(() => {
@@ -190,7 +163,7 @@ function AppContent() {
         </div>
       ) : (
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -252,7 +225,7 @@ function AppContent() {
           <Route
             path="/"
             element={
-              firebaseLoading || isLoading ? (
+              isLoading ? (
                 <div className="min-h-screen flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>

@@ -28,8 +28,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Only the deployed client (and local development) may call the API from a browser.
+const allowedOrigins = [
+  'http://localhost:5173',
+  ...(process.env.CLIENT_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+];
+app.use(cors({
+  origin(origin, callback) {
+    // Requests without an Origin header include Render health checks and server-to-server calls.
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Origin not allowed by CORS'));
+  },
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -58,10 +68,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vivaha API is running' });
 });
 
-// MongoDB connection with optimized settings
+// Reuse one connection across Vercel function invocations.  Local development
+// still starts a normal Express server below.
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wedwise';
 
-mongoose
+export const databaseReady = mongoose
   .connect(MONGODB_URI, {
     maxPoolSize: 10,
     minPoolSize: 5,
@@ -70,13 +81,22 @@ mongoose
   })
   .then(() => {
     console.log('✅ Connected to MongoDB with optimized connection pooling');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
   })
   .catch((error) => {
     console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
+    throw error;
   });
+
+// Vercel invokes the exported Express app through server/api/index.ts. Only
+// open a port when this package is run locally or on a conventional host.
+if (!process.env.VERCEL) {
+  databaseReady
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+      });
+    })
+    .catch(() => process.exit(1));
+}
 
 export default app;

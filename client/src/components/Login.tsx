@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { Heart, Mail, Lock, User, Eye, EyeOff, Loader } from 'lucide-react';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import axios from 'axios';
+import { authStorage } from '../utils/auth';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface LoginProps {
   setIsAuthenticated?: (value: boolean) => void;
@@ -12,7 +13,6 @@ interface LoginProps {
 export default function Login({ setIsAuthenticated }: LoginProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
   
   const [isSignUp, setIsSignUp] = useState(searchParams.get('signup') === 'true');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -41,36 +41,24 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     }
 
     try {
-      if (isSignUp) {
-        await signUp(formData.email, formData.password);
-      } else {
-        await signIn(formData.email, formData.password);
-      }
-      
-      // Mark as new user for onboarding
-      sessionStorage.setItem('isNewUser', 'true');
-      sessionStorage.setItem('onboardingCompleted', 'false');
+      const endpoint = isSignUp ? '/api/auth/register' : '/api/auth/login';
+      const payload = isSignUp
+        ? { name: formData.name.trim(), email: formData.email.trim(), password: formData.password }
+        : { email: formData.email.trim(), password: formData.password };
+      const { data } = await axios.post(`${API_URL}${endpoint}`, payload, { timeout: 15000 });
+
+      authStorage.setToken(data.token);
+      authStorage.setUser(data.user);
+      const completed = data.user?.onboardingCompleted === true;
+      sessionStorage.setItem('isNewUser', completed ? 'false' : 'true');
+      sessionStorage.setItem('onboardingCompleted', String(completed));
       setIsAuthenticated?.(true);
-      
-      // Navigate to onboarding
-      setTimeout(() => {
-        navigate('/onboarding');
-      }, 100);
+      navigate(completed ? '/dashboard' : '/onboarding', { replace: true });
     } catch (err: any) {
       console.error('Auth error:', err);
       const errorMessage = err.message || 'Authentication failed';
       
-      if (errorMessage.includes('user-not-found')) {
-        setError('No account found with this email. Please sign up.');
-      } else if (errorMessage.includes('wrong-password')) {
-        setError('Incorrect password. Please try again.');
-      } else if (errorMessage.includes('invalid-email')) {
-        setError('Invalid email address.');
-      } else if (errorMessage.includes('invalid-credential')) {
-        setError('Invalid email or password. Please check and try again.');
-      } else {
-        setError(errorMessage);
-      }
+      setError(err.response?.data?.error || errorMessage || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
@@ -83,44 +71,12 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
     setLoading(true);
 
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
-      setSuccess('Password reset email sent! Check your inbox.');
+      await axios.post(`${API_URL}/api/auth/forgot-password`, { email: resetEmail }, { timeout: 15000 });
+      setSuccess('If an account exists for that email, a reset link is on its way.');
       setResetEmail('');
       setTimeout(() => setIsForgotPassword(false), 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to send reset email');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setLoading(true);
-
-    try {
-      await signInWithGoogle();
-      
-      // Mark as new user for onboarding
-      sessionStorage.setItem('isNewUser', 'true');
-      sessionStorage.setItem('onboardingCompleted', 'false');
-      setIsAuthenticated?.(true);
-      
-      // Navigate to onboarding
-      setTimeout(() => {
-        navigate('/onboarding');
-      }, 100);
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      const errorMessage = err.message || 'Google sign-in failed';
-      
-      if (errorMessage.includes('unauthorized-domain')) {
-        setError('This domain is not authorized for Google sign-in yet. Try again in a few moments.');
-      } else if (errorMessage.includes('popup-blocked')) {
-        setError('Sign-in popup was blocked. Please enable popups and try again.');
-      } else {
-        setError(errorMessage);
-      }
     } finally {
       setLoading(false);
     }
@@ -302,7 +258,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder={isSignUp ? "Create a password" : "Enter your password"}
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -328,7 +284,7 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Confirm your password"
-                    minLength={6}
+                    minLength={8}
                   />
                   <button
                     type="button"
@@ -366,26 +322,6 @@ export default function Login({ setIsAuthenticated }: LoginProps) {
               ) : isSignUp ? 'Create Account' : 'Sign In'}
             </button>
           </form>
-
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-2 text-gray-500 text-sm font-medium">or</span>
-            <div className="flex-1 border-t border-gray-300"></div>
-          </div>
-
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </button>
 
           <p className="mt-6 text-center text-sm text-gray-600">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}

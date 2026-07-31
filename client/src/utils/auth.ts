@@ -1,31 +1,39 @@
 // Authentication storage utility
-// Uses sessionStorage for automatic logout on tab close
+// The API token is the single source of truth for signed-in users.
+// Keep the legacy `token` key in sync while older dashboard components migrate.
 
 export const authStorage = {
   getToken: (): string | null => {
-    return sessionStorage.getItem('token');
+    return localStorage.getItem('authToken') || sessionStorage.getItem('token');
   },
   
   setToken: (token: string): void => {
+    localStorage.setItem('authToken', token);
     sessionStorage.setItem('token', token);
   },
   
   removeToken: (): void => {
+    localStorage.removeItem('authToken');
     sessionStorage.removeItem('token');
   },
   
   getUser: (): any => {
-    const user = sessionStorage.getItem('user');
+    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (user) return JSON.parse(user);
     return null;
   },
   
   setUser: (user: any): void => {
-    sessionStorage.setItem('user', JSON.stringify(user));
+    const serialized = JSON.stringify(user);
+    localStorage.setItem('user', serialized);
+    sessionStorage.setItem('user', serialized);
   },
   
 
   clearAll: (): void => {
-    sessionStorage.clear();
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   }
 };
