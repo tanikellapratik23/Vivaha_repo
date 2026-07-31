@@ -463,6 +463,13 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 </button>
               )}
               <button
+                onClick={() => navigate('/dashboard/single-source')}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <FileText className="w-4 h-4" />
+                Share Wedding Info
+              </button>
+              <button
                 onClick={() => setShowTutorial(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
               >
