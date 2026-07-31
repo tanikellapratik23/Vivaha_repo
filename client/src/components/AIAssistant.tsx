@@ -240,27 +240,6 @@ Start with the recommendation, then use short sections or bullets. Use the actua
 
         reply = response.data.reply || 'I encountered an issue. Please try again.';
 
-        // Navigation command detection
-        const navigationPatterns = [
-          { keywords: ['budget', 'expenses'], path: '/dashboard/budget' },
-          { keywords: ['guest', 'guests'], path: '/dashboard/guests' },
-          { keywords: ['vendor', 'vendors'], path: '/dashboard/vendors' },
-          { keywords: ['todo', 'task', 'tasks'], path: '/dashboard/todos' },
-          { keywords: ['overview', 'dashboard', 'home'], path: '/dashboard/overview' },
-          { keywords: ['split', 'vivaha split', 'expense split'], path: '/dashboard/vivaha-split' },
-          { keywords: ['registry'], path: '/dashboard/registry' },
-          { keywords: ['seating'], path: '/dashboard/seating' },
-        ];
-
-        for (const pattern of navigationPatterns) {
-          if (pattern.keywords.some(kw => messageText.toLowerCase().includes(kw))) {
-            reply = `Navigating to ${pattern.keywords[0]} page... ✅ Done`;
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('aiNavigate', { detail: { path: pattern.path } }));
-            }, 500);
-            break;
-          }
-        }
       }
 
       const assistantMessage: Message = {
@@ -310,7 +289,7 @@ Start with the recommendation, then use short sections or bullets. Use the actua
       {isOpen && (
         <div
           ref={widgetRef}
-          className={`${embedded ? 'relative w-full h-[620px]' : 'fixed'} z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
+          className={`${embedded ? 'relative w-full h-[620px]' : 'fixed'} z-40 bg-white text-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
           style={embedded ? undefined : { left: `${position.x}px`, top: `${position.y}px`, width: `${size.width}px`, height: `${size.height}px` }}
         >
           {/* Header - Draggable */}
