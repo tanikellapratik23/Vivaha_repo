@@ -9,8 +9,9 @@ import * as XLSX from 'xlsx';
 import { getCityData, getBudgetOptimizationSuggestions } from '../../utils/cityData';
 import { isAutoSaveEnabled, setWithTTL } from '../../utils/autosave';
 import { formatCurrency, formatNumberWithCommas } from '../../utils/formatting';
+import { authStorage } from '../../utils/auth';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 interface BudgetCategory {
   _id?: string;
@@ -469,12 +470,18 @@ export default function BudgetTracker() {
 
   const fetchUserSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/onboarding', {
+      const token = authStorage.getToken();
+      const response = await axios.get(`${API_URL}/api/onboarding`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data) {
         setUserSettings(response.data);
+        if (categories.length === 0 && Number(response.data.estimatedBudget) > 0) {
+          const budget = Number(response.data.estimatedBudget);
+          const starter = [['Venue', .25], ['Food & Drinks', .25], ['Photography', .1], ['Music', .08], ['Florals & Decor', .1], ['Attire', .07], ['Contingency', .15]].map(([name, share]) => ({ id: `starter-${name}`, name: String(name), estimatedAmount: Math.round(budget * Number(share)), actualAmount: 0, paid: 0 }));
+          setCategories(starter);
+          userDataStorage.setData('budget', starter);
+        }
         
         if (response.data.weddingCity) {
           const data = getCityData(response.data.weddingCity);
