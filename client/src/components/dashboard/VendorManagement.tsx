@@ -4,8 +4,9 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { formatCurrency, formatNumberWithCommas } from '../../utils/formatting';
 import { userDataStorage } from '../../utils/userDataStorage';
+import { authStorage } from '../../utils/auth';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 interface Vendor {
   _id?: string;
@@ -47,7 +48,7 @@ export default function VendorManagement() {
 
   const loadFavoriteVendors = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
       
       // Try to fetch from server first
       try {
@@ -91,7 +92,7 @@ export default function VendorManagement() {
     if (!confirm('Are you sure you want to remove this vendor?')) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = authStorage.getToken();
       const vendor = vendors.find(v => v._id === vendorId);
       
       if (vendor?._id) {
