@@ -4,10 +4,10 @@ import { Heart, Mail, Lock, User, Eye, EyeOff, Loader } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../utils/auth';
 
-// Authentication must always reach the separate production API. This avoids a
-// stale Vercel VITE_API_URL setting silently sending sign-in requests to an old host.
+// In production, use the same-origin Vercel /api rewrite. This keeps browser
+// auth requests off a separate hostname, avoiding extension/CORS interference.
 const API_URL = import.meta.env.PROD
-  ? 'https://vivaha-api.vercel.app'
+  ? ''
   : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 interface LoginProps {
