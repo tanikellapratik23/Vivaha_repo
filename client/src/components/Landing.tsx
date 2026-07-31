@@ -220,24 +220,7 @@ function VendorPreview() {
           </h3>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {['all', 'Photography', 'Venue', 'DJ', 'Catering', 'Flowers'].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                setSelectedCategory(cat);
-              }}
-              className={`px-4 py-2 rounded-lg transition font-medium ${
-                selectedCategory === cat
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {cat === 'all' ? 'All' : cat}
-            </button>
-          ))}
-        </div>
+        <span className="inline-flex rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white">All local vendor categories</span>
       </div>
 
       {loading ? (
