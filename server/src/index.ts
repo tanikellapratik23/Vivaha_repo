@@ -31,12 +31,21 @@ const PORT = process.env.PORT || 3000;
 // Only the deployed client (and local development) may call the API from a browser.
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://vivaha-repo.vercel.app',
   ...(process.env.CLIENT_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean),
 ];
 app.use(cors({
   origin(origin, callback) {
     // Requests without an Origin header include Render health checks and server-to-server calls.
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    const isVivahaVercelDeployment = (() => {
+      try {
+        const hostname = new URL(origin || '').hostname;
+        return hostname.startsWith('vivaha-repo-') && hostname.endsWith('.vercel.app');
+      } catch {
+        return false;
+      }
+    })();
+    if (!origin || allowedOrigins.includes(origin) || isVivahaVercelDeployment) return callback(null, true);
     return callback(new Error('Origin not allowed by CORS'));
   },
 }));
