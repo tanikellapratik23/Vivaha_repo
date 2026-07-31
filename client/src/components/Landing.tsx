@@ -111,7 +111,7 @@ function VendorPreview() {
       // no match, show honest live-search cards instead of fake businesses.
       if (allVendors.length === 0) {
         const discoveryCategories = category === 'all'
-          ? ['Photography', 'Venue', 'DJ', 'Catering', 'Flowers']
+          ? ['Photography', 'Catering', 'Flowers']
           : [category];
         allVendors = discoveryCategories.map((item) => makeDiscoveryCard(city, state, item));
       }
