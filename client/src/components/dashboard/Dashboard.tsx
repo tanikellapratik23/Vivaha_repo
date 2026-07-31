@@ -28,7 +28,7 @@ import SeatingPlanner from './SeatingPlanner';
 import Settings from './Settings';
 import CeremonyPlanning from './CeremonyPlanning';
 import MusicPlanner from './MusicPlanner';
-import BachelorDashboard from './BachelorDashboard';
+import BachelorAICopilot from './BachelorAICopilot';
 import OutfitPlanner from './OutfitPlanner';
 import PostWeddingStory from './PostWeddingStory';
 import VivahaSplit from './VivahaSplit';
@@ -432,17 +432,11 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     { name: 'Overview', path: '/dashboard', icon: LayoutGrid },
     { name: 'Guest List', path: '/dashboard/guests', icon: Users },
     { name: 'Budget', path: '/dashboard/budget', icon: DollarSign },
-    { name: 'Vivaha Split', path: '/dashboard/split', icon: Split },
     { name: 'To-Dos', path: '/dashboard/todos', icon: CheckSquare },
     { name: 'Ceremony', path: '/dashboard/ceremony', icon: Church },
-    { name: 'Sound & Music', path: '/dashboard/music', icon: Music },
-    { name: 'Hotel Block', path: '/dashboard/hotel-block', icon: Hotel },
-    { name: 'Vendor Search', path: '/dashboard/vendor-search', icon: Search },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
     { name: 'Registries', path: '/dashboard/registries', icon: Gift },
-    { name: 'VivahaPost', path: '/dashboard/community', icon: MessageSquare },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
-    { name: 'Settings', path: '/dashboard/settings', icon: SettingsIcon },
     ...(wantsBachelorParty ? [{ name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper }] : []),
   ];
 
@@ -514,8 +508,6 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
         </div>
       </header>
 
-      {/* AI Assistant */}
-      <AIAssistant />
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
@@ -752,7 +744,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 <Route path="/outfits" element={<OutfitPlanner />} />
                 <Route path="/story" element={<PostWeddingStory />} />
                 <Route path="/settings" element={<Settings />} />
-                {wantsBachelorParty && <Route path="/bachelor" element={<BachelorDashboard />} />}
+                {wantsBachelorParty && <Route path="/bachelor" element={<BachelorAICopilot />} />}
               </Routes>
             </ErrorBoundary>
           </main>

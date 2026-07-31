@@ -15,7 +15,6 @@ import WhatIsVivaha from './components/WhatIsVivaha';
 import DemoPage from './components/DemoPage';
 import SharedDashboard from './components/dashboard/SharedDashboard';
 import SharedWeddingInfo from './components/SharedWeddingInfo';
-import AIAssistant from './components/AIAssistant';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -154,9 +153,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-black">
-      {/* AI Assistant - Always available when authenticated */}
-      {isAuthenticated && <AIAssistant />}
-      
       {isLoading && isAuthenticated ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-pink-300 border-t-pink-600"></div>

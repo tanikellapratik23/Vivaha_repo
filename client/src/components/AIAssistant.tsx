@@ -31,8 +31,8 @@ const QUICK_PROMPTS = [
   { icon: '📅', text: 'Timeline', query: 'What is the ideal wedding planning timeline?' },
 ];
 
-export default function AIAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function AIAssistant({ embedded = false }: { embedded?: boolean }) {
+  const [isOpen, setIsOpen] = useState(embedded);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -287,7 +287,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
   return (
     <>
       {/* Floating Button */}
-      <button
+      {!embedded && <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 group"
         title="AI Assistant"
@@ -303,24 +303,19 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
         <div className="absolute -top-12 right-0 bg-gray-900 text-white px-3 py-1 rounded-lg whitespace-nowrap text-sm opacity-0 group-hover:opacity-100 transition-opacity">
           Ask AI anything
         </div>
-      </button>
+      </button>}
 
       {/* Chat Widget */}
       {isOpen && (
         <div
           ref={widgetRef}
-          className="fixed z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200"
-          style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            width: `${size.width}px`,
-            height: `${size.height}px`,
-          }}
+          className={`${embedded ? 'relative w-full h-[520px]' : 'fixed'} z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
+          style={embedded ? undefined : { left: `${position.x}px`, top: `${position.y}px`, width: `${size.width}px`, height: `${size.height}px` }}
         >
           {/* Header - Draggable */}
           <div
-            onMouseDown={handleHeaderMouseDown}
-            className="bg-gradient-to-r from-primary-500 to-purple-600 text-white p-4 flex items-center justify-between cursor-move hover:from-primary-600 hover:to-purple-700 transition-all"
+            onMouseDown={embedded ? undefined : handleHeaderMouseDown}
+            className={`bg-gradient-to-r from-primary-500 to-purple-600 text-white p-4 flex items-center justify-between ${embedded ? '' : 'cursor-move'} hover:from-primary-600 hover:to-purple-700 transition-all`}
           >
             <div className="flex items-center gap-2 pointer-events-none">
               <GripHorizontal className="w-4 h-4" />
@@ -416,11 +411,11 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
           </div>
 
           {/* Resize Handle */}
-          <div
+          {!embedded && <div
             onMouseDown={handleResizeStart}
             className="absolute bottom-0 right-0 w-6 h-6 bg-gradient-to-tl from-primary-500 to-transparent cursor-nwse-resize rounded-tl-lg opacity-50 hover:opacity-100 transition-opacity"
             title="Drag to resize"
-          />
+          />}
         </div>
       )}
     </>
