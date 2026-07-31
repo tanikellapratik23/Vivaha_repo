@@ -144,3 +144,7 @@ input::placeholder,
 textarea::placeholder {
   color: #9ca3af !important;
 }
+
+/* Dashboard feature headers must remain readable over the warm Vivaha canvas. */
+.text-white.drop-shadow-lg { color: #1f2937 !important; }
+.text-gray-100.drop-shadow-md { color: #4b5563 !important; }

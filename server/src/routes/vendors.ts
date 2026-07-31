@@ -112,6 +112,23 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// Google Places search stays server-side so the browser never receives the key.
+router.post('/places-search', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const { query, location } = req.body;
+    const key = process.env.GOOGLE_MAPS_API_KEY;
+    if (!key) return res.status(503).json({ error: 'Google Places is not configured yet.' });
+    const response = await axios.post('https://places.googleapis.com/v1/places:searchText', {
+      textQuery: `${query || 'wedding vendors'} near ${location || 'Morrisville, NC'}`,
+      pageSize: 12,
+    }, { headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.websiteUri,places.photos' } });
+    res.json({ places: (response.data.places || []).map((place: any) => ({ id: place.id, name: place.displayName?.text, address: place.formattedAddress, rating: place.rating, reviews: place.userRatingCount, phone: place.nationalPhoneNumber, website: place.websiteUri, image: place.photos?.[0]?.name ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxHeightPx=500&maxWidthPx=700&key=${key}` : null })) });
+  } catch (error: any) {
+    console.error('Google Places search error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Unable to search Google Places.' });
+  }
+});
+
 // Get all vendors
 router.get('/', authMiddleware, async (req: AuthRequest, res) => {
   try {

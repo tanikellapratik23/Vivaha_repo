@@ -33,6 +33,17 @@ export default function VendorManagement() {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [vendorLocation, setVendorLocation] = useState('Morrisville, NC');
+  const [placeQuery, setPlaceQuery] = useState('wedding vendors');
+  const [placeResults, setPlaceResults] = useState<any[]>([]);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
+
+  const searchPlaces = async (query = placeQuery) => {
+    try { setSearchingPlaces(true); const response = await axios.post(`${API_URL}/api/vendors/places-search`, { query, location: vendorLocation }, { headers: { Authorization: `Bearer ${authStorage.getToken() || ''}` } }); setPlaceResults(response.data.places || []); } finally { setSearchingPlaces(false); }
+  };
+  const savePlace = async (place: any) => {
+    const response = await axios.post(`${API_URL}/api/vendors`, { name: place.name, category: placeQuery, phone: place.phone, website: place.website, status: 'researching', notes: place.address }, { headers: { Authorization: `Bearer ${authStorage.getToken() || ''}` } });
+    if (response.data.data) setVendors(current => [...current, { ...response.data.data, id: response.data.data._id }]);
+  };
 
   useEffect(() => {
     loadFavoriteVendors();
@@ -228,8 +239,10 @@ export default function VendorManagement() {
         <p className="text-sm font-bold uppercase tracking-wider text-white/75">Find vendors near you</p>
         <h2 className="mt-1 text-2xl font-black">Search live local results, then save the ones you love.</h2>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row"><div className="flex flex-1 items-center gap-2 rounded-xl bg-white px-3 text-gray-800"><MapPin className="w-4 h-4 text-primary-600" /><input value={vendorLocation} onChange={e => setVendorLocation(e.target.value)} className="w-full bg-white py-3 text-sm text-gray-900 outline-none" placeholder="City or ZIP" /></div><a href={`https://www.google.com/maps/search/${encodeURIComponent(`wedding vendors near ${vendorLocation}`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-primary-700"><Search className="w-4 h-4" /> Search Google Maps</a></div>
-        <div className="mt-4 flex flex-wrap gap-2">{['Photography','Venue','DJ','Catering','Flowers'].map(category => <a key={category} href={`https://www.google.com/maps/search/${encodeURIComponent(`wedding ${category.toLowerCase()} near ${vendorLocation}`)}`} target="_blank" rel="noreferrer" className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25">{category}</a>)}</div>
+        <div className="mt-4 flex flex-wrap gap-2">{['Photography','Venue','DJ','Catering','Flowers'].map(category => <button key={category} onClick={() => { setPlaceQuery(category); searchPlaces(category); }} className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25">{category}</button>)}</div>
       </section>
+
+      {(searchingPlaces || placeResults.length > 0) && <section className="rounded-2xl bg-white p-5 shadow-sm border border-rose-100"><h2 className="text-xl font-bold text-gray-900">Live vendor results</h2><div className="mt-4 grid gap-4 md:grid-cols-3">{placeResults.map(place => <article key={place.id} className="overflow-hidden rounded-xl border border-gray-200"><img className="h-36 w-full object-cover bg-rose-50" src={place.image || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=700&q=80'} alt="" /><div className="p-4"><h3 className="font-bold text-gray-900">{place.name}</h3><p className="mt-1 text-sm text-gray-500">{place.address}</p>{place.rating && <p className="mt-2 text-sm text-amber-600">★ {place.rating} ({place.reviews || 0})</p>}<button onClick={() => savePlace(place)} className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-primary-700"><Heart className="w-4 h-4" /> Save to My Vendors</button></div></article>)}</div>{searchingPlaces && <p className="mt-4 text-gray-500">Searching Google Places…</p>}</section>}
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-4 items-center">
