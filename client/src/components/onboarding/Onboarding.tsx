@@ -231,7 +231,7 @@ export default function Onboarding({ setHasCompletedOnboarding }: OnboardingProp
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-rose-50 via-pink-50 to-violet-100">
       <div className="max-w-3xl w-full">
         {/* Progress Bar */}
         <div className="mb-8">
