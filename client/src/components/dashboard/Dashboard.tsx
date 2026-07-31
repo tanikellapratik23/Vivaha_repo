@@ -453,6 +453,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
             <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
+              <button onClick={() => navigate('/dashboard/split')} className="p-2.5 text-purple-700 hover:bg-purple-50 rounded-lg" title="Vivaha Split"><Split className="w-5 h-5" /></button>
+              <button onClick={() => navigate('/dashboard/settings')} className="p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg" title="Settings"><SettingsIcon className="w-5 h-5" /></button>
               <div className="bg-gradient-to-br from-primary-500 to-pink-500 text-white p-2.5 rounded-xl shadow-md">
                 <Heart className="w-7 h-7" />
               </div>
