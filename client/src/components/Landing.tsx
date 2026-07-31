@@ -45,11 +45,17 @@ function VendorPreview() {
     }
   }, []);
 
+  // Reload whenever a visitor changes the category. The old implementation
+  // captured the first category in a stale callback, so every tab showed the
+  // same Photography results.
+  useEffect(() => {
+    if (userLocation) fetchVendors(userLocation.city, userLocation.state, selectedCategory);
+  }, [userLocation, selectedCategory]);
+
   const detectLocation = async () => {
     try {
       // Always use San Francisco
       setUserLocation({ city: 'San Francisco', state: 'California' });
-      await fetchVendors('San Francisco', 'California');
     } catch (e) {
       console.error('detectLocation error:', e);
       setError('Failed to load vendors');
@@ -57,12 +63,12 @@ function VendorPreview() {
     }
   };
 
-  const fetchVendors = async (city: string, state: string) => {
+  const fetchVendors = async (city: string, state: string, category: string) => {
     setLoading(true);
     try {
-      const categories = selectedCategory === 'all'
+      const categories = category === 'all'
         ? ['Photography', 'Venue', 'DJ', 'Catering', 'Flowers']
-        : [selectedCategory];
+        : [category];
 
       let allVendors: PreviewVendor[] = [];
 
@@ -204,9 +210,6 @@ function VendorPreview() {
               key={cat}
               onClick={() => {
                 setSelectedCategory(cat);
-                if (userLocation) {
-                  fetchVendors(userLocation.city, userLocation.state);
-                }
               }}
               className={`px-4 py-2 rounded-lg transition font-medium ${
                 selectedCategory === cat

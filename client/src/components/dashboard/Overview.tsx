@@ -27,6 +27,7 @@ export default function Overview() {
   const [isLoading, setIsLoading] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [isFirstDashboardVisit, setIsFirstDashboardVisit] = useState(false);
 
   // Helper to capitalize first letter of name
   const capitalizeName = (name: string) => {
@@ -77,6 +78,9 @@ export default function Overview() {
   };
 
   useEffect(() => {
+    const firstVisit = sessionStorage.getItem('showFirstDashboardWelcome') === 'true';
+    setIsFirstDashboardVisit(firstVisit);
+    if (firstVisit) sessionStorage.removeItem('showFirstDashboardWelcome');
     // Load user name immediately from sessionStorage to prevent glitch
     try {
       const user = authStorage.getUser();
@@ -182,7 +186,7 @@ export default function Overview() {
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-8 border border-gray-200/50">
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-primary-600 bg-clip-text text-transparent mb-2">
-            Welcome back{userName ? `, ${userName}` : ''}!
+            {isFirstDashboardVisit ? 'Welcome' : 'Welcome back'}{userName ? `, ${userName}` : ''}!
           </h1>
         </div>
 

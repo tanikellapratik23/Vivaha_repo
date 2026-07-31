@@ -146,16 +146,22 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     }
     
     // Load user data if not admin
-    if (!userIsAdmin) {
+      if (!userIsAdmin) {
       fetchUserSettings();
       loadNavigationPreferences();
       syncAllUserData();
       // Only send welcome email if user just completed onboarding
-      const justCompletedOnboarding = sessionStorage.getItem('justCompletedOnboarding');
-      if (justCompletedOnboarding) {
-        sendWelcomeEmail();
-        sessionStorage.removeItem('justCompletedOnboarding');
-      }
+        const justCompletedOnboarding = sessionStorage.getItem('justCompletedOnboarding');
+        if (justCompletedOnboarding) {
+          sendWelcomeEmail();
+          sessionStorage.setItem('showFirstDashboardWelcome', 'true');
+          sessionStorage.removeItem('justCompletedOnboarding');
+        }
+        // Show the guided tour automatically on a first dashboard visit, while
+        // keeping the Tutorial button available for anyone who wants a replay.
+        if (localStorage.getItem('vivahaTutorialSeen') !== 'true' || justCompletedOnboarding) {
+          setShowTutorial(true);
+        }
     }
 
     // Set up page unload handler to save all data before leaving
@@ -476,14 +482,14 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
               )}
               <button
                 onClick={() => setShowShareModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
+                className="hidden xl:flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
               >
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
               <button
                 onClick={() => navigate('/dashboard/single-source')}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
+                className="hidden xl:flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
               >
                 <FileText className="w-4 h-4" />
                 Share Wedding Info
@@ -879,7 +885,10 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
       )}
 
       {/* Tutorial Modal */}
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      {showTutorial && <Tutorial onClose={() => {
+        localStorage.setItem('vivahaTutorialSeen', 'true');
+        setShowTutorial(false);
+      }} />}
 
       {/* Save & Exit Confirmation Modal */}
       {showSaveExitModal && (
