@@ -36,22 +36,7 @@ import AdminDashboard from './AdminDashboard';
 import VivahaPost from './VivahaPost';
 import WeddingInfoEditor from './WeddingInfoEditor';
 import RegistryManager from './RegistryManager';
-import { setAutoSaveEnabled, isAutoSaveEnabled } from '../../utils/autosave';
 import { ErrorBoundary } from '../ErrorBoundary';
-
-function AutoSaveToggle() {
-  const [enabled, setEnabled] = useState<boolean>(isAutoSaveEnabled());
-  const toggle = () => {
-    const next = !enabled;
-    setEnabled(next);
-    setAutoSaveEnabled(next);
-  };
-  return (
-    <button onClick={toggle} className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all shadow-sm ${enabled ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>
-      Auto-save: {enabled ? 'On' : 'Off'}
-    </button>
-  );
-}
 
 interface DashboardProps {
   isAdmin?: boolean;
@@ -437,7 +422,8 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
     { name: 'Registries', path: '/dashboard/registries', icon: Gift },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
-    ...(wantsBachelorParty ? [{ name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper }] : []),
+    { name: 'Vivaha AI', path: '/dashboard/ai', icon: Sparkles },
+    { name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper },
   ];
 
   const moreFeatures: typeof navigation = [
@@ -477,27 +463,12 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 </button>
               )}
               <button
-                onClick={() => setShowShareModal(true)}
-                className="hidden xl:flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg"
-              >
-                <Share2 className="w-4 h-4" />
-                Share
-              </button>
-              <button
-                onClick={() => navigate('/dashboard/single-source')}
-                className="hidden xl:flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
-              >
-                <FileText className="w-4 h-4" />
-                Share Wedding Info
-              </button>
-              <button
                 onClick={() => setShowTutorial(true)}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
               >
                 <BookOpen className="w-4 h-4" />
                 Tutorial
               </button>
-              <AutoSaveToggle />
               <button
                 onClick={handleLogoutClick}
                 className="flex items-center space-x-2 px-4 py-2.5 text-gray-700 hover:text-gray-900 hover:bg-white/80 rounded-lg transition-all font-medium shadow-sm border border-gray-200"
@@ -730,6 +701,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 <Route path="/" element={<Overview />} />
                 <Route path="/workspaces" element={<WorkspaceLibrary />} />
                 <Route path="/single-source" element={<SingleSourceOfTruth />} />
+                <Route path="/ai" element={<AIAssistant embedded />} />
                 <Route path="/hotel-block" element={<HotelBlock />} />
                 <Route path="/guests" element={<GuestList />} />
                 <Route path="/budget" element={<BudgetTracker />} />
@@ -746,7 +718,7 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
                 <Route path="/outfits" element={<OutfitPlanner />} />
                 <Route path="/story" element={<PostWeddingStory />} />
                 <Route path="/settings" element={<Settings />} />
-                {wantsBachelorParty && <Route path="/bachelor" element={<BachelorAICopilot />} />}
+                <Route path="/bachelor" element={<BachelorAICopilot />} />
               </Routes>
             </ErrorBoundary>
           </main>

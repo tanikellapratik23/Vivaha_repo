@@ -7,7 +7,6 @@ import { userDataStorage } from '../../utils/userDataStorage';
 import { getBudgetOptimizationSuggestions, getCityAverageCost } from '../../utils/cityData';
 import { generateAIBudgetSuggestions } from '../../utils/aiBudgetHelper';
 import { formatNumberWithCommas, formatCurrency } from '../../utils/formatting';
-import AIAssistant from '../AIAssistant';
 
 export default function Overview() {
   const navigate = useNavigate();
@@ -226,7 +225,6 @@ export default function Overview() {
         )}
       </div>
 
-      <AIAssistant embedded />
 
       {/* Quick Actions */}
       <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">

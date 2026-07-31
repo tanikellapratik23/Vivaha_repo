@@ -3,7 +3,7 @@ import { Calendar, MapPin, Users, Phone, Mail, Hotel, Shirt, Copy, Check, Extern
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 export default function SingleSourceOfTruth() {
   const [weddingInfo, setWeddingInfo] = useState<any>(null);
@@ -216,9 +216,9 @@ export default function SingleSourceOfTruth() {
 
       {/* Wedding Details Preview */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-        <div className="bg-gradient-to-r from-primary-50 to-pink-50 p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Wedding Information</h2>
-          <p className="text-gray-600 text-sm mt-1">This is what guests will see when they visit your link</p>
+        <div className="bg-gradient-to-r from-primary-50 to-pink-50 p-6 border-b border-gray-200 flex items-center justify-between gap-4">
+          <div><h2 className="text-2xl font-bold text-gray-900">Wedding Information</h2><p className="text-gray-600 text-sm mt-1">This is the invitation-style fact sheet your guests will see.</p></div>
+          {!isEditing && <button onClick={handleEditToggle} className="flex items-center gap-2 px-4 py-2 bg-white border border-primary-200 text-primary-700 rounded-lg font-semibold"><Edit2 className="w-4 h-4" /> Edit details</button>}
         </div>
 
         <div className="p-8 space-y-6">
@@ -254,7 +254,7 @@ export default function SingleSourceOfTruth() {
           </div>
 
           {/* Date & Time */}
-          {displayInfo?.weddingDate && (
+          {(isEditing || displayInfo?.weddingDate) && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
               <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
               <div className="flex-1">
@@ -295,7 +295,7 @@ export default function SingleSourceOfTruth() {
           )}
 
           {/* Venue */}
-          {displayInfo?.weddingCity && (
+          {(isEditing || displayInfo?.weddingCity) && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
               <MapPin className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
               <div className="flex-1">
@@ -339,7 +339,7 @@ export default function SingleSourceOfTruth() {
           )}
 
           {/* Guest Count */}
-          {displayInfo?.guestCount && (
+          {(isEditing || displayInfo?.guestCount) && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
               <Users className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
               <div className="flex-1">
@@ -360,7 +360,7 @@ export default function SingleSourceOfTruth() {
           )}
 
           {/* Dress Code */}
-          {displayInfo?.dressCode && (
+          {(isEditing || displayInfo?.dressCode) && (
             <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl">
               <Shirt className="w-6 h-6 text-pink-600 flex-shrink-0 mt-1" />
               <div className="flex-1">

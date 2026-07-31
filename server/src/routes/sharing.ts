@@ -85,7 +85,7 @@ router.get('/access/:token', async (req, res) => {
 
     const user = await User.findOne({
       'sharedLinks.token': token,
-    }).select('onboardingData sharedLinks');
+    }).select('name onboardingData weddingPageData sharedLinks');
 
     if (!user) {
       return res.status(404).json({ error: 'Invalid or expired share link' });
@@ -105,10 +105,16 @@ router.get('/access/:token', async (req, res) => {
     // Get the user's name for the dashboard title
     const userName = user.name || user.onboardingData?.role || 'Wedding';
     
+    const userData = {
+      ...(user.onboardingData || {}),
+      ...(user.weddingPageData || {}),
+      weddingPageData: user.weddingPageData,
+    };
+
     res.json({
       success: true,
       accessLevel: sharedLink.accessLevel,
-      userData: user.onboardingData,
+      userData,
       coupleName: userName,
     });
   } catch (error) {

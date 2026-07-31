@@ -57,8 +57,9 @@ router.post('/chat', async (req, res) => {
 
     const content = await generateReply(systemPrompt || 'You are a helpful wedding planning assistant.', message, 800, 0.6);
 
-    // Clean content: remove code fences and excessive whitespace
-    let cleaned = String(content || '').replace(/```[\s\S]*?```/g, '').trim();
+    // Preserve Claude's headings, bullets and emphasis so the chat remains
+    // readable; only remove accidental code fences.
+    let cleaned = String(content || '').replace(/```(?:markdown)?/g, '').trim();
 
     // If model returned raw JSON, try to parse it and provide structured format for ceremony parsing
     let structured = null;
@@ -77,14 +78,7 @@ router.post('/chat', async (req, res) => {
       structured = null;
     }
 
-    // Strip all remaining JSON-like content and code fences
-    cleaned = cleaned
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/`+/g, '')
-      .replace(/\{[\s\S]*?\}/g, '') // Remove JSON objects
-      .replace(/\[[\s\S]*?\]/g, '')  // Remove JSON arrays
-      .replace(/["'`]/g, '')          // Remove quotes
-      .trim();
+    cleaned = cleaned.trim();
 
     res.json({ reply: cleaned, structured });
   } catch (error) {

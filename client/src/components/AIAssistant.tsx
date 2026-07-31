@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Loader, ChevronDown, GripHorizontal } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Loader, ChevronDown, GripHorizontal, HelpCircle } from 'lucide-react';
 import axios from 'axios';
 import { userDataStorage } from '../utils/userDataStorage';
 
@@ -21,14 +21,14 @@ interface Size {
 }
 
 // Use server-side AI proxy endpoints to avoid embedding secrets in the client
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 // Quick prompts for different topics
 const QUICK_PROMPTS = [
-  { icon: '💰', text: 'Budget tips', query: 'What are the best ways to allocate my wedding budget?' },
-  { icon: '👥', text: 'Guest list', query: 'How many guests should I invite to my wedding?' },
-  { icon: '🎂', text: 'Vendors', query: 'What questions should I ask potential vendors?' },
-  { icon: '📅', text: 'Timeline', query: 'What is the ideal wedding planning timeline?' },
+  { icon: '💸', text: 'Find savings', query: 'Use my budget, location, and guest count to find three specific ways I can save money without hurting the guest experience.' },
+  { icon: '🧮', text: 'Budget math', query: 'Break my budget into venue, food, photo, music, florals, attire, and contingency. Show dollars and per-guest cost.' },
+  { icon: '📍', text: 'Local vendor plan', query: 'Build a vendor shortlist strategy for my location, including what to ask, a reasonable price range, and the next two actions.' },
+  { icon: '✅', text: 'This week’s plan', query: 'Based on my wedding details, give me a prioritized plan for this week with the three highest-impact tasks.' },
 ];
 
 export default function AIAssistant({ embedded = false }: { embedded?: boolean }) {
@@ -38,6 +38,7 @@ export default function AIAssistant({ embedded = false }: { embedded?: boolean }
   const [loading, setLoading] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [size, setSize] = useState<Size>({ width: 384, height: 384 });
   const [isDragging, setIsDragging] = useState(false);
@@ -166,7 +167,7 @@ export default function AIAssistant({ embedded = false }: { embedded?: boolean }
     };
   }, [isResizing, resizeStart]);
 
-  const systemPrompt = `You are Vivaha AI Assistant, a friendly expert wedding planning AI. You help couples with decisions about weddings.
+  const systemPrompt = `You are Vivaha AI, an exceptionally practical wedding planner. Give advice tailored to this couple, never generic filler.
 
 User's wedding details:
 - Role: ${userSettings?.role || 'Not specified'}
@@ -176,15 +177,15 @@ User's wedding details:
 - Guest count: ${userSettings?.guestCount || 'Not specified'}
 - Top priorities: ${Array.isArray(userSettings?.topPriority) ? userSettings.topPriority.join(', ') : 'Not specified'}
 
-Provide concise, actionable advice. Be encouraging. Keep responses under 150 words.`;
+Start with the recommendation, then use short sections or bullets. Use the actual location, budget, guest count and style where relevant. Include concrete cost math when discussing money. State assumptions clearly and ask one useful follow-up question. Keep responses under 250 words.`;
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
+  const handleSendMessage = async (messageText = input) => {
+    if (!messageText.trim()) return;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
       type: 'user',
-      content: input,
+      content: messageText,
       timestamp: new Date(),
     };
 
@@ -202,8 +203,8 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
       let newBudget = null;
       let budgetType = null;
 
-      if (budgetAddPattern.test(input)) {
-        const match = input.match(budgetAddPattern);
+      if (budgetAddPattern.test(messageText)) {
+        const match = messageText.match(budgetAddPattern);
         if (match) {
           const amount = parseInt(match[1], 10);
           budgetType = match[2] ? match[2].trim() : 'general';
@@ -214,8 +215,8 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
           reply = `Added $${amount.toLocaleString()} to ${budgetType} budget. New total: $${budgets[budgetType].toLocaleString()}`;
           updated = true;
         }
-      } else if (budgetSetPattern.test(input)) {
-        const match = input.match(budgetSetPattern);
+      } else if (budgetSetPattern.test(messageText)) {
+        const match = messageText.match(budgetSetPattern);
         if (match) {
           budgetType = match[1] ? match[1].trim() : 'general';
           newBudget = parseInt(match[2], 10);
@@ -232,7 +233,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
         const response = await axios.post(
           `${API_URL}/api/ai/chat`,
           {
-            message: input,
+            message: messageText,
             systemPrompt,
           }
         );
@@ -252,7 +253,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
         ];
 
         for (const pattern of navigationPatterns) {
-          if (pattern.keywords.some(kw => input.toLowerCase().includes(kw))) {
+          if (pattern.keywords.some(kw => messageText.toLowerCase().includes(kw))) {
             reply = `Navigating to ${pattern.keywords[0]} page... ✅ Done`;
             setTimeout(() => {
               window.dispatchEvent(new CustomEvent('aiNavigate', { detail: { path: pattern.path } }));
@@ -309,7 +310,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
       {isOpen && (
         <div
           ref={widgetRef}
-          className={`${embedded ? 'relative w-full h-[520px]' : 'fixed'} z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
+          className={`${embedded ? 'relative w-full h-[620px]' : 'fixed'} z-40 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
           style={embedded ? undefined : { left: `${position.x}px`, top: `${position.y}px`, width: `${size.width}px`, height: `${size.height}px` }}
         >
           {/* Header - Draggable */}
@@ -322,7 +323,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
               <Sparkles className="w-5 h-5" />
               <div>
                 <h3 className="font-bold text-sm">Vivaha AI</h3>
-                <p className="text-xs text-white/80">Wedding expert</p>
+                <p className="text-xs text-white/80">Your personalized planning partner</p>
               </div>
             </div>
             <button
@@ -337,16 +338,15 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
             {messages.length === 0 && showQuickPrompts ? (
               <div className="text-center py-4">
-                <p className="text-xs text-gray-600 mb-3">Quick questions:</p>
+                <p className="text-sm font-medium text-gray-700 mb-3">Start with a personalized planning move</p>
                 <div className="space-y-2">
                   {QUICK_PROMPTS.map((prompt, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
-                        setInput(prompt.query);
-                        handleSendMessage();
+                        handleSendMessage(prompt.query);
                       }}
-                      className="w-full px-2 py-1 text-xs bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg transition flex items-center gap-2"
+                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-primary-50 rounded-xl transition flex items-center gap-2"
                     >
                       <span className="text-sm">{prompt.icon}</span>
                       <span className="text-left">{prompt.text}</span>
@@ -368,7 +368,7 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
                       : 'bg-white text-gray-900 border border-gray-200 rounded-bl-none'
                   }`}
                 >
-                  <p className="text-xs leading-snug">{msg.content}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -396,14 +396,14 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Ask anything..."
-                className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs"
+                placeholder="Ask about your budget, guests, vendors, timeline, or trip..."
+                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                 disabled={loading}
               />
               <button
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={loading || !input.trim()}
-                className="px-2 py-1.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 transition"
+                className="px-3 py-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -416,6 +416,8 @@ Provide concise, actionable advice. Be encouraging. Keep responses under 150 wor
             className="absolute bottom-0 right-0 w-6 h-6 bg-gradient-to-tl from-primary-500 to-transparent cursor-nwse-resize rounded-tl-lg opacity-50 hover:opacity-100 transition-opacity"
             title="Drag to resize"
           />}
+          {embedded && <button onClick={() => setShowHelp(!showHelp)} className="absolute bottom-4 left-4 p-2.5 rounded-full bg-white text-primary-600 shadow-lg border border-primary-100 hover:bg-primary-50" title="How Vivaha AI can help"><HelpCircle className="w-5 h-5" /></button>}
+          {embedded && showHelp && <div className="absolute bottom-16 left-4 max-w-sm bg-white rounded-xl border border-gray-200 shadow-xl p-4 text-sm text-gray-700"><button onClick={() => setShowHelp(false)} className="absolute top-2 right-2 text-gray-400"><X className="w-4 h-4" /></button><p className="font-bold text-gray-900 mb-2">How to get the best answer</p><ul className="space-y-1 list-disc pl-4"><li>Ask for a budget breakdown or per-guest math.</li><li>Ask it to compare choices and name trade-offs.</li><li>Request a local vendor outreach plan.</li><li>Ask for a week-by-week timeline or bachelor-trip itinerary.</li></ul></div>}
         </div>
       )}
     </>
