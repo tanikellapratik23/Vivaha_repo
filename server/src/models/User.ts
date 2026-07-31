@@ -57,6 +57,7 @@ export interface IUser extends Document {
     createdAt: Date;
     expiresAt?: Date;
   }>;
+  rsvpResponses?: Array<{ shareToken: string; name: string; email?: string; attending: boolean; guestCount: number; note?: string; createdAt: Date }>;
   navigationPreferences?: {
     order: string[];
     hidden: string[];
@@ -126,6 +127,7 @@ const UserSchema = new Schema<IUser>(
         expiresAt: Date,
       },
     ],
+    rsvpResponses: [{ shareToken: String, name: String, email: String, attending: Boolean, guestCount: Number, note: String, createdAt: Date }],
     navigationPreferences: {
       order: [String],
       hidden: [String],

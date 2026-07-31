@@ -11,6 +11,8 @@ export default function SharedWeddingInfo() {
   const [weddingInfo, setWeddingInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [rsvp, setRsvp] = useState({ name: '', email: '', attending: true, guestCount: 1, note: '' });
+  const [rsvpStatus, setRsvpStatus] = useState('');
 
   useEffect(() => {
     fetchSharedWeddingInfo();
@@ -73,6 +75,11 @@ export default function SharedWeddingInfo() {
     if (!dateString) return 'TBD';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  };
+  const submitRsvp = async (event: React.FormEvent) => {
+    event.preventDefault(); setRsvpStatus('');
+    try { await axios.post(`${API_URL}/api/sharing/access/${token}/rsvp`, rsvp); setRsvpStatus('Thank you—your RSVP has been received!'); }
+    catch (err: any) { setRsvpStatus(err.response?.data?.error || 'Could not save your RSVP. Please try again.'); }
   };
 
   return (
@@ -260,40 +267,7 @@ export default function SharedWeddingInfo() {
           </div>
         )}
 
-        {/* Hotel Block */}
-        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl shadow-lg p-6 border border-cyan-200">
-          <div className="flex items-center gap-3 mb-4">
-            <Hotel className="w-6 h-6 text-cyan-600" />
-            <h2 className="text-2xl font-bold text-gray-900">Hotel Block</h2>
-          </div>
-          <p className="text-gray-700 mb-4">
-            We have reserved hotel blocks with discounted rates for our guests.
-          </p>
-          <a
-            href={`${window.location.origin}/dashboard/hotel-block`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all shadow-md"
-          >
-            <Hotel className="w-5 h-5" />
-            View Hotel Options
-          </a>
-        </div>
-
-        {/* Auto-Updates Notice */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg p-6 border border-green-200">
-          <div className="flex items-center gap-3">
-            <div className="bg-green-500 text-white p-2 rounded-full">
-              <Heart className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Auto-Updates Enabled</h3>
-              <p className="text-gray-700 text-sm">
-                This page automatically updates with the latest wedding details. Check back anytime for the most current information!
-              </p>
-            </div>
-          </div>
-        </div>
+        <form onSubmit={submitRsvp} className="rounded-2xl bg-white p-6 shadow-lg border border-rose-200"><h2 className="text-2xl font-bold text-gray-900">RSVP</h2><p className="mt-1 text-gray-600">Please let us know if you can celebrate with us.</p><div className="mt-5 grid gap-3 md:grid-cols-2"><input required placeholder="Your name" value={rsvp.name} onChange={e => setRsvp({...rsvp, name:e.target.value})}/><input type="email" placeholder="Email (optional)" value={rsvp.email} onChange={e => setRsvp({...rsvp, email:e.target.value})}/><select value={rsvp.attending ? 'yes' : 'no'} onChange={e => setRsvp({...rsvp, attending:e.target.value === 'yes'})}><option value="yes">Joyfully accepts</option><option value="no">Regretfully declines</option></select><input type="number" min="1" disabled={!rsvp.attending} value={rsvp.guestCount} onChange={e => setRsvp({...rsvp, guestCount:Number(e.target.value)})}/></div><textarea className="mt-3 w-full" placeholder="Dietary needs or a note for the couple (optional)" value={rsvp.note} onChange={e => setRsvp({...rsvp, note:e.target.value})}/><button className="mt-4 rounded-xl bg-gradient-to-r from-primary-500 to-pink-600 px-6 py-3 font-bold text-white">Send RSVP</button>{rsvpStatus && <p className="mt-3 font-medium text-primary-700">{rsvpStatus}</p>}</form>
 
         {/* Footer */}
         <div className="text-center py-6">

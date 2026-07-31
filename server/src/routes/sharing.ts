@@ -123,4 +123,15 @@ router.get('/access/:token', async (req, res) => {
   }
 });
 
+router.post('/access/:token/rsvp', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { name, email, attending, guestCount, note } = req.body;
+    if (!name?.trim() || typeof attending !== 'boolean') return res.status(400).json({ error: 'Name and attendance are required.' });
+    const user = await User.findOneAndUpdate({ 'sharedLinks.token': token }, { $push: { rsvpResponses: { shareToken: token, name: name.trim(), email: email?.trim(), attending, guestCount: attending ? Math.max(1, Number(guestCount) || 1) : 0, note: note?.trim(), createdAt: new Date() } } }, { new: true });
+    if (!user) return res.status(404).json({ error: 'Invalid wedding link.' });
+    res.status(201).json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Unable to save RSVP.' }); }
+});
+
 export default router;
