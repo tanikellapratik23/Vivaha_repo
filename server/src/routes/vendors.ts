@@ -15,11 +15,11 @@ const categoryImages: Record<string, string> = {
 };
 
 const osmFilters: Record<string, string[]> = {
-  Photography: ['["shop"="photo"]', '["craft"="photographer"]'],
-  Venue: ['["amenity"="events_venue"]', '["amenity"="community_centre"]', '["tourism"="hotel"]'],
-  DJ: ['["amenity"="nightclub"]', '["amenity"="music_venue"]'],
-  Catering: ['["amenity"="restaurant"]', '["amenity"="cafe"]', '["shop"="deli"]'],
-  Flowers: ['["shop"="florist"]'],
+  Photography: ['["shop"="photo"]', '["craft"="photographer"]', '["name"~"photo|photography",i]'],
+  Venue: ['["amenity"="events_venue"]', '["amenity"="community_centre"]', '["tourism"="hotel"]', '["name"~"event|wedding|ballroom",i]'],
+  DJ: ['["amenity"="nightclub"]', '["amenity"="music_venue"]', '["name"~"dj|music",i]'],
+  Catering: ['["amenity"="restaurant"]', '["amenity"="cafe"]', '["shop"="deli"]', '["name"~"catering|caterer",i]'],
+  Flowers: ['["shop"="florist"]', '["name"~"flower|floral",i]'],
 };
 
 async function searchOpenStreetMap(city: string, state: string, category: string) {

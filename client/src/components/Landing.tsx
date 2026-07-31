@@ -33,7 +33,7 @@ function VendorPreview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ city: string; state: string } | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState('Photography');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     try {
