@@ -148,3 +148,5 @@ Proprietary - All rights reserved
 ## Support
 
 For issues and questions, please open a GitHub issue or contact the development team.
+
+<!-- Deployment configuration refresh: 2026-07-31 -->
