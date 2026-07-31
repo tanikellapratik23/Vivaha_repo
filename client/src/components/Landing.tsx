@@ -12,6 +12,7 @@ import Goals from './onboarding/steps/Goals';
 import Summary from './onboarding/steps/Summary';
 import { OnboardingData } from './onboarding/Onboarding';
 import VivahaMap from './VivahaMap';
+import WhatIsVivaha from './WhatIsVivaha';
 
 const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
@@ -465,7 +466,6 @@ export default function Landing() {
 
               <div className="flex gap-3 mb-4 flex-wrap">
                 <Link to="/register" onClick={() => setShowHero(false)} className="px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold">Get Started</Link>
-                <Link to="/what-is-vivaha" className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold border">Learn More</Link>
               </div>
 
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
@@ -532,6 +532,8 @@ export default function Landing() {
           <VendorPreview />
         </div>
       </section>
+
+      <WhatIsVivaha embedded />
 
       {/* Gallery carousel section */}
       <section className="w-full py-12">
