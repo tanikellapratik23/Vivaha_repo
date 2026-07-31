@@ -2,9 +2,6 @@ import express from 'express';
 
 const router = express.Router();
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
-const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.1-8b-instant';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022';
 
@@ -30,20 +27,7 @@ async function generateReply(system: string, message: string, maxTokens: number,
     return data.content?.filter((block: any) => block.type === 'text').map((block: any) => block.text).join('') || '';
   }
 
-  if (!GROQ_API_KEY) throw new Error('AI service not configured');
-  const response = await fetch(GROQ_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'system', content: system }, { role: 'user', content: message }],
-      temperature,
-      max_tokens: maxTokens,
-    }),
-  });
-  if (!response.ok) throw new Error(`Groq API error: ${await response.text()}`);
-  const data = await response.json() as any;
-  return data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
+  throw new Error('Anthropic AI service is not configured');
 }
 
 // AI Assistant endpoint
@@ -51,8 +35,8 @@ router.post('/chat', async (req, res) => {
   try {
     const { message, systemPrompt } = req.body;
 
-    if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
-      return res.status(500).json({ error: 'AI service not configured' });
+    if (!ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'Anthropic AI service is not configured' });
     }
 
     const content = await generateReply(systemPrompt || 'You are a helpful wedding planning assistant. Be concise and conversational.', message, 450, 0.5);
@@ -92,8 +76,8 @@ router.post('/budget-suggestions', async (req, res) => {
   try {
     const { budget, guestCount, city, priorities } = req.body;
 
-    if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
-      return res.status(500).json({ error: 'AI service not configured' });
+    if (!ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'Anthropic AI service is not configured' });
     }
 
     const prompt = `You are a wedding budget optimization expert. Generate 3-5 specific, actionable budget suggestions for a wedding with these details:
