@@ -420,7 +420,6 @@ export default function Dashboard({ isAdmin: propIsAdmin = false, workspaceId, i
     { name: 'To-Dos', path: '/dashboard/todos', icon: CheckSquare },
     { name: 'Ceremony', path: '/dashboard/ceremony', icon: Church },
     { name: 'My Vendors', path: '/dashboard/vendors', icon: Briefcase },
-    { name: 'Registries', path: '/dashboard/registries', icon: Gift },
     { name: 'Seating', path: '/dashboard/seating', icon: LayoutGrid },
     { name: 'Vivaha AI', path: '/dashboard/ai', icon: Sparkles },
     { name: 'Bachelor / Bachelorette', path: '/dashboard/bachelor', icon: PartyPopper },
