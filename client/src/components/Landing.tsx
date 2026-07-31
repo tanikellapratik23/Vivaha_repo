@@ -13,7 +13,7 @@ import Summary from './onboarding/steps/Summary';
 import { OnboardingData } from './onboarding/Onboarding';
 import VivahaMap from './VivahaMap';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 interface PreviewVendor {
   id: string;
@@ -25,6 +25,7 @@ interface PreviewVendor {
   phone?: string;
   email?: string;
   image?: string;
+  website?: string;
 }
 
 function VendorPreview() {
@@ -90,23 +91,17 @@ function VendorPreview() {
                 state: business.location.state,
               },
               rating: business.rating,
-              estimatedCost: 2000 + Math.random() * 5000, // placeholder cost
+              estimatedCost: undefined,
               phone: business.display_phone || business.phone,
               email: '',
               image: business.image_url,
+              website: business.url || business.website,
             } as PreviewVendor));
             
             allVendors = [...allVendors, ...mapped];
-          } else {
-            // Fallback to mock vendors if API returns empty
-            const mockVendors = generateMockVendors(city, state, category);
-            allVendors = [...allVendors, ...mockVendors];
           }
         } catch (err) {
           console.error(`Failed to fetch ${category}:`, err);
-          // Fallback to mock vendors on error
-          const mockVendors = generateMockVendors(city, state, category);
-          allVendors = [...allVendors, ...mockVendors];
         }
       }
 
@@ -120,6 +115,7 @@ function VendorPreview() {
     }
   };
 
+  /* Legacy mock data retained only for local design development; production never displays it. */
   const generateMockVendors = (city: string, state: string, category: string): PreviewVendor[] => {
     const vendors: PreviewVendor[] = [];
     
@@ -235,29 +231,28 @@ function VendorPreview() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {vendors.map((vendor) => (
-              <div key={vendor.id} className="bg-gradient-to-b from-white to-white/95 border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition">
+              <div key={vendor.id} className="group bg-white border border-rose-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 {/* Vendor Image */}
-                <div className="h-72 bg-gray-200 overflow-hidden relative flex items-center justify-center">
+                <div className="h-64 bg-rose-50 overflow-hidden relative flex items-center justify-center">
                   <img
                     src={vendor.image || 'https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop'}
                     alt={vendor.name}
-                    className="w-full h-full object-cover hover:scale-105 transition"
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1519671482677-e389f3dd404b?w=600&h=400&fit=crop';
                     }}
                   />
                   {/* Fade overlay at bottom of image */}
-                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-b from-transparent to-white"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
+                  <span className="absolute top-4 left-4 text-xs font-bold tracking-wide uppercase bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-primary-700">{vendor.category}</span>
                 </div>
 
                 {/* Vendor Info */}
-                <div className="p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">{vendor.name}</h4>
+                <div className="p-5">
+                  <h4 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2">{vendor.name}</h4>
                   
                   {/* Category Badge */}
-                  <span className="inline-block text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded mb-2 font-medium">
-                    {vendor.category}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4"><MapPin className="w-4 h-4 text-primary-500" />{vendor.location.city}, {vendor.location.state}</div>
 
                   {/* Rating */}
                   {vendor.rating && (
@@ -289,6 +284,7 @@ function VendorPreview() {
                       </div>
                     )}
                   </div>
+                  {vendor.website && <a href={vendor.website} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-full rounded-xl border border-primary-200 px-3 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 transition">View website</a>}
                 </div>
               </div>
             ))}

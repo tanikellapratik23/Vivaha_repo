@@ -4,6 +4,67 @@ import Vendor from '../models/Vendor';
 import axios from 'axios';
 
 const router = Router();
+const osmCache = new Map<string, { expiresAt: number; businesses: any[] }>();
+
+const categoryImages: Record<string, string> = {
+  Photography: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=900&q=80',
+  Venue: 'https://images.unsplash.com/photo-1519167271-5d9b8c24e46c?auto=format&fit=crop&w=900&q=80',
+  DJ: 'https://images.unsplash.com/photo-1571266028243-d220c9c3b2fd?auto=format&fit=crop&w=900&q=80',
+  Catering: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80',
+  Flowers: 'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80',
+};
+
+const osmFilters: Record<string, string[]> = {
+  Photography: ['["shop"="photo"]', '["craft"="photographer"]'],
+  Venue: ['["amenity"="events_venue"]', '["amenity"="community_centre"]', '["tourism"="hotel"]'],
+  DJ: ['["amenity"="nightclub"]', '["amenity"="music_venue"]'],
+  Catering: ['["amenity"="restaurant"]', '["amenity"="cafe"]', '["shop"="deli"]'],
+  Flowers: ['["shop"="florist"]'],
+};
+
+async function searchOpenStreetMap(city: string, state: string, category: string) {
+  const cacheKey = `${city}|${state}|${category}`.toLowerCase();
+  const cached = osmCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.businesses;
+
+  const geocode = await axios.get('https://nominatim.openstreetmap.org/search', {
+    params: { q: `${city}, ${state}`, format: 'jsonv2', limit: 1 },
+    headers: { 'User-Agent': 'Vivaha wedding planner vendor discovery' },
+    timeout: 8000,
+  });
+  const place = geocode.data?.[0];
+  if (!place) return [];
+  const filters = osmFilters[category] || [];
+  if (!filters.length) return [];
+  const query = `[out:json][timeout:15];(${filters.map((filter) => `nwr${filter}(around:18000,${place.lat},${place.lon});`).join('')});out center tags 30;`;
+  const overpass = await axios.post('https://overpass-api.de/api/interpreter', query, {
+    headers: { 'Content-Type': 'text/plain', 'User-Agent': 'Vivaha wedding planner vendor discovery' },
+    timeout: 20000,
+  });
+  const seen = new Set<string>();
+  const businesses = (overpass.data?.elements || [])
+    .map((item: any) => {
+      const tags = item.tags || {};
+      const name = tags.name?.trim();
+      if (!name || seen.has(name.toLowerCase())) return null;
+      seen.add(name.toLowerCase());
+      const address = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ');
+      return {
+        id: `osm-${item.type}-${item.id}`,
+        name,
+        categories: [{ title: category }],
+        location: { city: tags['addr:city'] || city, state: tags['addr:state'] || state, address1: address },
+        display_phone: tags.phone || tags['contact:phone'] || '',
+        url: tags.website || tags['contact:website'] || '',
+        image_url: categoryImages[category],
+        source: 'openstreetmap',
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+  osmCache.set(cacheKey, { businesses, expiresAt: Date.now() + 60 * 60 * 1000 });
+  return businesses;
+}
 
 // Proxy Yelp API search (to avoid CORS issues in frontend)
 // Allow unauthenticated access for landing page preview, authenticated for dashboard
@@ -12,9 +73,7 @@ router.get('/search', async (req, res) => {
     const { city, state, category } = req.query;
     const YELP_API_KEY = process.env.YELP_API_KEY;
 
-    if (!YELP_API_KEY) {
-      return res.json({ businesses: [] }); // Return empty if no API key
-    }
+    if (!city || !state || !category) return res.status(400).json({ error: 'city, state, and category are required' });
 
     const categoryMap: { [key: string]: string } = {
       Photography: 'photographers',
@@ -29,6 +88,11 @@ router.get('/search', async (req, res) => {
     const yelpCategory = categoryMap[category as string] || 'wedding';
     const location = `${city}, ${state}`;
 
+    if (!YELP_API_KEY) {
+      const businesses = await searchOpenStreetMap(String(city), String(state), String(category));
+      return res.json({ businesses, source: 'openstreetmap' });
+    }
+
     const response = await axios.get('https://api.yelp.com/v3/businesses/search', {
       headers: {
         Authorization: `Bearer ${YELP_API_KEY}`,
@@ -41,10 +105,10 @@ router.get('/search', async (req, res) => {
       },
     });
 
-    res.json(response.data);
+    res.json({ ...response.data, source: 'yelp' });
   } catch (error: any) {
     console.error('Yelp API error:', error.response?.data || error.message);
-    res.json({ businesses: [] }); // Return empty on error
+    res.json({ businesses: [], source: 'unavailable' });
   }
 });
 
