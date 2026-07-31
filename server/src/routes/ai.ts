@@ -5,42 +5,57 @@ const router = express.Router();
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022';
+
+async function generateReply(system: string, message: string, maxTokens: number, temperature: number) {
+  if (ANTHROPIC_API_KEY) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        max_tokens: maxTokens,
+        temperature,
+        system,
+        messages: [{ role: 'user', content: message }],
+      }),
+    });
+    if (!response.ok) throw new Error(`Claude API error: ${await response.text()}`);
+    const data = await response.json() as any;
+    return data.content?.filter((block: any) => block.type === 'text').map((block: any) => block.text).join('') || '';
+  }
+
+  if (!GROQ_API_KEY) throw new Error('AI service not configured');
+  const response = await fetch(GROQ_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: message }],
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+  if (!response.ok) throw new Error(`Groq API error: ${await response.text()}`);
+  const data = await response.json() as any;
+  return data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
+}
 
 // AI Assistant endpoint
 router.post('/chat', async (req, res) => {
   try {
     const { message, systemPrompt } = req.body;
 
-    if (!GROQ_API_KEY) {
+    if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
       return res.status(500).json({ error: 'AI service not configured' });
     }
 
-    const response = await fetch(GROQ_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        temperature: 0.6,
-        max_tokens: 800,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Groq API error:', errorText);
-      return res.status(response.status).json({ error: 'AI service error' });
-    }
-
-    const data = (await response.json()) as any;
-    // Extract model message content safely
-    const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
+    const content = await generateReply(systemPrompt || 'You are a helpful wedding planning assistant.', message, 800, 0.6);
 
     // Clean content: remove code fences and excessive whitespace
     let cleaned = String(content || '').replace(/```[\s\S]*?```/g, '').trim();
@@ -83,7 +98,7 @@ router.post('/budget-suggestions', async (req, res) => {
   try {
     const { budget, guestCount, city, priorities } = req.body;
 
-    if (!GROQ_API_KEY) {
+    if (!ANTHROPIC_API_KEY && !GROQ_API_KEY) {
       return res.status(500).json({ error: 'AI service not configured' });
     }
 
@@ -106,34 +121,12 @@ Example: "💐 Consider in-season flowers to save $1,500-$2,000 on florals"
 
 Generate 4 actionable suggestions:`;
 
-    const response = await fetch(GROQ_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are a wedding budget optimization expert. Provide specific, actionable, and realistic budget advice.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Groq API error:', errorText);
-      return res.status(response.status).json({ error: 'AI service error' });
-    }
-
-    const data = (await response.json()) as any;
-    const content = data.choices[0]?.message?.content || '';
+    const content = await generateReply(
+      'You are a wedding budget optimization expert. Provide specific, actionable, and realistic budget advice.',
+      prompt,
+      500,
+      0.7,
+    );
     
     // Parse suggestions from response
     const suggestions = content
