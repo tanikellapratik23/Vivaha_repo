@@ -26,6 +26,7 @@ interface PreviewVendor {
   email?: string;
   image?: string;
   website?: string;
+  isDiscovery?: boolean;
 }
 
 function VendorPreview() {
@@ -106,6 +107,14 @@ function VendorPreview() {
       }
 
       // Show only 6 vendors total, respecting category filter
+      // OpenStreetMap is not a complete wedding-vendor directory. When it has
+      // no match, show honest live-search cards instead of fake businesses.
+      if (allVendors.length === 0) {
+        const discoveryCategories = category === 'all'
+          ? ['Photography', 'Venue', 'DJ', 'Catering', 'Flowers']
+          : [category];
+        allVendors = discoveryCategories.map((item) => makeDiscoveryCard(city, state, item));
+      }
       const limitedVendors = allVendors.slice(0, 6);
       setVendors(limitedVendors);
     } catch (error) {
@@ -113,6 +122,18 @@ function VendorPreview() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const makeDiscoveryCard = (city: string, state: string, category: string): PreviewVendor => {
+    const images: Record<string, string> = {
+      Photography: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=900&q=80',
+      Venue: 'https://images.unsplash.com/photo-1519167271-5d9b8c24e46c?auto=format&fit=crop&w=900&q=80',
+      DJ: 'https://images.unsplash.com/photo-1571266028243-d220c9c3b2fd?auto=format&fit=crop&w=900&q=80',
+      Catering: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80',
+      Flowers: 'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=80',
+    };
+    const search = encodeURIComponent(`wedding ${category.toLowerCase()} near ${city}, ${state}`);
+    return { id: `live-${category}`, name: `Explore ${category} near ${city}`, category, location: { city, state }, image: images[category], website: `https://www.google.com/maps/search/${search}`, isDiscovery: true };
   };
 
   /* Legacy mock data retained only for local design development; production never displays it. */
@@ -253,6 +274,7 @@ function VendorPreview() {
                   
                   {/* Category Badge */}
                   <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4"><MapPin className="w-4 h-4 text-primary-500" />{vendor.location.city}, {vendor.location.state}</div>
+                  {vendor.isDiscovery && <p className="text-sm text-gray-600 mb-4">Browse live local results—availability and reviews update in real time.</p>}
 
                   {/* Rating */}
                   {vendor.rating && (
@@ -284,7 +306,7 @@ function VendorPreview() {
                       </div>
                     )}
                   </div>
-                  {vendor.website && <a href={vendor.website} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-full rounded-xl border border-primary-200 px-3 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 transition">View website</a>}
+                  {vendor.website && <a href={vendor.website} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-full rounded-xl border border-primary-200 px-3 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 transition">{vendor.isDiscovery ? 'Open live results' : 'View website'}</a>}
                 </div>
               </div>
             ))}
