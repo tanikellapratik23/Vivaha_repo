@@ -122,7 +122,7 @@ router.post('/places-search', authMiddleware, async (req: AuthRequest, res) => {
       textQuery: `${query || 'wedding vendors'} near ${location || 'Morrisville, NC'}`,
       pageSize: 12,
     }, { headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.websiteUri,places.photos' } });
-    res.json({ places: (response.data.places || []).map((place: any) => ({ id: place.id, name: place.displayName?.text, address: place.formattedAddress, rating: place.rating, reviews: place.userRatingCount, phone: place.nationalPhoneNumber, website: place.websiteUri, image: place.photos?.[0]?.name ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxHeightPx=500&maxWidthPx=700&key=${key}` : null })) });
+    res.json({ places: (response.data.places || []).map((place: any) => ({ id: place.id, name: place.displayName?.text, address: place.formattedAddress, rating: place.rating, reviews: place.userRatingCount, phone: place.nationalPhoneNumber, website: place.websiteUri, photoName: place.photos?.[0]?.name || null })) });
   } catch (error: any) {
     console.error('Google Places search error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Unable to search Google Places.' });
