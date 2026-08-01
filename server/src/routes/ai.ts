@@ -4,7 +4,10 @@ const router = express.Router();
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 // Let Vercel select the exact Claude model; Sonnet is the production default.
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
+// Anthropic's direct Messages API uses dated model identifiers. Keep the
+// environment override for future upgrades, but use the current Sonnet model
+// when no override has been configured.
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
 
 async function generateReply(system: string, message: string, maxTokens: number, temperature: number) {
   if (ANTHROPIC_API_KEY) {
