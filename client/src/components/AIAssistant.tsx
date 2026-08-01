@@ -21,7 +21,11 @@ interface Size {
 }
 
 // Use server-side AI proxy endpoints to avoid embedding secrets in the client
-const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
+// AI always uses the dedicated API deployment in production. This avoids a
+// stale frontend rewrite ever sending a chat request to an older function.
+const API_URL = import.meta.env.PROD
+  ? 'https://vivaha-api.vercel.app'
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 // Quick prompts for different topics
 const QUICK_PROMPTS = [

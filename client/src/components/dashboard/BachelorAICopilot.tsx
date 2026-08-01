@@ -3,7 +3,10 @@ import { Send, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { authStorage } from '../../utils/auth';
 
-const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
+// Keep the Trip Copilot on the same dedicated AI backend as Vivaha AI.
+const API_URL = import.meta.env.PROD
+  ? 'https://vivaha-api.vercel.app'
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 type Message = { role: 'user' | 'assistant'; text: string };
 
 export default function BachelorAICopilot() {
