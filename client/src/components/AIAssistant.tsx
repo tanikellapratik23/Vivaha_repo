@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Loader, ChevronDown, GripHorizontal, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, GripHorizontal, HelpCircle, CalendarDays, MapPin, Users } from 'lucide-react';
 import axios from 'axios';
 import { userDataStorage } from '../utils/userDataStorage';
+import { authStorage } from '../utils/auth';
 
 interface Message {
   id: string;
@@ -75,9 +76,8 @@ export default function AIAssistant({ embedded = false }: { embedded?: boolean }
     // Load user settings for context
     const fetchSettings = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get('/api/onboarding', {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await axios.get(`${API_URL}/api/onboarding`, {
+          headers: { Authorization: `Bearer ${authStorage.getToken() || ''}` },
         });
         setUserSettings(response.data);
       } catch (error) {
@@ -171,17 +171,23 @@ export default function AIAssistant({ embedded = false }: { embedded?: boolean }
     };
   }, [isResizing, resizeStart]);
 
-  const systemPrompt = `You are Vivaha AI, an exceptionally practical wedding planner. Give advice tailored to this couple, never generic filler.
+  const weddingDate = userSettings?.weddingDate || userSettings?.date;
+  const weddingLocation = [userSettings?.weddingCity || userSettings?.city, userSettings?.weddingState || userSettings?.state, userSettings?.weddingCountry || userSettings?.country].filter(Boolean).join(', ');
+  const couplesNames = [userSettings?.coupleName1, userSettings?.coupleName2].filter(Boolean).join(' and ');
+  const systemPrompt = `You are Vivaha AI, an exceptionally practical, warm wedding planner. This is a real conversation with a couple; write naturally, confidently, and never like a questionnaire. Give advice tailored to this couple, never generic filler.
 
 User's wedding details:
 - Role: ${userSettings?.role || 'Not specified'}
+- Couple: ${couplesNames || 'Not specified'}
+- Wedding date: ${weddingDate || 'Not specified'}
+- Wedding time: ${userSettings?.weddingTime || 'Not specified'}
 - Wedding style: ${userSettings?.weddingStyle || 'Not specified'}
-- Location: ${userSettings?.weddingCity || 'Not specified'}, ${userSettings?.weddingState || ''}
+- Location: ${weddingLocation || 'Not specified'}
 - Budget: $${userSettings?.estimatedBudget || 'Not specified'}
 - Guest count: ${userSettings?.guestCount || 'Not specified'}
 - Top priorities: ${Array.isArray(userSettings?.topPriority) ? userSettings.topPriority.join(', ') : 'Not specified'}
 
-Start with the recommendation, then use short sections or bullets. Use the actual location, budget, guest count and style where relevant. Include concrete cost math when discussing money. State assumptions clearly and ask one useful follow-up question. Keep responses under 120 words unless the user explicitly asks for a detailed plan. Never dump a full plan before confirming the key preference. For venue or vendor requests, provide Google Maps search links the user can open and say availability/pricing must be verified.`;
+Use every populated detail above automatically. Never say their details are missing or ask them to repeat data that appears above. Start with the answer, then use only a few short bullets if useful. Use concrete cost math when discussing money. Keep most replies under 130 words, with one thoughtful follow-up question at most. For venue or vendor requests, provide useful Google Maps search links and say availability/pricing must be verified.`;
 
   const handleSendMessage = async (messageText = input) => {
     if (!messageText.trim()) return;
@@ -293,13 +299,13 @@ Start with the recommendation, then use short sections or bullets. Use the actua
       {isOpen && (
         <div
           ref={widgetRef}
-          className={`${embedded ? 'relative w-full h-[calc(100vh-11rem)] min-h-[680px]' : 'fixed'} z-40 bg-white text-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200`}
+          className={`${embedded ? 'relative w-full h-[calc(100vh-11rem)] min-h-[720px]' : 'fixed'} z-40 bg-white text-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-rose-100`}
           style={embedded ? undefined : { left: `${position.x}px`, top: `${position.y}px`, width: `${size.width}px`, height: `${size.height}px` }}
         >
           {/* Header - Draggable */}
           <div
             onMouseDown={embedded ? undefined : handleHeaderMouseDown}
-            className={`bg-gradient-to-r from-primary-500 to-purple-600 text-white p-4 flex items-center justify-between ${embedded ? '' : 'cursor-move'} hover:from-primary-600 hover:to-purple-700 transition-all`}
+            className={`bg-gradient-to-r from-primary-500 via-fuchsia-500 to-purple-600 text-white p-5 flex items-center justify-between ${embedded ? '' : 'cursor-move'} transition-all`}
           >
             <div className="flex items-center gap-2 pointer-events-none">
               <GripHorizontal className="w-4 h-4" />
@@ -318,21 +324,30 @@ Start with the recommendation, then use short sections or bullets. Use the actua
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-5 md:p-7 space-y-4 bg-gradient-to-b from-rose-50/80 via-white to-violet-50/40">
             {messages.length === 0 && showQuickPrompts ? (
-              <div className="text-center py-4">
-                <p className="text-sm font-medium text-gray-700 mb-3">Start with a personalized planning move</p>
-                <div className="space-y-2">
+              <div className="max-w-4xl mx-auto py-4">
+                <div className="rounded-2xl border border-rose-100 bg-white/90 p-5 mb-5 shadow-sm">
+                  <p className="font-semibold text-gray-900">I know your wedding plan.</p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-700">
+                    {weddingDate && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1.5"><CalendarDays className="h-3.5 w-3.5 text-rose-500" />{weddingDate}</span>}
+                    {weddingLocation && <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-3 py-1.5"><MapPin className="h-3.5 w-3.5 text-violet-500" />{weddingLocation}</span>}
+                    {userSettings?.guestCount && <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 px-3 py-1.5"><Users className="h-3.5 w-3.5 text-pink-500" />{userSettings.guestCount} guests</span>}
+                    {!userSettings && <span className="rounded-full bg-gray-100 px-3 py-1.5">Loading your wedding profile…</span>}
+                  </div>
+                </div>
+                <p className="text-sm font-semibold text-gray-800 mb-3">What would you like to work through?</p>
+                <div className="grid gap-3 sm:grid-cols-2">
                   {QUICK_PROMPTS.map((prompt, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
                         handleSendMessage(prompt.query);
                       }}
-                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-primary-50 rounded-xl transition flex items-center gap-2"
+                      className="w-full px-4 py-4 text-sm bg-white border border-rose-100 text-gray-800 hover:border-primary-300 hover:-translate-y-0.5 hover:shadow-md rounded-2xl transition flex items-center gap-3 text-left"
                     >
                       <span className="text-sm">{prompt.icon}</span>
-                      <span className="text-left">{prompt.text}</span>
+                      <span className="font-semibold">{prompt.text}</span>
                     </button>
                   ))}
                 </div>
@@ -345,10 +360,10 @@ Start with the recommendation, then use short sections or bullets. Use the actua
                 className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${
+                  className={`max-w-[85%] px-5 py-4 rounded-2xl text-sm shadow-sm ${
                     msg.type === 'user'
-                      ? 'bg-primary-500 text-white rounded-br-none'
-                      : 'bg-white text-gray-900 border border-gray-200 rounded-bl-none'
+                      ? 'bg-gradient-to-r from-primary-500 to-fuchsia-500 text-white rounded-br-md'
+                      : 'bg-white text-gray-900 border border-rose-100 rounded-bl-md'
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -372,7 +387,7 @@ Start with the recommendation, then use short sections or bullets. Use the actua
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t bg-white">
+          <div className="p-4 border-t border-rose-100 bg-white/95">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -380,13 +395,13 @@ Start with the recommendation, then use short sections or bullets. Use the actua
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Ask about your budget, guests, vendors, timeline, or trip..."
-                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                className="flex-1 px-4 py-3 border border-rose-200 bg-white text-gray-900 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400 text-sm"
                 disabled={loading}
               />
               <button
                 onClick={() => handleSendMessage()}
                 disabled={loading || !input.trim()}
-                className="px-3 py-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+                className="px-4 py-3 bg-gradient-to-r from-primary-500 to-fuchsia-500 text-white rounded-2xl hover:shadow-lg disabled:opacity-50 transition"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
