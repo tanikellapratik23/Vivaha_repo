@@ -250,12 +250,12 @@ Start with the recommendation, then use short sections or bullets. Use the actua
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get AI response:', error);
       const errorMessage: Message = {
         id: `msg-${Date.now()}-error`,
         type: 'assistant',
-        content: 'Sorry, I couldn\'t process your request. Please try again.',
+        content: error.response?.data?.error || 'Sorry, I couldn\'t process your request. Please try again.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);

@@ -68,7 +68,7 @@ router.post('/chat', async (req, res) => {
     res.json({ reply: cleaned, structured });
   } catch (error) {
     console.error('AI chat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(502).json({ error: error instanceof Error ? error.message : 'Claude request failed' });
   }
 });
 

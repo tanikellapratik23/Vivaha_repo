@@ -25,8 +25,8 @@ export default function BachelorAICopilot() {
     try {
       const response = await axios.post(`${API_URL}/api/ai/chat`, { message: history, systemPrompt }, { headers: { Authorization: `Bearer ${authStorage.getToken() || ''}` } });
       setMessages(current => [...current, { role: 'assistant', text: response.data.reply || 'I need one more detail to build this well—what dates are you considering?' }]);
-    } catch {
-      setMessages(current => [...current, { role: 'assistant', text: 'I could not reach the trip planner. Please try again in a moment.' }]);
+    } catch (error: any) {
+      setMessages(current => [...current, { role: 'assistant', text: error.response?.data?.error || 'I could not reach the trip planner. Please try again in a moment.' }]);
     } finally { setLoading(false); }
   };
 
