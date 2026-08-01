@@ -8,17 +8,15 @@ export default async function handler(req: Request, res: Response) {
   // OPTIONS preflight at this entry point, so the actual auth POST is allowed
   // to reach the shared Express router.
   const origin = req.headers.origin;
-  if (origin && (
-    origin === 'https://vivaha-repo.vercel.app' ||
-    origin === 'https://vivahaplan.com' ||
-    origin === 'https://www.vivahaplan.com' ||
-    /^https:\/\/vivaha-repo-[a-z0-9-]+\.vercel\.app$/i.test(origin)
-  )) {
+  // The client is deployed on both the Vercel alias and vivahaplan.com.
+  // Reflect the requesting origin so the direct AI API call is never blocked
+  // by an outdated domain allowlist during a deployment transition.
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
