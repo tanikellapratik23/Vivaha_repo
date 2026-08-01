@@ -9,6 +9,14 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 // when no override has been configured.
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
 
+// Safe diagnostic for the client proxy. It deliberately exposes no key data.
+router.get('/status', (_req, res) => {
+  res.json({
+    anthropicConfigured: Boolean(ANTHROPIC_API_KEY),
+    anthropicModel: ANTHROPIC_MODEL,
+  });
+});
+
 async function generateReply(system: string, message: string, maxTokens: number, temperature: number) {
   if (ANTHROPIC_API_KEY) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
