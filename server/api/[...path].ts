@@ -10,6 +10,8 @@ export default async function handler(req: Request, res: Response) {
   const origin = req.headers.origin;
   if (origin && (
     origin === 'https://vivaha-repo.vercel.app' ||
+    origin === 'https://vivahaplan.com' ||
+    origin === 'https://www.vivahaplan.com' ||
     /^https:\/\/vivaha-repo-[a-z0-9-]+\.vercel\.app$/i.test(origin)
   )) {
     res.setHeader('Access-Control-Allow-Origin', origin);
