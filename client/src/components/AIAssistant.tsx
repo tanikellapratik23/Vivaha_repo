@@ -28,6 +28,19 @@ const API_URL = import.meta.env.PROD
   ? 'https://vivaha-api.vercel.app'
   : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
+const conversationKey = () => {
+  const user = authStorage.getUser();
+  const identity = user?.id || user?._id || user?.email || authStorage.getToken()?.slice(-18) || 'guest';
+  return `vivaha-ai-conversation-${identity}`;
+};
+
+const loadConversation = (): Message[] => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(conversationKey()) || '[]');
+    return Array.isArray(saved) ? saved.map((item) => ({ ...item, timestamp: new Date(item.timestamp) })) : [];
+  } catch { return []; }
+};
+
 // Quick prompts for different topics
 const QUICK_PROMPTS = [
   { icon: '💸', text: 'Find savings', query: 'Use my budget, location, and guest count to find three specific ways I can save money without hurting the guest experience.' },
@@ -38,7 +51,7 @@ const QUICK_PROMPTS = [
 
 export default function AIAssistant({ embedded = false }: { embedded?: boolean }) {
   const [isOpen, setIsOpen] = useState(embedded);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(loadConversation);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
@@ -89,6 +102,10 @@ export default function AIAssistant({ embedded = false }: { embedded?: boolean }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(conversationKey(), JSON.stringify(messages));
   }, [messages]);
 
   // Save position and size when they change
@@ -240,10 +257,14 @@ Use every populated detail above automatically. Never say their details are miss
 
       if (!updated) {
         // ...existing navigation and AI logic...
+        const conversation = [...messages, userMessage]
+          .slice(-12)
+          .map((item) => `${item.type === 'user' ? 'Couple' : 'Vivaha'}: ${item.content}`)
+          .join('\n');
         const response = await axios.post(
           `${API_URL}/api/ai/chat`,
           {
-            message: messageText,
+            message: `Conversation so far:\n${conversation}\n\nRespond to the couple's latest message naturally.`,
             systemPrompt,
           }
         );

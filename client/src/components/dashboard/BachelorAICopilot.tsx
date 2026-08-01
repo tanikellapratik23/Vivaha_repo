@@ -9,11 +9,26 @@ const API_URL = import.meta.env.PROD
   : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 type Message = { role: 'user' | 'assistant'; text: string };
 
+const tripConversationKey = () => {
+  const user = authStorage.getUser();
+  const identity = user?.id || user?._id || user?.email || authStorage.getToken()?.slice(-18) || 'guest';
+  return `vivaha-trip-conversation-${identity}`;
+};
+
+const firstTripMessage: Message = {
+  role: 'assistant',
+  text: "I’ll build this trip with you, one decision at a time. First: where is everyone traveling from, and where are you thinking of going? If you’re undecided, tell me your group size, vibe, and budget and I’ll suggest destinations."
+};
+
+const loadTripConversation = (): Message[] => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(tripConversationKey()) || '[]');
+    return Array.isArray(saved) && saved.length ? saved : [firstTripMessage];
+  } catch { return [firstTripMessage]; }
+};
+
 export default function BachelorAICopilot() {
-  const [messages, setMessages] = useState<Message[]>([{
-    role: 'assistant',
-    text: "I’ll build this trip with you, one decision at a time. First: where is everyone traveling from, and where are you thinking of going? If you’re undecided, tell me your group size, vibe, and budget and I’ll suggest destinations."
-  }]);
+  const [messages, setMessages] = useState<Message[]>(loadTripConversation);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [weddingProfile, setWeddingProfile] = useState<any>(null);
@@ -24,13 +39,17 @@ export default function BachelorAICopilot() {
       .catch(() => setWeddingProfile({}));
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem(tripConversationKey(), JSON.stringify(messages));
+  }, [messages]);
+
   const submit = async (event?: FormEvent) => {
     event?.preventDefault();
     const text = message.trim();
     if (!text || loading) return;
     setMessages(current => [...current, { role: 'user', text }]);
     setMessage(''); setLoading(true);
-    const history = [...messages, { role: 'user' as const, text }].map(item => `${item.role === 'user' ? 'Traveler' : 'Vivaha'}: ${item.text}`).join('\n');
+    const history = [...messages, { role: 'user' as const, text }].slice(-14).map(item => `${item.role === 'user' ? 'Traveler' : 'Vivaha'}: ${item.text}`).join('\n');
     const location = [weddingProfile?.weddingCity || weddingProfile?.city, weddingProfile?.weddingState || weddingProfile?.state].filter(Boolean).join(', ');
     const systemPrompt = `You are Vivaha Trip Copilot, a real Claude-powered conversational trip planner for bachelor, bachelorette and joint trips. You already know this wedding profile: wedding date ${weddingProfile?.weddingDate || 'not set'}, location ${location || 'not set'}, wedding style ${weddingProfile?.weddingStyle || 'not set'}, estimated wedding budget ${weddingProfile?.estimatedBudget ? `$${weddingProfile.estimatedBudget}` : 'not set'}, and guest count ${weddingProfile?.guestCount || 'not set'}. Use relevant details naturally, but never ask the user to repeat any of those.
 
