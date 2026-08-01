@@ -3,7 +3,8 @@ import express from 'express';
 const router = express.Router();
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022';
+// Let Vercel select the exact Claude model; Sonnet is the production default.
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
 async function generateReply(system: string, message: string, maxTokens: number, temperature: number) {
   if (ANTHROPIC_API_KEY) {
