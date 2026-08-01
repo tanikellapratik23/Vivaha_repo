@@ -56,7 +56,14 @@ app.use('/api/registries', registriesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Vivaha API is running' });
+  // Never expose the key itself. This lets production troubleshooting confirm
+  // whether Vercel loaded the AI configuration for the running deployment.
+  res.json({
+    status: 'ok',
+    message: 'Vivaha API is running',
+    anthropicConfigured: Boolean(process.env.ANTHROPIC_API_KEY),
+    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+  });
 });
 
 // Reuse one connection across Vercel function invocations.  Local development
